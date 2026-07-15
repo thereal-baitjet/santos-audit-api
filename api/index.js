@@ -6,9 +6,10 @@ import { auditSite } from "../audit.js";
 
 const app = express();
 
-// Receiving wallet (public address, not a secret) + network via env with safe defaults
-const SELLER = process.env.SELLER_ADDRESS ?? "0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B";
-const NETWORK = process.env.X402_NETWORK ?? "base";
+// Receiving wallet (public address, not a secret) + network — hard-coded for mainnet.
+// (No env fallbacks: stale project env vars must not silently flip us back to testnet.)
+const SELLER = "0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B";
+const NETWORK = "base";
 
 app.use((req, res, next) => { res.set("Access-Control-Allow-Origin", "*"); next(); });
 
