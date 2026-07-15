@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santos Automation — Software, Systems & Machine-Payable APIs</title>
+<meta name="description" content="Custom web apps, automation systems, and x402 machine-payable APIs. Run a free site audit in seconds — humans welcome, agents pay per call.">
+<link rel="canonical" href="https://santosautomation.com/">
+<meta property="og:title" content="Santos Automation">
+<meta property="og:description" content="Software, automation systems, and machine-payable APIs. Audit your site free in seconds.">
+<meta property="og:type" content="website">
+<style>
+  :root {
+    --bg: #0b0d10;
+    --surface: #12151a;
+    --surface-2: #191d24;
+    --ink: #e8e6e1;
+    --muted: #8a8f98;
+    --border: #23272f;
+    --accent: #d4a24e;          /* warm brass — matches fine-art mountain tone */
+    --accent-ink: #10120a;
+    --good: #5fb87a;
+    --warn: #d4a24e;
+    --bad: #d4694e;
+    --mono: "SF Mono", ui-monospace, Menlo, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 16px/1.6 "Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover, a:focus-visible { text-decoration: underline; }
+
+  /* ---- nav ---- */
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 28px 0; }
+  .brand { font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; font-size: 13px; color: var(--ink); }
+  nav ul { display: flex; gap: 28px; list-style: none; font-size: 14px; }
+  nav ul a { color: var(--muted); }
+  nav ul a:hover { color: var(--ink); text-decoration: none; }
+
+  /* ---- hero ---- */
+  header.hero { padding: 72px 0 56px; border-bottom: 1px solid var(--border); }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; }
+  h1 { font-size: clamp(34px, 5.2vw, 56px); line-height: 1.08; font-weight: 700; letter-spacing: -0.015em; max-width: 17ch; }
+  .hero p.lede { margin: 22px 0 0; max-width: 52ch; color: var(--muted); font-size: 18px; }
+  .hero .cta-row { margin-top: 32px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 13px 22px; border-radius: 6px; font-size: 15px; font-weight: 600;
+    border: 1px solid var(--border); color: var(--ink); background: var(--surface); cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .btn:hover { border-color: var(--muted); text-decoration: none; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.08); }
+
+  /* ---- audit tool ---- */
+  section.audit { padding: 64px 0; border-bottom: 1px solid var(--border); }
+  h2 { font-size: clamp(24px, 3.2vw, 32px); letter-spacing: -0.01em; margin-bottom: 8px; }
+  .sub { color: var(--muted); max-width: 58ch; margin-bottom: 28px; }
+  .audit-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 28px; }
+  .audit-form { display: flex; gap: 10px; flex-wrap: wrap; }
+  .audit-form input {
+    flex: 1; min-width: 240px; padding: 13px 16px; font-size: 16px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--ink); font-family: var(--mono);
+  }
+  .audit-form input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .audit-note { font-size: 13px; color: var(--muted); margin-top: 12px; }
+  .audit-note code { font-family: var(--mono); color: var(--accent); font-size: 12px; }
+
+  /* results */
+  #result { margin-top: 24px; display: none; }
+  .score-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .score-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
+  .score-card .num { font-size: 30px; font-weight: 700; font-family: var(--mono); }
+  .score-card .lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+  .num.good { color: var(--good); } .num.warn { color: var(--warn); } .num.bad { color: var(--bad); }
+  ul.issues { list-style: none; display: grid; gap: 8px; }
+  ul.issues li { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-size: 14px; color: var(--muted); }
+  ul.issues li::before { content: "→ "; color: var(--bad); }
+  .fix-cta { margin-top: 20px; font-size: 15px; }
+  #result .error { color: var(--bad); font-size: 15px; }
+  .spinner { color: var(--muted); font-family: var(--mono); font-size: 14px; }
+
+  /* ---- agents / x402 ---- */
+  section.agents { padding: 64px 0; border-bottom: 1px solid var(--border); }
+  .flow { font-family: var(--mono); font-size: 13.5px; line-height: 1.9; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px 28px; overflow-x: auto; margin-top: 24px; }
+  .flow .c { color: var(--muted); } .flow .a { color: var(--accent); } .flow .g { color: var(--good); }
+
+  /* ---- services ---- */
+  section.services { padding: 64px 0; border-bottom: 1px solid var(--border); }
+  .svc-list { display: grid; gap: 0; margin-top: 8px; }
+  .svc { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; padding: 22px 0; border-bottom: 1px solid var(--border); }
+  .svc:last-child { border-bottom: none; }
+  .svc h3 { font-size: 17px; font-weight: 600; }
+  .svc p { color: var(--muted); font-size: 15px; }
+  @media (max-width: 640px) { .svc { grid-template-columns: 1fr; gap: 6px; } }
+
+  /* ---- footer/contact ---- */
+  footer { padding: 56px 0 72px; }
+  footer .links { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 18px; font-size: 15px; }
+  footer .fine { margin-top: 36px; font-size: 12.5px; color: var(--muted); font-family: var(--mono); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav>
+    <span class="brand">Santos Automation</span>
+    <ul>
+      <li><a href="#audit">Audit</a></li>
+      <li><a href="#agents">For Agents</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="hero">
+    <div class="kicker">Automate · Build · Elevate</div>
+    <h1>Software for people.<br>APIs that machines pay for.</h1>
+    <p class="lede">
+      Custom web apps and automation systems — plus something new: machine-payable
+      APIs built on the x402 protocol, where AI agents are the customers and every
+      call settles in USDC.
+    </p>
+    <div class="cta-row">
+      <a class="btn primary" href="#audit">Run a free site audit</a>
+      <a class="btn" href="#contact">Work with me</a>
+    </div>
+  </header>
+
+  <section class="audit" id="audit">
+    <h2>Audit your site in seconds.</h2>
+    <p class="sub">Performance, SEO, accessibility, and security — scored live, no signup.
+      One free audit per day; unlimited for paying agents.</p>
+    <div class="audit-box">
+      <form class="audit-form" id="auditForm">
+        <input type="text" id="urlInput" placeholder="yourdomain.com" aria-label="Website URL to audit" required>
+        <button class="btn primary" type="submit">Audit</button>
+      </form>
+      <p class="audit-note">Agents: skip the limit — <code>GET /audit?url=…</code> · $0.10 USDC via x402 · no API key</p>
+      <div id="result" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="agents" id="agents">
+    <h2>Built for the agent economy.</h2>
+    <p class="sub">
+      This site's audit API speaks x402 — the Linux Foundation payment standard that lets
+      AI agents pay per-request in stablecoins. No accounts, no API keys, no subscriptions.
+      Your agent hits the endpoint, pays a dime, gets the report. Two seconds, settled on-chain.
+    </p>
+    <div class="flow">
+<span class="c"># any x402-capable agent:</span><br>
+GET /audit?url=example.com<br>
+<span class="a">← 402 Payment Required · $0.10 USDC · base</span><br>
+→ retry + X-PAYMENT <span class="c">(signed automatically)</span><br>
+<span class="g">← 200 OK · full audit report + on-chain receipt</span>
+    </div>
+    <p class="sub" style="margin-top:24px; margin-bottom:0">
+      Want an API like this for your business? That's the newest thing I build.
+    </p>
+  </section>
+
+  <section class="services" id="services">
+    <h2>What I build.</h2>
+    <div class="svc-list">
+      <div class="svc">
+        <h3>Machine-payable APIs</h3>
+        <p>x402-monetized endpoints that sell your data or tools to AI agents per-call. From idea to revenue-generating endpoint.</p>
+      </div>
+      <div class="svc">
+        <h3>Custom web apps</h3>
+        <p>Modern product interfaces, admin tools, and client portals. Direct, fast, maintainable.</p>
+      </div>
+      <div class="svc">
+        <h3>Automation systems</h3>
+        <p>Lead routing, follow-ups, reminders, forms, and reports. Repeatable tasks handled without drama.</p>
+      </div>
+      <div class="svc">
+        <h3>APIs &amp; integrations</h3>
+        <p>Connect the tools already running the business — email, calendar, CRM, payments.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer id="contact">
+    <h2>Reach Santos from one place.</h2>
+    <div class="links">
+      <a href="mailto:baitjet@gmail.com">baitjet@gmail.com</a>
+      <a href="https://instagram.com/mr.j.c.santos">@mr.j.c.santos</a>
+      <a href="https://github.com/thereal-baitjet">GitHub</a>
+      <a href="https://cal.com/santosautomation">Book a call</a>
+    </div>
+    <p class="fine">santosautomation.com · audit API powered by x402 · payments settle in USDC on Base</p>
+  </footer>
+
+</div>
+
+<script>
+  // Point at the local API in dev; swap to https://api.santosautomation.com in prod.
+  const API = "http://localhost:4030";
+
+  const form = document.getElementById("auditForm");
+  const result = document.getElementById("result");
+  const grade = s => s >= 80 ? "good" : s >= 55 ? "warn" : "bad";
+
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const url = document.getElementById("urlInput").value.trim();
+    result.style.display = "block";
+    result.innerHTML = '<p class="spinner">auditing ' + url + ' …</p>';
+    try {
+      const res = await fetch(API + "/audit/demo?url=" + encodeURIComponent(url));
+      const data = await res.json();
+      if (!res.ok) { result.innerHTML = '<p class="error">' + (data.error ?? "Audit failed") + '</p>'; return; }
+      const cards = Object.entries(data.scores).map(([k, v]) =>
+        '<div class="score-card"><div class="num ' + grade(v) + '">' + v + '</div><div class="lbl">' + k + '</div></div>'
+      ).join("");
+      const issues = data.issues.length
+        ? '<ul class="issues">' + data.issues.map(i => "<li>" + i + "</li>").join("") + "</ul>"
+        : '<p style="color:var(--good)">No issues found — clean site.</p>';
+      result.innerHTML =
+        '<div class="score-row"><div class="score-card"><div class="num ' + grade(data.overall_score) + '">' + data.overall_score +
+        '</div><div class="lbl">Overall</div></div>' + cards + "</div>" + issues +
+        '<p class="fix-cta">Want these fixed? <a href="#contact">Let\\u2019s talk</a> — or grab the full report via the paid API.</p>';
+    } catch {
+      result.innerHTML = '<p class="error">Could not reach the audit API. Is it running?</p>';
+    }
+  });
+</script>
+</body>
+</html>

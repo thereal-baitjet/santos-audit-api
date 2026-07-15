@@ -1,0 +1,21 @@
+{
+  "name": "santos-audit-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "viem": "^2.55.2",
+    "x402-express": "^1.2.0",
+    "x402-fetch": "^1.2.0"
+  }
+}
