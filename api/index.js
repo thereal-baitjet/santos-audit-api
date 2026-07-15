@@ -7,8 +7,8 @@ import { auditSite } from "../audit.js";
 const app = express();
 
 // Receiving wallet (public address, not a secret) + network via env with safe defaults
-const SELLER = process.env.SELLER_ADDRESS ?? "0x2D5a242c1546b384B5D350b433acD927b4f19dB2";
-const NETWORK = process.env.X402_NETWORK ?? "base-sepolia";
+const SELLER = process.env.SELLER_ADDRESS ?? "0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B";
+const NETWORK = process.env.X402_NETWORK ?? "base";
 
 app.use((req, res, next) => { res.set("Access-Control-Allow-Origin", "*"); next(); });
 
