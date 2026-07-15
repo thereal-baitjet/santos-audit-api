@@ -1,5 +1,6 @@
-// E2E checks for the Santos Audit API. Requires server.js running on :4030.
-const BASE = "http://localhost:4030";
+// E2E checks for the Santos Audit API.
+// Default target: local dev server on :4030. Override: BASE=https://api.santosautomation.com npm test
+const BASE = process.env.BASE ?? "http://localhost:4030";
 let failures = 0;
 const check = (name, ok, detail = "") => {
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? " — " + detail : ""}`);
