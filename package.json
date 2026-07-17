@@ -4,6 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "test": "node test.js"
   },
   "keywords": [],
@@ -14,9 +17,11 @@
     "@coinbase/x402": "^1.0.1",
     "cheerio": "^1.2.0",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1",
+    "next": "^16.2.10",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "viem": "^2.55.2",
-    "x402-express": "^1.2.0",
-    "x402-fetch": "^1.2.0"
+    "x402-fetch": "^1.2.0",
+    "x402-next": "^1.2.0"
   }
 }
