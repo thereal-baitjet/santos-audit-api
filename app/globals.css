@@ -72,12 +72,14 @@ ul.issues li { background: var(--surface-2); border: 1px solid var(--border); bo
 ul.issues li::before { content: "→ "; color: var(--bad); }
 .fix-cta { margin-top: 20px; font-size: 15px; }
 #result .error { color: var(--bad); font-size: 15px; }
+#result .clean { color: var(--good); }
 .spinner { color: var(--muted); font-family: var(--mono); font-size: 14px; }
 
 /* ---- agents / x402 ---- */
 section.agents { padding: 64px 0; border-bottom: 1px solid var(--border); }
 .flow { font-family: var(--mono); font-size: 13.5px; line-height: 1.9; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px 28px; overflow-x: auto; margin-top: 24px; }
 .flow .c { color: var(--muted); } .flow .a { color: var(--accent); } .flow .g { color: var(--good); }
+.sub--tight { margin-top: 24px; margin-bottom: 0; }
 
 /* ---- services ---- */
 section.services { padding: 64px 0; border-bottom: 1px solid var(--border); }

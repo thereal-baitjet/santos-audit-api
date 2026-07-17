@@ -5,7 +5,7 @@ export default function Home() {
     <div className="wrap">
       <nav>
         <span className="brand">
-          <img src="/assets/santos-logo.png" alt="" />
+          <img src="/assets/santos-logo.png" alt="Santos Automation logo" />
           Santos Automation
         </span>
         <ul>
@@ -55,7 +55,7 @@ export default function Home() {
           → retry + X-PAYMENT <span className="c">(signed automatically)</span><br />
           <span className="g">← 200 OK · full audit report + on-chain receipt</span>
         </div>
-        <p className="sub" style={{ marginTop: 24, marginBottom: 0 }}>
+        <p className="sub sub--tight">
           Want an API like this for your business? That&rsquo;s the newest thing I build —
           see <a href="/llms.txt">llms.txt</a> for the machine-readable spec.
         </p>

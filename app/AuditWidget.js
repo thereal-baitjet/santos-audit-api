@@ -68,7 +68,7 @@ export default function AuditWidget() {
                   ))}
                 </ul>
               ) : (
-                <p style={{ color: "var(--good)" }}>No issues found — clean site.</p>
+                <p className="clean">No issues found — clean site.</p>
               )}
               <p className="fix-cta">
                 Want these fixed? <a href="#contact">Let&rsquo;s talk</a> — or grab the full report via the paid API.

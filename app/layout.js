@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  metadataBase: new URL("https://santos-api.vercel.app"),
+  metadataBase: new URL("https://www.santosautomation.com"),
   title: "Santos Automation — Software, Systems & Machine-Payable APIs",
   description:
     "Custom web apps, automation systems, and x402 machine-payable APIs. Run a free site audit in seconds — humans welcome, agents pay per call.",
