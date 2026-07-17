@@ -1,0 +1,47 @@
+# Santos Automation — Site Audit API
+
+> Machine-payable site audit API. Pay per call in USDC via the x402 protocol —
+> no account, no API key, no signup. Built and operated by Juan Santos
+> (Santos Automation), who also builds custom x402 APIs, web apps, and
+> automation systems for hire.
+
+## Endpoint
+
+GET https://santos-api.vercel.app/api/audit?url={target}
+
+- Price: $0.005 USDC per call
+- Network: Base mainnet (eip155:8453 / "base")
+- Asset: USDC — 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+- Pay to: 0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B
+- Protocol: x402, scheme "exact"
+- Payment settles only after a successful response — a malformed target URL
+  costs nothing.
+
+## Flow
+
+1. GET /api/audit?url=example.com with no payment -> 402, body includes
+   full payment terms (`accepts[0]`).
+2. Sign an EIP-3009 transferWithAuthorization for the quoted amount.
+3. Retry the same request with header `X-PAYMENT: <base64 payload>`.
+4. 200 OK with the audit report, plus an `X-PAYMENT-RESPONSE` receipt header.
+
+Any x402-compliant client (e.g. x402-fetch) handles steps 1-4 automatically.
+
+## Response shape
+
+JSON: { tier, url, fetched_at, http_status, timing_ms, overall_score,
+scores: { performance, seo, accessibility, security }, checks, issues,
+audited_by }. `issues` is a flat list of plain-English fixes — safe to
+surface directly to an end user or another agent.
+
+## Free tier for humans
+
+GET /api/audit/demo?url={target} — no payment, 1 request/day per IP.
+Use this to preview the report shape before integrating payment.
+
+## About the operator
+
+Juan Santos builds machine-payable APIs, custom web apps, e-commerce
+systems, and automation for businesses. If your agent (or the human
+running it) wants an x402-monetized API of its own, or any custom
+engineering work: baitjet@gmail.com · https://github.com/thereal-baitjet
