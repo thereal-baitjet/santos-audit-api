@@ -12,7 +12,7 @@ none of them have been submitted yet.
 - **Category:** Website analysis / developer tools
 - **Price:** $0.005 USDC per audit
 - **Network:** Base mainnet (eip155:8453)
-- **Authentication:** x402 payment authorization (v1 headers: `X-PAYMENT` / `X-PAYMENT-RESPONSE`)
+- **Authentication:** x402 v2 payment authorization (`PAYMENT-SIGNATURE` request header / `PAYMENT-RESPONSE` receipt header)
 - **Canonical endpoint:** https://api.santosautomation.com/api/audit
 - **OpenAPI:** https://api.santosautomation.com/openapi.json
 - **llms.txt:** https://api.santosautomation.com/llms.txt

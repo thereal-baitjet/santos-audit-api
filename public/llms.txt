@@ -36,14 +36,20 @@ response format without paying.
 
 ## Payment
 
-- Protocol: x402 (v1 header convention: `X-PAYMENT` request header, `X-PAYMENT-RESPONSE` receipt header).
-- Price: $0.005 USDC per production audit (5000 atomic units).
-- Network: Base mainnet (eip155:8453). Asset: USDC at 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.
+- Protocol: x402 v2 (`PAYMENT-REQUIRED` response header carries base64 terms;
+  pay by retrying with a `PAYMENT-SIGNATURE` request header; the settled response
+  includes a base64 `PAYMENT-RESPONSE` receipt header).
+- Price: $0.005 USDC per production audit (5000 atomic units, `amount: "5000"`).
+- Network: `eip155:8453` (Base mainnet). Asset: USDC at 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.
 - Pay to: 0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B.
-- Flow: request without payment returns HTTP 402 with full terms in `accepts[0]`;
-  sign an EIP-3009 transferWithAuthorization for the quoted amount; retry with the
-  `X-PAYMENT` header. Any x402-compliant client (e.g. x402-fetch) automates this.
+- Flow: request without payment returns HTTP 402; decode the `PAYMENT-REQUIRED`
+  header for full terms (`accepts[0]`); sign an EIP-3009 transferWithAuthorization
+  for the quoted amount; retry with `PAYMENT-SIGNATURE`. Any x402 v2 client
+  (e.g. @x402/fetch with @x402/evm's ExactEvmScheme) automates this.
+- The 402 also carries an x402 Bazaar discovery extension (input/output JSON
+  Schemas) so catalogs can index this resource automatically.
 - Payment settles only after a successful response — failed audits cost nothing.
+- Legacy x402 v1 clients (X-PAYMENT header) are NOT supported as of 2026-07-17.
 
 ## Limitations
 

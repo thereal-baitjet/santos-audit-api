@@ -20,10 +20,13 @@ Live: API at **https://api.santosautomation.com** · landing page at
 
 ```
 GET /api/audit?url=example.com
-← 402 Payment Required  · terms in body: $0.005 USDC · base · payTo · asset
-→ retry with X-PAYMENT: <base64 signed EIP-3009 authorization>
-← 200 OK · audit JSON · X-PAYMENT-RESPONSE: <base64 on-chain receipt>
+← 402 · PAYMENT-REQUIRED: <base64 terms: $0.005 USDC · eip155:8453 · payTo · asset>
+→ retry with PAYMENT-SIGNATURE: <base64 signed EIP-3009 authorization>
+← 200 OK · audit JSON · PAYMENT-RESPONSE: <base64 on-chain receipt>
 ```
+
+Protocol: **x402 v2** (migrated 2026-07-17; legacy v1 `X-PAYMENT` clients are no
+longer accepted).
 
 Payment settles **only after a successful response** — a bad URL or unreachable
 target costs the agent nothing.
@@ -32,10 +35,13 @@ target costs the agent nothing.
 
 ```js
 import { privateKeyToAccount } from "viem/accounts";
-import { wrapFetchWithPayment } from "x402-fetch";
+import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
+import { ExactEvmScheme } from "@x402/evm";
 
 const account = privateKeyToAccount(process.env.BUYER_PRIVATE_KEY);
-const fetchWithPay = wrapFetchWithPayment(fetch, account);
+const fetchWithPay = wrapFetchWithPaymentFromConfig(fetch, {
+  schemes: [{ network: "eip155:8453", client: new ExactEvmScheme(account) }],
+});
 
 const res = await fetchWithPay(
   "https://api.santosautomation.com/api/audit?url=example.com"
@@ -76,9 +82,10 @@ Errors are `{ "error": "<human message>", "code": "<STABLE_CODE>" }` with codes
 
 ## Stack
 
-Next.js App Router on Vercel. Payment middleware: `x402-next` (v1) +
-`@coinbase/x402` (Coinbase CDP facilitator — the piece that actually settles
-USDC on Base mainnet). Audit engine: `fetch` + `cheerio`, no headless browser.
+Next.js App Router on Vercel. Payments: `@x402/next` v2 (`withX402` wrapper) +
+`@x402/core`/`@x402/evm` with `@coinbase/x402` (Coinbase CDP facilitator — the
+piece that actually settles USDC on Base mainnet) and the `@x402/extensions`
+Bazaar discovery extension. Audit engine: `fetch` + `cheerio`, no headless browser.
 SSRF-guarded: private/reserved/metadata IPs blocked with per-redirect-hop
 revalidation, 15s timeout, 5 redirects, 5 MB cap (`lib/safe-fetch.js`).
 

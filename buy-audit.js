@@ -1,12 +1,15 @@
-// Agent buys a $0.005 site audit via x402.
+// Agent buys a $0.005 site audit via x402 v2 (local dev server).
 import { privateKeyToAccount } from "viem/accounts";
-import { wrapFetchWithPayment } from "x402-fetch";
+import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
+import { ExactEvmScheme } from "@x402/evm";
 import dotenv from "dotenv";
 dotenv.config();
 
 const target = process.argv[2] ?? "example.com";
 const account = privateKeyToAccount(process.env.BUYER_PRIVATE_KEY);
-const fetchWithPay = wrapFetchWithPayment(fetch, account);
+const fetchWithPay = wrapFetchWithPaymentFromConfig(fetch, {
+  schemes: [{ network: "eip155:8453", client: new ExactEvmScheme(account) }],
+});
 
 const res = await fetchWithPay(`http://localhost:3000/api/audit?url=${encodeURIComponent(target)}`);
 const data = await res.json();

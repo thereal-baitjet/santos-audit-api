@@ -1,15 +1,11 @@
 import { after } from "next/server";
 import { NextResponse } from "next/server";
-import { withX402 } from "x402-next";
-import { facilitator } from "@coinbase/x402";
+import { withX402 } from "@x402/next";
+import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { auditSite } from "../../../audit.js";
 import { notifyTransaction } from "../../../notify.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
-
-// Receiving wallet (public address, not a secret) — hard-coded for mainnet.
-// (No env fallback: stale project env vars must not silently flip us back to testnet.)
-const SELLER = "0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B";
-const NETWORK = "base";
+import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
 
 async function handler(req) {
   const url = req.nextUrl.searchParams.get("url") ?? "";
@@ -25,67 +21,69 @@ async function handler(req) {
 
 const paidHandler = withX402(
   handler,
-  SELLER,
   {
-    price: "$0.005",
-    network: NETWORK,
-    config: {
-      description:
-        "Audit a public website for performance, SEO, accessibility, and security. Returns category scores (0-100), detailed checks, detected issues, and plain-English remediation guidance.",
-      // Bazaar discovery metadata — indexed by x402-aware catalogs from the 402 response.
-      discoverable: true,
-      inputSchema: {
-        queryParams: {
-          url: "Required. The public HTTP or HTTPS website URL to audit, e.g. https://example.com",
-        },
+    accepts: {
+      scheme: "exact",
+      price: "$0.005",
+      network: NETWORK,
+      payTo: SELLER,
+    },
+    description:
+      "Audit a public website for performance, SEO, accessibility, and security. Returns category scores (0-100), detailed checks, detected issues, and plain-English remediation guidance.",
+    mimeType: "application/json",
+    unpaidResponseBody: () => ({
+      contentType: "application/json",
+      body: {
+        error: "Payment required",
+        code: "PAYMENT_REQUIRED",
+        hint: "x402 v2: decode the base64 PAYMENT-REQUIRED response header for full terms ($0.005 USDC on eip155:8453), sign, and retry with a PAYMENT-SIGNATURE header. Any x402 v2 client (e.g. @x402/fetch) automates this. Docs: /llms.txt and /openapi.json.",
       },
-      outputSchema: {
-        type: "object",
-        properties: {
-          tier: { type: "string" },
-          url: { type: "string" },
-          fetched_at: { type: "string", format: "date-time" },
-          http_status: { type: "integer" },
-          timing_ms: {
-            type: "object",
-            properties: { ttfb: { type: "integer" }, total: { type: "integer" } },
+    }),
+    serviceName: "Santos Site Audit API",
+    tags: ["website-audit", "seo", "accessibility", "security", "performance"],
+    extensions: {
+      ...declareDiscoveryExtension({
+        input: { url: "https://example.com" },
+        inputSchema: {
+          properties: {
+            url: { type: "string", description: "The public HTTP or HTTPS website URL to audit." },
           },
-          overall_score: { type: "integer", minimum: 0, maximum: 100 },
-          scores: {
-            type: "object",
-            properties: {
-              performance: { type: "integer" },
-              seo: { type: "integer" },
-              accessibility: { type: "integer" },
-              security: { type: "integer" },
-            },
-          },
-          checks: { type: "object" },
-          issues: { type: "array", items: { type: "string" } },
-          audited_by: { type: "string" },
+          required: ["url"],
         },
-      },
+        output: {
+          example: {
+            tier: "paid",
+            url: "https://example.com/",
+            http_status: 200,
+            overall_score: 68,
+            scores: { performance: 100, seo: 40, accessibility: 100, security: 33 },
+            issues: ["Missing canonical link", "Missing Content-Security-Policy header"],
+          },
+        },
+      }),
     },
   },
-  facilitator
+  resourceServer
 );
 
 export async function GET(req) {
   const res = await paidHandler(req);
-  const receipt = res.headers.get("X-PAYMENT-RESPONSE");
-  if (receipt) {
-    const { transaction, network, payer } = JSON.parse(
-      Buffer.from(receipt, "base64").toString("utf-8")
-    );
-    after(() =>
-      notifyTransaction({
-        url: req.nextUrl.searchParams.get("url") ?? "",
-        payer,
-        transaction,
-        network,
-        amount: "0.005",
-      })
-    );
+  const receipt = res.headers.get("PAYMENT-RESPONSE");
+  if (receipt && res.status < 400) {
+    try {
+      const settlement = JSON.parse(Buffer.from(receipt, "base64").toString("utf-8"));
+      after(() =>
+        notifyTransaction({
+          url: req.nextUrl.searchParams.get("url") ?? "",
+          payer: settlement.payer,
+          transaction: settlement.transaction,
+          network: settlement.network,
+          amount: "0.005",
+        })
+      );
+    } catch (e) {
+      console.error("Could not decode settlement receipt for notification:", e.message);
+    }
   }
   return res;
 }

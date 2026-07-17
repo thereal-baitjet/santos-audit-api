@@ -14,14 +14,17 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@coinbase/x402": "^1.0.1",
+    "@coinbase/x402": "^2.1.0",
+    "@x402/core": "^2.19.0",
+    "@x402/evm": "^2.19.0",
+    "@x402/extensions": "^2.19.0",
+    "@x402/fetch": "^2.19.0",
+    "@x402/next": "^2.19.0",
     "cheerio": "^1.2.0",
     "dotenv": "^17.4.2",
     "next": "^16.2.10",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "viem": "^2.55.2",
-    "x402-fetch": "^1.2.0",
-    "x402-next": "^1.2.0"
+    "viem": "^2.55.2"
   }
 }

@@ -21,17 +21,16 @@ def demo_audit(url: str) -> dict:
 
 
 def paid_audit(url: str) -> dict:
-    """Paid audit via x402. Requires: pip install x402 eth-account
-    and BUYER_PRIVATE_KEY set to a Base-mainnet wallet holding USDC."""
-    from eth_account import Account          # pip install eth-account
-    from x402.clients.requests import x402_requests  # pip install x402
+    """Paid audit via x402 v2 ($0.005 USDC on Base mainnet).
 
-    account = Account.from_key(os.environ["BUYER_PRIVATE_KEY"])
-    session = x402_requests(account)
-    qs = urllib.parse.urlencode({"url": url})
-    res = session.get(f"{BASE}/api/audit?{qs}")
-    res.raise_for_status()
-    return res.json()
+    The paid endpoint speaks x402 v2 (PAYMENT-REQUIRED / PAYMENT-SIGNATURE
+    headers). Use an x402 v2-capable client; check the x402 PyPI package's
+    current version for v2 support, or shell out to the JS client
+    (buy-live.js in this repo) which is verified against this API.
+    """
+    raise NotImplementedError(
+        "Use an x402 v2-capable client (see buy-live.js for a working JS example)."
+    )
 
 
 if __name__ == "__main__":

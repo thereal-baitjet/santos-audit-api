@@ -95,13 +95,13 @@ const document = {
         tags: ["Website Audit"],
         summary: "Run a full site audit ($0.005 USDC via x402)",
         description:
-          "Requires x402 payment. An unpaid request returns HTTP 402 with machine-readable payment terms in the body (`accepts[0]`: $0.005 USDC on Base, scheme `exact`). Sign an EIP-3009 transferWithAuthorization for the quoted amount and retry with the `X-PAYMENT` header (x402 v1). Payment settles only after a successful (2xx) response — failed audits cost nothing. Rejected payments and audit failures return structured errors.",
+          "Requires x402 v2 payment. An unpaid request returns HTTP 402 with machine-readable terms in the base64 `PAYMENT-REQUIRED` response header (`accepts[0]`: $0.005 USDC as amount \"5000\", network eip155:8453, scheme `exact`), including an x402 Bazaar discovery extension with input/output JSON Schemas. Sign an EIP-3009 transferWithAuthorization for the quoted amount and retry with the `PAYMENT-SIGNATURE` request header. Any x402 v2 client (e.g. @x402/fetch) automates this. Payment settles only after a successful (2xx) response — failed audits cost nothing. Rejected payments and audit failures return structured errors.",
         parameters: [urlParam],
         responses: {
           200: {
-            description: "Audit complete; payment settled. The X-PAYMENT-RESPONSE header carries a base64 on-chain receipt (transaction hash, network, payer).",
+            description: "Audit complete; payment settled. The PAYMENT-RESPONSE header carries a base64 on-chain receipt (transaction hash, network, payer).",
             headers: {
-              "X-PAYMENT-RESPONSE": {
+              "PAYMENT-RESPONSE": {
                 schema: { type: "string" },
                 description: "Base64-encoded JSON settlement receipt: { success, transaction, network, payer }.",
               },
@@ -109,29 +109,21 @@ const document = {
             content: { "application/json": { schema: auditReportSchema } },
           },
           402: {
-            description: "Payment required, invalid, or failed verification. Body follows the x402 v1 response shape with payment terms in `accepts`.",
+            description: "Payment required, invalid, or failed verification. Full terms are in the base64 PAYMENT-REQUIRED response header (x402Version 2, accepts[], extensions.bazaar); the JSON body is a short agent-readable hint.",
+            headers: {
+              "PAYMENT-REQUIRED": {
+                schema: { type: "string" },
+                description: "Base64-encoded JSON: { x402Version: 2, resource, accepts: [{ scheme, network, amount, asset, payTo, maxTimeoutSeconds }], extensions }. amount \"5000\" = $0.005 USDC.",
+              },
+            },
             content: {
               "application/json": {
                 schema: {
                   type: "object",
                   properties: {
-                    x402Version: { type: "integer" },
                     error: { type: "string" },
-                    accepts: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          scheme: { type: "string" },
-                          network: { type: "string" },
-                          maxAmountRequired: { type: "string", description: "Atomic USDC units; 5000 = $0.005." },
-                          resource: { type: "string", format: "uri" },
-                          payTo: { type: "string" },
-                          asset: { type: "string", description: "USDC contract on Base." },
-                          maxTimeoutSeconds: { type: "integer" },
-                        },
-                      },
-                    },
+                    code: { type: "string", enum: ["PAYMENT_REQUIRED"] },
+                    hint: { type: "string" },
                   },
                 },
               },

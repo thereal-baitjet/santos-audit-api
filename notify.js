@@ -4,7 +4,8 @@ export async function notifyTransaction({ url, payer, transaction, network, amou
   const webhook = process.env.DISCORD_WEBHOOK_URL;
   if (!webhook) return;
 
-  const explorer = network === "base" ? "https://basescan.org/tx/" : "https://sepolia.basescan.org/tx/";
+  const isMainnet = network === "base" || network === "eip155:8453";
+  const explorer = isMainnet ? "https://basescan.org/tx/" : "https://sepolia.basescan.org/tx/";
 
   const embed = {
     title: `💰 Audit API — $${amount} USDC received`,

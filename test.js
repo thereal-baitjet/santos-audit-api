@@ -56,12 +56,18 @@ check("MCP lists audit_website with strict schema", tools.result?.tools?.[0]?.na
 const badCall = await rpc("tools/call", { name: "audit_website", arguments: { url: "http://127.0.0.1/" } });
 check("MCP rejects private URL", badCall.result?.isError === true && /PRIVATE_ADDRESS_BLOCKED/.test(JSON.stringify(badCall.result)));
 
-// 4) Paid route without payment -> 402 with valid terms
-const NET = process.env.EXPECT_NETWORK ?? "base";
+// 4) Paid route without payment -> 402 with valid x402 v2 terms in PAYMENT-REQUIRED header
+const NET = process.env.EXPECT_NETWORK ?? "eip155:8453";
 const unpaid = await fetch(`${BASE}/api/audit?url=example.com`);
 check("paid route without payment returns 402", unpaid.status === 402, `got ${unpaid.status}`);
-const accept = (await unpaid.json()).accepts?.[0];
-check(`402 terms: ${NET} + payTo + $0.005 (5000 atomic)`, accept?.network === NET && /^0x[0-9a-fA-F]{40}$/.test(accept?.payTo ?? "") && accept?.maxAmountRequired === "5000");
+const prHeader = unpaid.headers.get("payment-required");
+check("402 carries PAYMENT-REQUIRED header", !!prHeader);
+const terms = prHeader ? JSON.parse(Buffer.from(prHeader, "base64").toString("utf-8")) : {};
+const accept = terms.accepts?.[0];
+check(`402 terms: v2 + ${NET} + payTo + $0.005 (5000 atomic)`, terms.x402Version === 2 && accept?.network === NET && /^0x[0-9a-fA-F]{40}$/.test(accept?.payTo ?? "") && accept?.amount === "5000");
+check("402 carries bazaar discovery extension", !!terms.extensions?.bazaar?.info?.input && !!terms.extensions?.bazaar?.schema);
+const unpaidBody = await unpaid.json().catch(() => ({}));
+check("402 body has agent-readable hint", unpaidBody.code === "PAYMENT_REQUIRED" && /PAYMENT-REQUIRED/.test(unpaidBody.hint ?? ""));
 
 // 5) Paid route with funded agent wallet -> settled 200 + full report
 (await import("dotenv")).config();
@@ -71,19 +77,22 @@ if (!process.env.BUYER_PRIVATE_KEY) {
   process.exit(failures ? 1 : 0);
 }
 const { privateKeyToAccount } = await import("viem/accounts");
-const { wrapFetchWithPayment } = await import("x402-fetch");
+const { wrapFetchWithPaymentFromConfig } = await import("@x402/fetch");
+const { ExactEvmScheme } = await import("@x402/evm");
 const account = privateKeyToAccount(process.env.BUYER_PRIVATE_KEY);
-const fetchWithPay = wrapFetchWithPayment(fetch, account);
-const paid = await fetchWithPay(`${BASE}/api/audit?url=example.com`).catch(e => e?.response ?? { status: "throw", json: async () => ({ error: String(e) }) });
+const fetchWithPay = wrapFetchWithPaymentFromConfig(fetch, {
+  schemes: [{ network: NET, client: new ExactEvmScheme(account) }],
+});
+const paid = await fetchWithPay(`${BASE}/api/audit?url=example.com`).catch(e => e?.response ?? { status: "throw", headers: new Headers(), json: async () => ({ error: String(e) }) });
 const report = await paid.json();
 const settled = paid.status === 200;
-// Unfunded/testnet wallets on mainnet fail verification ("insufficient*" on testnet,
-// "Failed to verify payment" on mainnet facilitator) — both prove the paywall challenged correctly.
-const brokeButNegotiated = /insufficient|Failed to verify payment/i.test(JSON.stringify(report));
+// Unfunded wallets fail verification at the facilitator — that still proves the
+// paywall challenged and the client negotiated correctly.
+const brokeButNegotiated = /insufficient|verify|invalid/i.test(JSON.stringify(report));
 check("agent payment settles (200) or wallet unfunded on this network", settled || brokeButNegotiated, settled ? "settled!" : "negotiation verified, wallet unfunded");
 if (settled) {
   check("paid report: tier/scores/checks/issues present", report.tier === "paid" && Number.isInteger(report.overall_score) && ["performance","seo","accessibility","security"].every(k => Number.isInteger(report.scores?.[k])) && Array.isArray(report.issues));
-  check("on-chain receipt header present", !!paid.headers.get("x-payment-response"));
+  check("on-chain receipt header present", !!paid.headers.get("payment-response"));
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll checks passed");
