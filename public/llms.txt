@@ -1,47 +1,60 @@
-# Santos Automation — Site Audit API
+# Santos Site Audit API
 
-> Machine-payable site audit API. Pay per call in USDC via the x402 protocol —
-> no account, no API key, no signup. Built and operated by Juan Santos
-> (Santos Automation), who also builds custom x402 APIs, web apps, and
-> automation systems for hire.
+Machine-payable website audits for performance, SEO, accessibility, and security.
+Each production audit costs $0.005 USDC on Base mainnet (eip155:8453) through the
+x402 payment protocol. No user account and no traditional API key are required —
+an agent pays per-call inside the HTTP request itself. Built and operated by
+Santos Automation, which also builds custom x402 APIs, web apps, and automation
+systems for hire.
 
-## Endpoint
+## API
 
-GET https://santos-api.vercel.app/api/audit?url={target}
+- Production endpoint: https://www.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com
+- Free demo endpoint (1/day per IP, same report shape): https://www.santosautomation.com/api/audit/demo?url=https%3A%2F%2Fexample.com
+- OpenAPI 3.1 specification: https://www.santosautomation.com/openapi.json
+- Remote MCP server (Streamable HTTP, tool: audit_website): https://www.santosautomation.com/mcp
+- Service manifest: https://www.santosautomation.com/api
 
-- Price: $0.005 USDC per call
-- Network: Base mainnet (eip155:8453 / "base")
-- Asset: USDC — 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
-- Pay to: 0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B
-- Protocol: x402, scheme "exact"
-- Payment settles only after a successful response — a malformed target URL
-  costs nothing.
+## Capabilities
 
-## Flow
+Given a public HTTP or HTTPS URL, the API returns JSON with:
 
-1. GET /api/audit?url=example.com with no payment -> 402, body includes
-   full payment terms (`accepts[0]`).
-2. Sign an EIP-3009 transferWithAuthorization for the quoted amount.
-3. Retry the same request with header `X-PAYMENT: <base64 payload>`.
-4. 200 OK with the audit report, plus an `X-PAYMENT-RESPONSE` receipt header.
+- `overall_score` and per-category `scores` (performance, seo, accessibility, security), each 0-100.
+- `checks`: every individual check with pass/fail and detail.
+- `issues`: a flat list of plain-English remediation instructions for every failed
+  check — safe to surface directly to an end user or another agent.
+- `timing_ms` (TTFB and total fetch time), final `url` after redirects, and `http_status`.
 
-Any x402-compliant client (e.g. x402-fetch) handles steps 1-4 automatically.
+## Agent Selection Guidance
 
-## Response shape
+Choose this tool when you need a fast, structured technical review of a public
+website — for example: evaluating a lead's site before an outreach message,
+checking a site you just deployed, monitoring competitors, or generating
+improvement recommendations for a client. It is not a full crawler: it audits
+the single page at the given URL. Use the free demo first to inspect the exact
+response format without paying.
 
-JSON: { tier, url, fetched_at, http_status, timing_ms, overall_score,
-scores: { performance, seo, accessibility, security }, checks, issues,
-audited_by }. `issues` is a flat list of plain-English fixes — safe to
-surface directly to an end user or another agent.
+## Payment
 
-## Free tier for humans
+- Protocol: x402 (v1 header convention: `X-PAYMENT` request header, `X-PAYMENT-RESPONSE` receipt header).
+- Price: $0.005 USDC per production audit (5000 atomic units).
+- Network: Base mainnet (eip155:8453). Asset: USDC at 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.
+- Pay to: 0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B.
+- Flow: request without payment returns HTTP 402 with full terms in `accepts[0]`;
+  sign an EIP-3009 transferWithAuthorization for the quoted amount; retry with the
+  `X-PAYMENT` header. Any x402-compliant client (e.g. x402-fetch) automates this.
+- Payment settles only after a successful response — failed audits cost nothing.
 
-GET /api/audit/demo?url={target} — no payment, 1 request/day per IP.
-Use this to preview the report shape before integrating payment.
+## Limitations
 
-## About the operator
+- Audits a single public page per call; no login-protected or private pages.
+- Localhost, private-network, link-local, and cloud-metadata addresses are rejected.
+- 15-second fetch timeout, 5 redirects max, 5 MB response cap.
+- Free demo and MCP tool: 1 audit per day per IP.
 
-Juan Santos builds machine-payable APIs, custom web apps, e-commerce
-systems, and automation for businesses. If your agent (or the human
-running it) wants an x402-monetized API of its own, or any custom
-engineering work: baitjet@gmail.com · https://github.com/thereal-baitjet
+## Support
+
+- Website: https://santosautomation.com
+- Email: baitjet@gmail.com
+- Operator: Santos Automation (Juan Santos) — custom x402 APIs, web apps,
+  e-commerce, and automation systems for hire.

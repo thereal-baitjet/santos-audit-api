@@ -1,31 +1,32 @@
 import { NextResponse } from "next/server";
 import { auditSite } from "../../../../audit.js";
-
-// Per-instance memory — resets on cold start, good enough for a demo.
-const demoLog = new Map(); // ip -> date string
+import { validateTarget } from "../../../../lib/safe-fetch.js";
+import { auditErrorResponse, CORS } from "../../../../lib/errors.js";
+import { hasFreeAudit, markFreeAudit, ipFromRequest } from "../../../../lib/demo-limit.js";
 
 export async function GET(req) {
-  const today = new Date().toDateString();
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip = ipFromRequest(req);
+  const url = req.nextUrl.searchParams.get("url") ?? "";
 
-  if (demoLog.get(ip) === today) {
+  // Reject invalid/blocked targets before touching the rate limit.
+  try {
+    validateTarget(url);
+  } catch (e) {
+    return auditErrorResponse(e);
+  }
+
+  if (!hasFreeAudit(ip)) {
     return NextResponse.json(
-      { error: "Free demo is 1 audit/day. Agents can pay per-call at GET /api/audit (x402, $0.005)." },
-      { status: 429, headers: { "Access-Control-Allow-Origin": "*" } }
+      { error: "Free demo is 1 audit/day. Agents can pay per-call at GET /api/audit (x402, $0.005).", code: "RATE_LIMITED" },
+      { status: 429, headers: CORS }
     );
   }
 
-  const url = req.nextUrl.searchParams.get("url") ?? "";
   try {
     const report = await auditSite(url);
-    demoLog.set(ip, today);
-    return NextResponse.json({ tier: "free-demo", ...report }, {
-      headers: { "Access-Control-Allow-Origin": "*" },
-    });
+    markFreeAudit(ip);
+    return NextResponse.json({ tier: "free-demo", ...report }, { headers: CORS });
   } catch (e) {
-    return NextResponse.json(
-      { error: `Could not audit: ${e.message}` },
-      { status: 400, headers: { "Access-Control-Allow-Origin": "*" } }
-    );
+    return auditErrorResponse(e);
   }
 }

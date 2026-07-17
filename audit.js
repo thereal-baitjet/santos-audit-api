@@ -1,20 +1,12 @@
 // Site audit engine: fetches a URL, scores performance/SEO/accessibility signals.
 // Zero heavy deps — fetch + cheerio. Returns structured JSON agents can consume.
 import * as cheerio from "cheerio";
+import { safeFetch } from "./lib/safe-fetch.js";
 
 const UA = "SantosAuditBot/0.1 (+https://santosautomation.com)";
 
 export async function auditSite(rawUrl) {
-  const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
-  const started = performance.now();
-  const res = await fetch(url, {
-    headers: { "user-agent": UA },
-    redirect: "follow",
-    signal: AbortSignal.timeout(15000),
-  });
-  const ttfbMs = Math.round(performance.now() - started);
-  const html = await res.text();
-  const totalMs = Math.round(performance.now() - started);
+  const { response: res, body: html, finalUrl: url, ttfbMs, totalMs } = await safeFetch(rawUrl, { "user-agent": UA });
   const $ = cheerio.load(html);
 
   // ---- signal collection ----
