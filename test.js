@@ -1,5 +1,5 @@
 // E2E checks for the Santos Audit API.
-// Default target: local dev server on :3000. Override: BASE=https://santos-api.vercel.app npm test
+// Default target: local dev server on :3000. Override: BASE=https://api.santosautomation.com npm test
 const BASE = process.env.BASE ?? "http://localhost:3000";
 let failures = 0;
 const check = (name, ok, detail = "") => {

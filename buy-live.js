@@ -8,8 +8,8 @@ const account = privateKeyToAccount(process.env.BUYER_PRIVATE_KEY);
 const fetchWithPay = wrapFetchWithPayment(fetch, account);
 
 console.log("Agent wallet:", account.address);
-console.log("Buying audit from https://www.santosautomation.com ...");
-const res = await fetchWithPay("https://www.santosautomation.com/api/audit?url=example.com");
+console.log("Buying audit from https://api.santosautomation.com ...");
+const res = await fetchWithPay("https://api.santosautomation.com/api/audit?url=example.com");
 const d = await res.json();
 console.log("Status:", res.status, "| tier:", d.tier, "| overall:", d.overall_score);
 console.log("Scores:", JSON.stringify(d.scores));

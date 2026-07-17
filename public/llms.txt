@@ -9,11 +9,11 @@ systems for hire.
 
 ## API
 
-- Production endpoint: https://www.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com
-- Free demo endpoint (1/day per IP, same report shape): https://www.santosautomation.com/api/audit/demo?url=https%3A%2F%2Fexample.com
-- OpenAPI 3.1 specification: https://www.santosautomation.com/openapi.json
-- Remote MCP server (Streamable HTTP, tool: audit_website): https://www.santosautomation.com/mcp
-- Service manifest: https://www.santosautomation.com/api
+- Production endpoint: https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com
+- Free demo endpoint (1/day per IP, same report shape): https://api.santosautomation.com/api/audit/demo?url=https%3A%2F%2Fexample.com
+- OpenAPI 3.1 specification: https://api.santosautomation.com/openapi.json
+- Remote MCP server (Streamable HTTP, tool: audit_website): https://api.santosautomation.com/mcp
+- Service manifest: https://api.santosautomation.com/api
 
 ## Capabilities
 

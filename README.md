@@ -4,16 +4,17 @@
 security, with no account and no API key. Payment happens inside the HTTP request via
 the [x402 protocol](https://x402.org): USDC on Base mainnet, settled per-call.
 
-Live: **https://www.santosautomation.com** (landing page + API on the same host)
+Live: API at **https://api.santosautomation.com** · landing page at
+**https://www.santosautomation.com** (same app, two hostnames)
 
 | Surface | URL |
 |---|---|
 | Paid audit ($0.005 USDC) | `GET /api/audit?url=https://example.com` |
 | Free demo (1/day per IP) | `GET /api/audit/demo?url=https://example.com` |
-| OpenAPI 3.1 | [`/openapi.json`](https://www.santosautomation.com/openapi.json) |
-| llms.txt | [`/llms.txt`](https://www.santosautomation.com/llms.txt) |
+| OpenAPI 3.1 | [`/openapi.json`](https://api.santosautomation.com/openapi.json) |
+| llms.txt | [`/llms.txt`](https://api.santosautomation.com/llms.txt) |
 | MCP server (tool: `audit_website`) | `POST /mcp` |
-| Service manifest | [`/api`](https://www.santosautomation.com/api) |
+| Service manifest | [`/api`](https://api.santosautomation.com/api) |
 
 ## How agents pay (x402)
 
@@ -37,7 +38,7 @@ const account = privateKeyToAccount(process.env.BUYER_PRIVATE_KEY);
 const fetchWithPay = wrapFetchWithPayment(fetch, account);
 
 const res = await fetchWithPay(
-  "https://www.santosautomation.com/api/audit?url=example.com"
+  "https://api.santosautomation.com/api/audit?url=example.com"
 );
 const report = await res.json(); // { overall_score, scores, checks, issues, ... }
 ```
@@ -51,7 +52,7 @@ Working scripts: [`buy-audit.js`](buy-audit.js) (local dev) and
 Same report shape, no payment, 1/day per IP:
 
 ```
-curl "https://www.santosautomation.com/api/audit/demo?url=example.com"
+curl "https://api.santosautomation.com/api/audit/demo?url=example.com"
 ```
 
 ## Response shape
@@ -88,7 +89,7 @@ npm install
 cp .env.example .env.local   # fill in values
 npm run dev                  # http://localhost:3000
 npm test                     # e2e checks against BASE (default localhost:3000)
-BASE=https://www.santosautomation.com EXPECT_NETWORK=base npm test
+BASE=https://api.santosautomation.com EXPECT_NETWORK=base npm test
 ```
 
 ### Environment variables

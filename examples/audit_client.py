@@ -10,7 +10,7 @@ import urllib.parse
 import urllib.request
 import json
 
-BASE = os.environ.get("SANTOS_AUDIT_BASE", "https://www.santosautomation.com")
+BASE = os.environ.get("SANTOS_AUDIT_BASE", "https://api.santosautomation.com")
 
 
 def demo_audit(url: str) -> dict:

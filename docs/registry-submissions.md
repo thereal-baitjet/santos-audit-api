@@ -13,14 +13,11 @@ none of them have been submitted yet.
 - **Price:** $0.005 USDC per audit
 - **Network:** Base mainnet (eip155:8453)
 - **Authentication:** x402 payment authorization (v1 headers: `X-PAYMENT` / `X-PAYMENT-RESPONSE`)
-- **Canonical endpoint:** https://www.santosautomation.com/api/audit
-- **OpenAPI:** https://www.santosautomation.com/openapi.json
-- **llms.txt:** https://www.santosautomation.com/llms.txt
-- **MCP:** https://www.santosautomation.com/mcp
+- **Canonical endpoint:** https://api.santosautomation.com/api/audit
+- **OpenAPI:** https://api.santosautomation.com/openapi.json
+- **llms.txt:** https://api.santosautomation.com/llms.txt
+- **MCP:** https://api.santosautomation.com/mcp
 - **Support:** baitjet@gmail.com · https://santosautomation.com
-
-> When `api.santosautomation.com` DNS goes live, update the four URLs above
-> before submitting anywhere that hasn't been submitted yet.
 
 ## 1. x402 Bazaar / CDP discovery — automatic
 
@@ -38,13 +35,13 @@ current CDP Bazaar listing UI) for the resource URL.
 - Submit the canonical listing copy above. Typically requires: resource URL,
   description, category, and sometimes a signature from the receiving wallet
   (`0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B`) to prove ownership.
-- Logo: `public/assets/santos-logo.png` (serve as https://www.santosautomation.com/assets/santos-logo.png).
+- Logo: `public/assets/santos-logo.png` (serve as https://api.santosautomation.com/assets/santos-logo.png).
 
 ## 3. Official MCP Registry **[manual]**
 
 - Repo: https://github.com/modelcontextprotocol/registry — publish via its CLI.
 - Server name suggestion: `com.santosautomation/site-audit`
-- Remote endpoint: `https://www.santosautomation.com/mcp` (transport: streamable-http)
+- Remote endpoint: `https://api.santosautomation.com/mcp` (transport: streamable-http)
 - Requires domain or GitHub ownership verification through the registry's
   `mcp-publisher` CLI flow.
 
@@ -55,11 +52,8 @@ current CDP Bazaar listing UI) for the resource URL.
 - Note: the repo is currently **private**; listings that link to it should
   either omit the repo link or the repo should be made public first.
 
-## 5. DNS for api.santosautomation.com **[manual]**
+## 5. DNS for api.santosautomation.com — done (2026-07-17)
 
-At the DNS host for santosautomation.com (currently registrar-servers.com /
-Namecheap): add `CNAME api -> cname.vercel-dns.com`, then add the domain to the
-Vercel project (`vercel domains add api.santosautomation.com`) and set
-`PUBLIC_API_BASE_URL=https://api.santosautomation.com` in Vercel env vars and
-redeploy. Do not update registry listings until HTTPS on the new hostname is
-verified.
+CNAME `api -> cname.vercel-dns.com` is live, the domain is attached to the
+Vercel project, HTTPS is verified, and `PUBLIC_API_BASE_URL` is set in
+Production and Preview. All canonical URLs in this document are current.
