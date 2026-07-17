@@ -2,6 +2,7 @@
 // Same app as server.js, exported instead of listened.
 import express from "express";
 import { paymentMiddleware } from "x402-express";
+import { facilitator } from "@coinbase/x402";
 import { auditSite } from "../audit.js";
 
 const app = express();
@@ -10,6 +11,9 @@ const app = express();
 // (No env fallbacks: stale project env vars must not silently flip us back to testnet.)
 const SELLER = "0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B";
 const NETWORK = "base";
+// Base mainnet settlement needs a facilitator authorized to move real USDC —
+// the SDK's default (x402.org/facilitator) only supports base-sepolia testnet.
+// This is Coinbase's hosted facilitator, authenticated via CDP_API_KEY_ID/CDP_API_KEY_SECRET.
 
 app.use((req, res, next) => { res.set("Access-Control-Allow-Origin", "*"); next(); });
 
@@ -45,13 +49,17 @@ app.get("/audit/demo", async (req, res) => {
 });
 
 app.use(
-  paymentMiddleware(SELLER, {
-    "GET /audit": {
-      price: "$0.10",
-      network: NETWORK,
-      config: { description: "Full site audit: performance, SEO, accessibility, security" },
+  paymentMiddleware(
+    SELLER,
+    {
+      "GET /audit": {
+        price: "$0.10",
+        network: NETWORK,
+        config: { description: "Full site audit: performance, SEO, accessibility, security" },
+      },
     },
-  })
+    facilitator
+  )
 );
 
 app.get("/audit", async (req, res) => {
