@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { withX402 } from "x402-next";
 import { facilitator } from "@coinbase/x402";
 import { auditSite } from "../../../audit.js";
+import { notifyTransaction } from "../../../notify.js";
 
 // Receiving wallet (public address, not a secret) — hard-coded for mainnet.
 // (No env fallback: stale project env vars must not silently flip us back to testnet.)
@@ -25,7 +26,7 @@ async function handler(req) {
   }
 }
 
-export const GET = withX402(
+const paidHandler = withX402(
   handler,
   SELLER,
   {
@@ -35,3 +36,23 @@ export const GET = withX402(
   },
   facilitator
 );
+
+export async function GET(req) {
+  const res = await paidHandler(req);
+  const receipt = res.headers.get("X-PAYMENT-RESPONSE");
+  if (receipt) {
+    const { transaction, network, payer } = JSON.parse(
+      Buffer.from(receipt, "base64").toString("utf-8")
+    );
+    after(() =>
+      notifyTransaction({
+        url: req.nextUrl.searchParams.get("url") ?? "",
+        payer,
+        transaction,
+        network,
+        amount: "0.005",
+      })
+    );
+  }
+  return res;
+}
