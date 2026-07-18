@@ -1,4 +1,5 @@
 import "./globals.css";
+import { headers } from "next/headers";
 
 export const metadata = {
   metadataBase: new URL("https://www.santosautomation.com"),
@@ -66,7 +67,13 @@ const jsonLd = {
   ],
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  // Read the per-request nonce set by proxy.js. Touching headers() also opts
+  // every route into dynamic rendering, which is what lets Next stamp the
+  // matching nonce onto its inline scripts (a static render would ship a stale
+  // nonce and get blocked by strict-dynamic). The nonce is also handed to the
+  // JSON-LD script below so it isn't blocked.
+  const nonce = (await headers()).get("content-security-policy")?.match(/'nonce-([^']+)'/)?.[1];
   return (
     <html lang="en">
       <head>
@@ -78,6 +85,7 @@ export default function RootLayout({ children }) {
       <body>
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         {children}
