@@ -70,9 +70,13 @@ check("openapi documents Agent Readiness contract", oaDoc.paths?.["/api/agent-re
 const readinessBad = await fetch(`${BASE}/api/agent-readiness?url=${encodeURIComponent("http://127.0.0.1/")}`);
 const readinessBadBody = await readinessBad.json().catch(() => ({}));
 check("Agent Readiness rejects private targets before work/payment", readinessBad.status === 400 && readinessBadBody.code === "PRIVATE_ADDRESS_BLOCKED");
+const readinessUnpaid = await fetch(`${BASE}/api/agent-readiness?url=${encodeURIComponent("https://example.com")}&depth=quick`);
+const readinessPaymentHeader = readinessUnpaid.headers.get("payment-required");
+const readinessTerms = readinessPaymentHeader ? JSON.parse(Buffer.from(readinessPaymentHeader, "base64").toString("utf-8")) : {};
+check("Agent Readiness requires $0.025 USDC before work", readinessUnpaid.status === 402 && readinessTerms.x402Version === 2 && readinessTerms.accepts?.[0]?.amount === "25000", `status=${readinessUnpaid.status} amount=${readinessTerms.accepts?.[0]?.amount}`);
 
 const capabilities = await (await fetch(`${BASE}/capabilities.json`)).json();
-check("vendor capability manifest is explicit and versioned", capabilities.standard === false && capabilities.manifest_version === "1.0.0" && capabilities.capabilities?.some((item) => item.id === "agent-readiness.quick"));
+check("vendor capability manifest is explicit, versioned, and prices Agent Readiness", capabilities.standard === false && capabilities.manifest_version === "1.0.0" && capabilities.capabilities?.some((item) => item.id === "agent-readiness.quick" && item.price?.amount === "0.025" && item.billing_unit === "successful audit"));
 
 // 3d) llms.txt
 const llms = await fetch(`${BASE}/llms.txt`);
@@ -94,7 +98,9 @@ const tools = await (await rpc("tools/list", {})).json();
 check("MCP lists audit_website_preview with strict schema", tools.result?.tools?.[0]?.name === "audit_website_preview" && tools.result?.tools?.[0]?.inputSchema?.required?.includes("url") && tools.result?.tools?.[0]?.inputSchema?.additionalProperties === false);
 check("MCP tool discloses paid x402 endpoint", /x402|\$0\.005/.test(tools.result?.tools?.[0]?.description ?? ""));
 const readinessTool = tools.result?.tools?.find((tool) => tool.name === "audit_agent_readiness");
-check("MCP lists strict, structured Agent Readiness tool", readinessTool?.inputSchema?.additionalProperties === false && readinessTool?.outputSchema?.properties?.schema_version?.const === "1.0.0" && readinessTool?.annotations?.readOnlyHint === true);
+check("MCP lists strict, structured paid Agent Readiness tool", readinessTool?.inputSchema?.additionalProperties === false && readinessTool?.outputSchema?.properties?.schema_version?.const === "1.0.0" && readinessTool?.annotations?.readOnlyHint === true && /\$0\.025|paid capability/i.test(readinessTool?.description ?? ""));
+const readinessCall = await (await rpc("tools/call", { name: "audit_agent_readiness", arguments: { url: "https://example.com" } })).json();
+check("MCP Agent Readiness closes the free execution bypass", readinessCall.result?.isError === true && /PAYMENT_REQUIRED/.test(JSON.stringify(readinessCall.result)) && /0\.025/.test(JSON.stringify(readinessCall.result)));
 const badCall = await (await rpc("tools/call", { name: "audit_website_preview", arguments: { url: "http://127.0.0.1/" } })).json();
 check("MCP rejects private URL", badCall.result?.isError === true && /PRIVATE_ADDRESS_BLOCKED/.test(JSON.stringify(badCall.result)));
 
@@ -113,7 +119,7 @@ if (deepCreate.status === 503) {
 }
 check("openapi documents createDeepAudit", JSON.stringify(oaDoc).includes("createDeepAudit"));
 const manifest2 = await (await fetch(`${BASE}/api`)).json();
-check("manifest lists both tiers with prices", manifest2.tiers?.quick?.price_usdc === "0.005" && !!manifest2.tiers?.["deep-page"]?.price_usdc);
+check("manifest lists all paid tiers with prices", manifest2.tiers?.quick?.price_usdc === "0.005" && manifest2.tiers?.["agent-readiness"]?.price_usdc === "0.025" && !!manifest2.tiers?.["deep-page"]?.price_usdc);
 
 // 4) Paid route without payment -> 402 with valid x402 v2 terms in PAYMENT-REQUIRED header
 const NET = process.env.EXPECT_NETWORK ?? "eip155:8453";

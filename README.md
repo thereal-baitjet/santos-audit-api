@@ -10,7 +10,7 @@ Live: API at **https://api.santosautomation.com** · landing page at
 | Surface | URL |
 |---|---|
 | Quick Audit ($0.005 USDC, synchronous) | `GET /api/audit?url=https://example.com` |
-| **Agent Readiness** (bounded passive assessment) | `GET /api/agent-readiness?url=https://example.com&depth=quick` |
+| **Agent Readiness** ($0.025 USDC, bounded passive assessment) | `GET /api/agent-readiness?url=https://example.com&depth=quick` |
 | **Deep Page Audit** ($0.075 USDC, async job) | `POST /v1/audits` `{"url": "https://example.com"}` |
 | Free demo (1/day per IP) | `GET /api/audit/demo?url=https://example.com` |
 | OpenAPI 3.1 | [`/openapi.json`](https://api.santosautomation.com/openapi.json) |
@@ -86,8 +86,10 @@ uses at most eight bounded requests and never authenticates, pays, submits forms
 creates accounts, invokes target tools, or executes target code.
 
 Agent Readiness is also available as the opt-in `agent-readiness` module for
-`POST /v1/audits`, as MCP tool `audit_agent_readiness`, and additively inside the
-Quick Audit response. The existing Quick Audit `overall_score` is unchanged.
+`POST /v1/audits`, through the MCP `audit_agent_readiness` paid-HTTP handoff, and
+additively as a lower-coverage embedded preview inside the Quick Audit response.
+The standalone result costs **$0.025 USDC per successful response** through x402 v2;
+failed audits do not settle. The existing Quick Audit `overall_score` is unchanged.
 Scoring and standards baselines are documented in
 [`docs/agent-readiness-scoring.md`](docs/agent-readiness-scoring.md) and
 [`docs/agent-readiness-spec-baseline.md`](docs/agent-readiness-spec-baseline.md).

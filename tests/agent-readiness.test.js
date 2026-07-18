@@ -5,6 +5,7 @@ import { gradeFor } from "../lib/agent-readiness/scoring.js";
 import { assertAgentReadinessResult } from "../lib/agent-readiness/validation.js";
 import { quickOverallScore } from "../audit.js";
 import { validateCreateRequest } from "../lib/deep/schemas.js";
+import { getAgentReadinessPriceUsdc, usdcAtomicAmount } from "../lib/agent-readiness/product-pricing.js";
 
 const origin = "https://service.example";
 
@@ -176,6 +177,25 @@ test("caches bounded MCP Registry results for the configured TTL", async () => {
 
 test("grade thresholds are stable", () => {
   assert.deepEqual([[90, "A"], [80, "B"], [70, "C"], [60, "D"], [59, "F"]].map(([score]) => gradeFor(score)), ["A", "B", "C", "D", "F"]);
+});
+
+test("Agent Readiness has a validated 0.025 USDC paid default", () => {
+  const previous = process.env.AGENT_READINESS_PRICE_USDC;
+  try {
+    delete process.env.AGENT_READINESS_PRICE_USDC;
+    assert.equal(getAgentReadinessPriceUsdc(), "0.025");
+    assert.equal(usdcAtomicAmount(), "25000");
+    process.env.AGENT_READINESS_PRICE_USDC = "0.030000";
+    assert.equal(getAgentReadinessPriceUsdc(), "0.03");
+    assert.equal(usdcAtomicAmount(), "30000");
+    process.env.AGENT_READINESS_PRICE_USDC = "0";
+    assert.throws(() => getAgentReadinessPriceUsdc(), /positive USDC amount/);
+    process.env.AGENT_READINESS_PRICE_USDC = "0.0000001";
+    assert.throws(() => getAgentReadinessPriceUsdc(), /positive USDC amount/);
+  } finally {
+    if (previous === undefined) delete process.env.AGENT_READINESS_PRICE_USDC;
+    else process.env.AGENT_READINESS_PRICE_USDC = previous;
+  }
 });
 
 test("Quick Audit overall score ignores additive Agent Readiness", () => {

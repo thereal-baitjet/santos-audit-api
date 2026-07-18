@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
 import { capabilityManifest } from "../../lib/capabilities.js";
+import { AGENT_READINESS_BILLING_UNIT, getAgentReadinessPriceUsdc } from "../../lib/agent-readiness/product-pricing.js";
 
 export async function GET() {
+  const readinessPrice = getAgentReadinessPriceUsdc();
   return NextResponse.json(
     {
       manifest_version: "1",
       name: "Santos Site Audit API",
-      version: "2.2.1",
+      version: "2.2.2",
       description:
         "A lightweight machine-payable single-page website audit API. Returns performance signals, SEO signals, basic HTML accessibility signals, security-header checks, 0-100 category scores, and actionable remediation guidance.",
       canonical_url: PUBLIC_API_BASE_URL,
@@ -54,7 +56,8 @@ export async function GET() {
         "agent-readiness": {
           capability_id: "agent-readiness.quick",
           endpoint: "GET /api/agent-readiness?url=&depth=quick",
-          price_usdc: process.env.AGENT_READINESS_PRICE_USDC?.trim() || null,
+          price_usdc: readinessPrice,
+          billing_unit: AGENT_READINESS_BILLING_UNIT,
           mode: "synchronous, bounded passive discovery",
           engine: "fetch + HTML/JSON interface analysis; no authentication, payment, or business tool invocation",
           schema_version: "1.0.0",
@@ -71,7 +74,7 @@ export async function GET() {
       },
       endpoints: {
         "GET /api/audit?url=": "$0.005 USDC via x402 v2 — quick audit, synchronous",
-        "GET /api/agent-readiness?url=&depth=quick": process.env.AGENT_READINESS_PRICE_USDC?.trim() ? `$${process.env.AGENT_READINESS_PRICE_USDC} USDC via x402 v2 — Agent Readiness audit` : "Agent Readiness audit — currently unpriced",
+        "GET /api/agent-readiness?url=&depth=quick": `$${readinessPrice} USDC via x402 v2 — Agent Readiness audit, synchronous`,
         "POST /v1/audits": `$${process.env.DEEP_AUDIT_PRICE_USDC ?? "0.075"} USDC via x402 v2 — deep page audit job, asynchronous`,
         "GET /api/audit/demo?url=": "free, 1/day per IP, human demo",
         "POST /mcp": "MCP server (Streamable HTTP) — free preview tool audit_website_preview",
