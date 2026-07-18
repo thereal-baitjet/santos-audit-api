@@ -46,19 +46,37 @@ export const metadata = {
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "ProfessionalService",
-  name: "Santos Automation",
-  url: "https://santosautomation.com",
-  email: "baitjet@gmail.com",
-  founder: { "@type": "Person", name: "Juan Santos" },
-  areaServed: "US",
-  description: "Custom web apps, automation systems, and machine-payable x402 APIs.",
-  sameAs: ["https://github.com/thereal-baitjet", "https://instagram.com/mr.j.c.santos"],
+  "@graph": [
+    {
+      "@type": "ProfessionalService", "@id": "https://santosautomation.com/#organization",
+      name: "Santos Automation", url: "https://santosautomation.com", email: "baitjet@gmail.com",
+      founder: { "@type": "Person", name: "Juan Santos" }, areaServed: "US",
+      description: "Custom web apps, automation systems, and machine-payable x402 APIs.",
+      sameAs: ["https://github.com/thereal-baitjet", "https://instagram.com/mr.j.c.santos"],
+    },
+    {
+      "@type": "WebAPI", "@id": "https://api.santosautomation.com/#api",
+      name: "Santos Site Audit API", url: "https://api.santosautomation.com/api",
+      documentation: "https://api.santosautomation.com/openapi.json",
+      provider: { "@id": "https://santosautomation.com/#organization" },
+      description: "Quick, deep-page, and passive Agent Readiness audits for public websites and services.",
+      offers: [
+        { "@type": "Offer", name: "Quick Audit", price: "0.005", priceCurrency: "USDC" },
+        { "@type": "Offer", name: "Deep Page Audit", price: process.env.DEEP_AUDIT_PRICE_USDC ?? "0.075", priceCurrency: "USDC" },
+        ...(process.env.AGENT_READINESS_PRICE_USDC ? [{ "@type": "Offer", name: "Agent Readiness Audit", price: process.env.AGENT_READINESS_PRICE_USDC, priceCurrency: "USDC" }] : []),
+      ],
+    },
+  ],
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="service-desc" type="application/vnd.oai.openapi+json" href="https://api.santosautomation.com/openapi.json" />
+        <link rel="alternate" type="text/plain" href="https://api.santosautomation.com/llms.txt" title="Agent-readable service guide" />
+        <link rel="alternate" type="application/json" href="https://api.santosautomation.com/capabilities.json" title="Vendor-specific capability manifest" />
+      </head>
       <body>
         <script
           type="application/ld+json"

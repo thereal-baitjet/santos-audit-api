@@ -7,9 +7,11 @@ import { auditSite } from "../../audit.js";
 import { AuditError, validateTarget } from "../../lib/safe-fetch.js";
 import { hasFreeAudit, markFreeAudit, ipFromRequest } from "../../lib/demo-limit.js";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
+import { auditAgentReadiness } from "../../lib/agent-readiness/analyze.js";
+import { AGENT_READINESS_RESULT_SCHEMA } from "../../lib/agent-readiness/contract.js";
 
 // Newest first. Initialize negotiates: requested if supported, else our latest.
-const SUPPORTED_PROTOCOL_VERSIONS = ["2025-06-18", "2025-03-26"];
+const SUPPORTED_PROTOCOL_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26"];
 
 const ALLOWED_ORIGINS = new Set(
   [
@@ -22,7 +24,7 @@ const ALLOWED_ORIGINS = new Set(
   ].filter(Boolean)
 );
 
-const TOOL = {
+const PREVIEW_TOOL = {
   name: "audit_website_preview",
   description:
     "FREE PREVIEW (1 audit per day per IP) of the Santos Site Audit API. Runs a fast, lightweight audit of a single public web page: fetch-timing and page-weight performance signals, SEO signals (title, meta description, headings, canonical, OpenGraph), basic HTML accessibility signals (alt text, lang, viewport), and security-header checks (HTTPS, HSTS, CSP). Returns 0-100 category scores, individual pass/fail checks, and plain-English remediation guidance. It audits one page only — no crawling, JavaScript rendering, Core Web Vitals, WCAG conformance, or vulnerability scanning. " +
@@ -39,6 +41,23 @@ const TOOL = {
     required: ["url"],
     additionalProperties: false,
   },
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+};
+
+const AGENT_READINESS_TOOL = {
+  name: "audit_agent_readiness",
+  description: "Passively assess how well a public website or service can be discovered, understood, invoked, and—where explicitly applicable—paid by agents. Classifies applicability before scoring so ordinary websites are not penalized for lacking APIs, MCP, or machine commerce. Uses bounded public reads only: never authenticates, creates accounts, submits forms, signs payments, transfers funds, or invokes advertised business tools.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      url: { type: "string", format: "uri", description: "A publicly reachable HTTP or HTTPS target." },
+      depth: { type: "string", enum: ["quick"], default: "quick" },
+    },
+    required: ["url"],
+    additionalProperties: false,
+  },
+  outputSchema: AGENT_READINESS_RESULT_SCHEMA,
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
 };
 
 const rpcResult = (id, result) => NextResponse.json({ jsonrpc: "2.0", id, result });
@@ -77,6 +96,19 @@ async function callAuditTool(args, ip) {
   }
 }
 
+async function callAgentReadinessTool(args) {
+  if (!args || typeof args.url !== "string" || !args.url.trim() || (args.depth && args.depth !== "quick")) {
+    return { isError: true, content: [{ type: "text", text: "INVALID_ARGUMENTS: 'url' is required and depth, when supplied, must be 'quick'." }] };
+  }
+  try {
+    const report = await auditAgentReadiness(args.url.trim(), { mode: "quick" });
+    return { content: [{ type: "text", text: JSON.stringify(report, null, 2) }], structuredContent: report };
+  } catch (error) {
+    const code = error instanceof AuditError ? error.code : "AUDIT_FAILED";
+    return { isError: true, content: [{ type: "text", text: `${code}: ${error.message}` }] };
+  }
+}
+
 export async function POST(req) {
   // Streamable HTTP security: reject browser requests from unknown origins.
   const origin = req.headers.get("origin");
@@ -111,18 +143,19 @@ export async function POST(req) {
       return rpcResult(id, {
         protocolVersion: negotiated,
         capabilities: { tools: {} },
-        serverInfo: { name: "santos-site-audit", version: "2.0.0" },
+        serverInfo: { name: "santos-site-audit", version: "2.2.0" },
         instructions:
-          "Use audit_website_preview for a free (1/day per IP) lightweight single-page audit. Unlimited audits are available via the x402-paid HTTP endpoint documented in the tool description.",
+          "Use audit_website_preview for a free (1/day per IP) lightweight single-page audit, or audit_agent_readiness for a bounded passive assessment of public agent-facing interfaces. Unlimited quick audits are available via the x402-paid HTTP endpoint documented in the preview tool description.",
       });
     }
     case "ping":
       return rpcResult(id, {});
     case "tools/list":
-      return rpcResult(id, { tools: [TOOL] });
+      return rpcResult(id, { tools: [PREVIEW_TOOL, AGENT_READINESS_TOOL] });
     case "tools/call": {
-      if (params?.name !== TOOL.name) return rpcError(id, -32602, `Unknown tool: ${params?.name}`);
-      return rpcResult(id, await callAuditTool(params?.arguments, ipFromRequest(req)));
+      if (params?.name === PREVIEW_TOOL.name) return rpcResult(id, await callAuditTool(params?.arguments, ipFromRequest(req)));
+      if (params?.name === AGENT_READINESS_TOOL.name) return rpcResult(id, await callAgentReadinessTool(params?.arguments));
+      return rpcError(id, -32602, `Unknown tool: ${params?.name}`);
     }
     default:
       return rpcError(id, -32601, `Method not found: ${method}`);

@@ -10,12 +10,14 @@ Live: API at **https://api.santosautomation.com** · landing page at
 | Surface | URL |
 |---|---|
 | Quick Audit ($0.005 USDC, synchronous) | `GET /api/audit?url=https://example.com` |
+| **Agent Readiness** (bounded passive assessment) | `GET /api/agent-readiness?url=https://example.com&depth=quick` |
 | **Deep Page Audit** ($0.075 USDC, async job) | `POST /v1/audits` `{"url": "https://example.com"}` |
 | Free demo (1/day per IP) | `GET /api/audit/demo?url=https://example.com` |
 | OpenAPI 3.1 | [`/openapi.json`](https://api.santosautomation.com/openapi.json) |
 | llms.txt | [`/llms.txt`](https://api.santosautomation.com/llms.txt) |
-| MCP server (tool: `audit_website`) | `POST /mcp` |
+| MCP server (tools: `audit_website_preview`, `audit_agent_readiness`) | `POST /mcp` |
 | Service manifest | [`/api`](https://api.santosautomation.com/api) |
+| Capability manifest | [`/capabilities.json`](https://api.santosautomation.com/capabilities.json) |
 
 ## How agents pay (x402)
 
@@ -73,6 +75,22 @@ header → poll `status_url` with the returned one-time `access_token` → fetch
 `report_url` (versioned `schema_version: 3.0.0` JSON + signed artifact URLs).
 Working buyer example: [`buy-deep.js`](buy-deep.js). Architecture + go-live
 runbook: [`docs/deep-audit.md`](docs/deep-audit.md).
+
+## Agent Readiness
+
+The versioned `AgentReadinessResult` assesses public agent-facing discovery,
+structured identity, OpenAPI, MCP, operational trust, and x402/machine-commerce
+signals. It first classifies applicability, so a normal website is not penalized
+for lacking an API, MCP server, or payment interface. The standalone quick pass
+uses at most eight bounded requests and never authenticates, pays, submits forms,
+creates accounts, invokes target tools, or executes target code.
+
+Agent Readiness is also available as the opt-in `agent-readiness` module for
+`POST /v1/audits`, as MCP tool `audit_agent_readiness`, and additively inside the
+Quick Audit response. The existing Quick Audit `overall_score` is unchanged.
+Scoring and standards baselines are documented in
+[`docs/agent-readiness-scoring.md`](docs/agent-readiness-scoring.md) and
+[`docs/agent-readiness-spec-baseline.md`](docs/agent-readiness-spec-baseline.md).
 
 ## Response shape (Quick Audit)
 

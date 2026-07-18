@@ -12,6 +12,7 @@ const root = await fetch(`${BASE}/api`);
 const manifest = await root.json();
 check("manifest returns 200", root.status === 200);
 check("manifest lists demo + paid endpoints", !!manifest.endpoints?.["GET /api/audit/demo?url="] && !!manifest.endpoints?.["GET /api/audit?url="]);
+check("manifest lists Agent Readiness", !!manifest.endpoints?.["GET /api/agent-readiness?url=&depth=quick"] && manifest.tiers?.["agent-readiness"]?.capability_id === "agent-readiness.quick");
 
 // 2) Free demo: 200 with a report, or 429 if this IP already used today's audit
 const demo = await fetch(`${BASE}/api/audit/demo?url=example.com`);
@@ -64,6 +65,14 @@ const oa = await fetch(`${BASE}/openapi.json`);
 const oaDoc = await oa.json().catch(() => ({}));
 check("openapi.json reachable + JSON", oa.status === 200 && (oa.headers.get("content-type") ?? "").includes("json"));
 check("openapi 3.1 with auditWebsite operation", oaDoc.openapi === "3.1.0" && oaDoc.paths?.["/api/audit"]?.get?.operationId === "auditWebsite" && !!oaDoc.paths?.["/api/audit/demo"]);
+check("openapi documents Agent Readiness contract", oaDoc.paths?.["/api/agent-readiness"]?.get?.operationId === "auditAgentReadiness" && oaDoc.components?.schemas?.AgentReadinessResult?.properties?.schema_version?.const === "1.0.0");
+
+const readinessBad = await fetch(`${BASE}/api/agent-readiness?url=${encodeURIComponent("http://127.0.0.1/")}`);
+const readinessBadBody = await readinessBad.json().catch(() => ({}));
+check("Agent Readiness rejects private targets before work/payment", readinessBad.status === 400 && readinessBadBody.code === "PRIVATE_ADDRESS_BLOCKED");
+
+const capabilities = await (await fetch(`${BASE}/capabilities.json`)).json();
+check("vendor capability manifest is explicit and versioned", capabilities.standard === false && capabilities.manifest_version === "1.0.0" && capabilities.capabilities?.some((item) => item.id === "agent-readiness.quick"));
 
 // 3d) llms.txt
 const llms = await fetch(`${BASE}/llms.txt`);
@@ -76,7 +85,7 @@ const rpc = (method, params, id = 1, headers = {}) => fetch(`${BASE}/mcp`, { met
 const init = await (await rpc("initialize", { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "test", version: "0" } })).json();
 check("MCP initialize (supported version echoed)", init.result?.serverInfo?.name === "santos-site-audit" && init.result?.protocolVersion === "2025-03-26");
 const initNeg = await (await rpc("initialize", { protocolVersion: "1999-01-01", capabilities: {}, clientInfo: { name: "test", version: "0" } })).json();
-check("MCP initialize negotiates unsupported version to server latest", initNeg.result?.protocolVersion === "2025-06-18");
+check("MCP initialize negotiates unsupported version to server latest", initNeg.result?.protocolVersion === "2025-11-25");
 const badVer = await rpc("tools/list", {}, 2, { "mcp-protocol-version": "1999-01-01" });
 check("MCP rejects unsupported MCP-Protocol-Version header", badVer.status === 400);
 const badOrigin = await rpc("tools/list", {}, 3, { Origin: "https://evil.example" });
@@ -84,6 +93,8 @@ check("MCP rejects untrusted browser Origin", badOrigin.status === 403);
 const tools = await (await rpc("tools/list", {})).json();
 check("MCP lists audit_website_preview with strict schema", tools.result?.tools?.[0]?.name === "audit_website_preview" && tools.result?.tools?.[0]?.inputSchema?.required?.includes("url") && tools.result?.tools?.[0]?.inputSchema?.additionalProperties === false);
 check("MCP tool discloses paid x402 endpoint", /x402|\$0\.005/.test(tools.result?.tools?.[0]?.description ?? ""));
+const readinessTool = tools.result?.tools?.find((tool) => tool.name === "audit_agent_readiness");
+check("MCP lists strict, structured Agent Readiness tool", readinessTool?.inputSchema?.additionalProperties === false && readinessTool?.outputSchema?.properties?.schema_version?.const === "1.0.0" && readinessTool?.annotations?.readOnlyHint === true);
 const badCall = await (await rpc("tools/call", { name: "audit_website_preview", arguments: { url: "http://127.0.0.1/" } })).json();
 check("MCP rejects private URL", badCall.result?.isError === true && /PRIVATE_ADDRESS_BLOCKED/.test(JSON.stringify(badCall.result)));
 

@@ -120,13 +120,16 @@ ul.issues li::before { content: "→ "; color: var(--bad); }
 
 /* ---- plans ---- */
 section.plans { padding: 64px 0; border-bottom: 1px solid var(--border); }
-.plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 28px; }
+.plan-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 28px; }
+@media (max-width: 1050px) { .plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .plan--deep { grid-column: 1 / -1; } }
 @media (max-width: 760px) { .plan-grid { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .plan--deep { grid-column: auto; } }
 .plan {
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
   padding: 28px; display: flex; flex-direction: column; gap: 16px;
 }
 .plan--deep { border-color: var(--accent); position: relative; }
+.plan--agent { border-color: rgba(220, 175, 92, .55); }
 .plan--deep::before {
   content: "browser-rendered"; position: absolute; top: -11px; right: 20px;
   background: var(--accent); color: var(--accent-ink); font-family: var(--mono);
