@@ -1,17 +1,30 @@
 # Santos Website Intelligence API
 
-AI Website Intelligence for measuring whether a public website can be discovered,
-understood, trusted, and used by AI agents. Machine-payable website and Agent
-Readiness audits run on Base mainnet (eip155:8453)
-through x402 v2: $0.005 USDC for Quick Audit, $0.025 for Agent Readiness, and
-$0.075 for a Deep Page compute reservation. No user account and no traditional API
-key are required — an agent pays inside the HTTP request itself. Built and operated by
-Santos Automation. From discoverable to callable.
+> AI Website Intelligence for measuring whether a public website can be discovered,
+> understood, trusted, and used by AI agents. Machine-payable website and Agent
+> Readiness audits run on Base mainnet (eip155:8453) through x402 v2: $0.005 USDC
+> for Quick Audit, $0.025 for Agent Readiness, and $0.075 for a Deep Page compute
+> reservation. No user account and no traditional API key are required — an agent
+> pays inside the HTTP request itself.
+
+Built and operated by Santos Automation. From discoverable to callable.
+
+## Machine surfaces
+
+- [OpenAPI 3.1 specification](https://api.santosautomation.com/openapi.json): full request/response schemas for every endpoint
+- [Remote MCP server](https://api.santosautomation.com/mcp): Streamable HTTP; tools: audit_website_preview and audit_agent_readiness
+- [Service manifest](https://api.santosautomation.com/api): live service description and pricing
+- [Capability manifest](https://api.santosautomation.com/capabilities.json): vendor-specific capability manifest (not a formal standard)
+- [Agent capability manifest](https://www.santosautomation.com/.well-known/agent-capabilities.json): well-known agent-capabilities document
 
 ## API — audit modes
 
-AGENT READINESS AUDIT — $0.025 USDC per successful audit, synchronous, bounded passive public-interface assessment:
-- Endpoint: https://api.santosautomation.com/api/agent-readiness?url=https%3A%2F%2Fexample.com&depth=quick
+- [Agent Readiness Audit](https://api.santosautomation.com/api/agent-readiness?url=https%3A%2F%2Fexample.com&depth=quick): $0.025 USDC per successful audit, synchronous, bounded passive public-interface assessment
+- [Quick Intelligence Audit](https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com): $0.005 USDC, synchronous (seconds), fetch-and-parse engine
+- [Free demo audit](https://api.santosautomation.com/api/audit/demo?url=https%3A%2F%2Fexample.com): 1/day per IP, same report shape as the paid Quick Audit
+- [Deep Website Intelligence Audit](https://api.santosautomation.com/v1/audits): $0.075 USDC, asynchronous job — POST {"url": "https://example.com"}
+
+AGENT READINESS AUDIT details:
 - Capability id: `agent-readiness.quick`; result schema version: `1.0.0`.
 - Classifies the target before scoring. Ordinary websites are not penalized for
   lacking OpenAPI, MCP, or machine commerce when those surfaces are not applicable.
@@ -23,14 +36,8 @@ AGENT READINESS AUDIT — $0.025 USDC per successful audit, synchronous, bounded
   `PAYMENT-REQUIRED` terms for 25000 atomic USDC units. Settlement occurs only after
   a successful audit response.
 
-QUICK INTELLIGENCE AUDIT — $0.005 USDC, synchronous (seconds), fetch-and-parse engine:
-- Production endpoint: https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com
-- Free demo endpoint (1/day per IP, same report shape): https://api.santosautomation.com/api/audit/demo?url=https%3A%2F%2Fexample.com
-
-DEEP WEBSITE INTELLIGENCE AUDIT — $0.075 USDC, asynchronous job (typically tens of seconds to a few
-minutes), real-browser engine (Chromium/Playwright + Lighthouse + rendered axe-core +
-network evidence + screenshots + passive security):
-- Create job: POST https://api.santosautomation.com/v1/audits  {"url": "https://example.com"}
+DEEP WEBSITE INTELLIGENCE AUDIT details (real-browser engine: Chromium/Playwright +
+Lighthouse + rendered axe-core + network evidence + screenshots + passive security):
 - Payment buys one bounded compute reservation; it settles when the job is ACCEPTED,
   not when the report completes. Send an Idempotency-Key header — retries return the
   existing job without a second charge.
@@ -38,12 +45,6 @@ network evidence + screenshots + passive security):
   status_url, and report_url. Poll status_url; fetch report_url when status=completed.
 - Returns HTTP 503 SERVICE_UNAVAILABLE while the deep tier is not yet enabled on a
   deployment; the Quick Audit is always available.
-
-Shared machine surfaces:
-- OpenAPI 3.1 specification: https://api.santosautomation.com/openapi.json
-- Remote MCP server (Streamable HTTP; tools: audit_website_preview and audit_agent_readiness): https://api.santosautomation.com/mcp
-- Service manifest: https://api.santosautomation.com/api
-- Vendor-specific capability manifest (not a formal standard): https://api.santosautomation.com/capabilities.json
 
 ## Capabilities
 
@@ -93,11 +94,10 @@ audit or invoke any tool advertised by the audited target.
 - Deep Page Audit price: $0.075 USDC per bounded compute reservation (75000 atomic units).
 - Network: `eip155:8453` (Base mainnet). Asset: USDC at 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.
 - Pay to: 0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B.
-- Humans without a USDC wallet: a one-time $19 USD "Agent Readiness Report" is
-  available by card (Stripe Checkout) at https://www.santosautomation.com/agent-readiness/buy —
-  no account, emailed as a private tokened link. This is a human convenience; the
-  machine-payable per-call price remains $0.025 USDC via x402. Refunds by email
-  to info@santosautomation.com.
+- Humans without a USDC wallet: a one-time $19 USD [Agent Readiness Report by card](https://www.santosautomation.com/agent-readiness/buy)
+  (Stripe Checkout) — no account, emailed as a private tokened link. This is a human
+  convenience; the machine-payable per-call price remains $0.025 USDC via x402.
+  Refunds by email to info@santosautomation.com.
 - Flow: request without payment returns HTTP 402; decode the `PAYMENT-REQUIRED`
   header for full terms (`accepts[0]`); sign an EIP-3009 transferWithAuthorization
   for the quoted amount; retry with `PAYMENT-SIGNATURE`. Any x402 v2 client
@@ -113,7 +113,6 @@ audit or invoke any tool advertised by the audited target.
   optional and the registry is currently preview infrastructure.
 - OpenAPI assessment is bounded structural validation; it does not dereference
   remote schemas or execute examples.
-
 - Audits a single public page per call; no crawling, no login-protected or private pages.
 - No JavaScript rendering, Core Web Vitals, interaction testing, color-contrast
   analysis, full WCAG conformance, TLS analysis, or vulnerability scanning.
@@ -125,8 +124,8 @@ audit or invoke any tool advertised by the audited target.
 
 ## Support
 
-- Website: https://www.santosautomation.com
-- Terms, privacy, acceptable use, and retention: https://www.santosautomation.com/terms
+- [Website](https://www.santosautomation.com): product landing and free demo audit
+- [Terms, privacy, acceptable use, and retention](https://www.santosautomation.com/terms): legal and data-handling policies
 - Email: info@santosautomation.com
 - Operator: Santos Automation (Juan Santos) — custom x402 APIs, web apps,
   e-commerce, and automation systems for hire.
