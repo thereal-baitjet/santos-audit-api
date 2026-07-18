@@ -11,8 +11,12 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",
     "@axe-core/playwright": "^4.11.2",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "cheerio": "^1.2.0",
     "lighthouse": "^12.8.2",
     "pg": "^8.16.0",
-    "playwright": "^1.58.2"
+    "playwright": "^1.58.2",
+    "yaml": "^2.9.0"
   }
 }
