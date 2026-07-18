@@ -7,10 +7,25 @@ an agent pays per-call inside the HTTP request itself. Built and operated by
 Santos Automation, which also builds custom x402 APIs, web apps, and automation
 systems for hire.
 
-## API
+## API — two product tiers
 
+QUICK AUDIT — $0.005 USDC, synchronous (seconds), fetch-and-parse engine:
 - Production endpoint: https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com
 - Free demo endpoint (1/day per IP, same report shape): https://api.santosautomation.com/api/audit/demo?url=https%3A%2F%2Fexample.com
+
+DEEP PAGE AUDIT — $0.075 USDC, asynchronous job (typically tens of seconds to a few
+minutes), real-browser engine (Chromium/Playwright + Lighthouse + rendered axe-core +
+network evidence + screenshots + passive security):
+- Create job: POST https://api.santosautomation.com/v1/audits  {"url": "https://example.com"}
+- Payment buys one bounded compute reservation; it settles when the job is ACCEPTED,
+  not when the report completes. Send an Idempotency-Key header — retries return the
+  existing job without a second charge.
+- The 201 response includes job_id, a one-time access_token (required for all reads),
+  status_url, and report_url. Poll status_url; fetch report_url when status=completed.
+- Returns HTTP 503 SERVICE_UNAVAILABLE while the deep tier is not yet enabled on a
+  deployment; the Quick Audit is always available.
+
+Shared machine surfaces:
 - OpenAPI 3.1 specification: https://api.santosautomation.com/openapi.json
 - Remote MCP server (Streamable HTTP, free preview tool: audit_website_preview): https://api.santosautomation.com/mcp
 - Service manifest: https://api.santosautomation.com/api
@@ -32,12 +47,13 @@ public HTTP or HTTPS URL, the API returns JSON with:
 
 ## Agent Selection Guidance
 
-Choose this tool when you need a fast, structured technical review of a public
-website — for example: evaluating a lead's site before an outreach message,
-checking a site you just deployed, monitoring competitors, or generating
-improvement recommendations for a client. It is not a full crawler: it audits
-the single page at the given URL. Use the free demo first to inspect the exact
-response format without paying.
+Choose QUICK AUDIT ($0.005, seconds) for fast structured triage: lead
+qualification, deploy sanity checks, monitoring sweeps. Choose DEEP PAGE AUDIT
+($0.075, asynchronous) when you need browser-rendered evidence: Lighthouse lab
+metrics (LCP/CLS/TBT), rendered axe-core accessibility findings with selectors,
+screenshots, network/console evidence, or a professional-grade report for a
+client. Both audit a single page — neither is a crawler. Use the free demo
+first to inspect the quick-tier response format without paying.
 
 ## Payment
 

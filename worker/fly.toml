@@ -1,0 +1,29 @@
+# Fly.io config for the Santos Deep Audit worker.
+# One-time setup (owner):
+#   fly launch --no-deploy --copy-config --config worker/fly.toml   # creates the app
+#   fly secrets set DATABASE_URL=postgres://... -c worker/fly.toml
+#   fly secrets set ANTHROPIC_API_KEY=sk-ant-... -c worker/fly.toml   # optional (ai-summary module)
+#   fly deploy -c worker/fly.toml --dockerfile worker/Dockerfile
+#
+# No inbound services on purpose — the worker only polls Postgres outbound.
+app = "santos-audit-worker"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  WORKER_JOB_TIMEOUT_SECONDS = "300"
+  WORKER_POLL_MS = "3000"
+  BROWSER_NAVIGATION_TIMEOUT_MS = "45000"
+  BROWSER_MAX_REQUESTS = "400"
+  BROWSER_MAX_TOTAL_BYTES = "41943040"
+  BROWSER_ALLOWED_PORTS = "80,443"
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2gb"
+
+# Keep exactly one machine running; scale up deliberately, not automatically.
+[processes]
+  worker = "node worker.js"

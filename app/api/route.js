@@ -42,8 +42,25 @@ export async function GET() {
         "public pages only; private/internal addresses rejected",
         "15s timeout, 5 redirects, 5MB response cap, ports 80/443 only",
       ],
+      tiers: {
+        quick: {
+          endpoint: "GET /api/audit?url=",
+          price_usdc: "0.005",
+          mode: "synchronous",
+          engine: "fetch + HTML parsing (no browser)",
+        },
+        "deep-page": {
+          endpoint: "POST /v1/audits",
+          price_usdc: process.env.DEEP_AUDIT_PRICE_USDC ?? "0.075",
+          mode: "asynchronous job (poll status_url)",
+          engine: "Chromium/Playwright + Lighthouse + rendered axe-core + network evidence + screenshots + passive security",
+          payment_note: "Payment buys one bounded compute reservation; settles when the job is accepted, not on report completion. Use an Idempotency-Key header.",
+          enabled: process.env.DEEP_AUDIT_ENABLED === "true",
+        },
+      },
       endpoints: {
-        "GET /api/audit?url=": "$0.005 USDC via x402 v2 — unlimited, for agents",
+        "GET /api/audit?url=": "$0.005 USDC via x402 v2 — quick audit, synchronous",
+        "POST /v1/audits": `$${process.env.DEEP_AUDIT_PRICE_USDC ?? "0.075"} USDC via x402 v2 — deep page audit job, asynchronous`,
         "GET /api/audit/demo?url=": "free, 1/day per IP, human demo",
         "POST /mcp": "MCP server (Streamable HTTP) — free preview tool audit_website_preview",
       },

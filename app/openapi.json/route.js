@@ -78,13 +78,31 @@ const urlParam = {
   example: "https://example.com",
 };
 
+const deepJobSchema = {
+  type: "object",
+  properties: {
+    job_id: { type: "string", description: "Unguessable job id (aud_...)." },
+    status: { type: "string", enum: ["queued", "running", "aggregating", "completed", "failed", "expired", "cancelled"] },
+    stage: { type: ["string", "null"] },
+    progress: { type: "integer", minimum: 0, maximum: 100 },
+    access_token: { type: "string", description: "Returned ONCE at creation; required (Bearer or ?token=) for every status/report/events/cancel call. Job ids alone are never authorization." },
+    status_url: { type: "string", format: "uri" },
+    report_url: { type: "string", format: "uri" },
+    events_url: { type: "string", format: "uri" },
+    artifacts_url: { type: "string", format: "uri" },
+    payment_contract: { type: "string" },
+    error_code: { type: "string" },
+    error_message: { type: "string" },
+  },
+};
+
 const document = {
   openapi: "3.1.0",
   info: {
     title: "Santos Site Audit API",
-    version: "1.0.0",
+    version: "2.1.0",
     description:
-      "A machine-payable website auditing API for AI agents and automated workflows. Audits a public website for performance, SEO, accessibility, and security; returns category scores, detailed checks, detected issues, and plain-English remediation guidance. Production audits cost $0.005 USDC on Base mainnet (eip155:8453) via the x402 payment protocol — no account or API key required.",
+      "Machine-payable website auditing for AI agents and automated workflows — two tiers, both paid per-call in USDC on Base mainnet (eip155:8453) via x402 v2, no account or API key. QUICK AUDIT (GET /api/audit, $0.005, synchronous, seconds): lightweight single-page fetch-and-parse audit. DEEP PAGE AUDIT (POST /v1/audits, $0.075, asynchronous job, typically tens of seconds to a few minutes): real Chromium via Playwright, Lighthouse lab metrics, rendered axe-core accessibility checks, browser network/console evidence, screenshots, and passive security checks. Deep-audit payment purchases a bounded compute reservation and settles when the job is accepted, not on report completion.",
     contact: { name: "Santos Automation", email: "baitjet@gmail.com", url: "https://santosautomation.com" },
   },
   servers: [{ url: PUBLIC_API_BASE_URL }],
@@ -152,8 +170,102 @@ const document = {
         },
       },
     },
+    "/v1/audits": {
+      post: {
+        operationId: "createDeepAudit",
+        tags: ["Deep Page Audit"],
+        summary: "Create a Deep Page Audit job ($0.075 USDC via x402, asynchronous)",
+        description:
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE). The payment purchases one bounded compute reservation — it settles when the job is ACCEPTED (201), not when the report completes. Runs a real Chromium browser (Playwright) against the page: Lighthouse (mobile lab metrics), rendered axe-core accessibility checks (WCAG 2.x A/AA tags), browser network/console evidence, screenshots, and passive security checks. Send an Idempotency-Key header so retries return the existing job (409 IDEMPOTENT_REPLAY, not charged) instead of purchasing a duplicate. Typical completion: tens of seconds to a few minutes; poll status_url.",
+        parameters: [{
+          name: "Idempotency-Key", in: "header", required: false, schema: { type: "string" },
+          description: "Strongly recommended. Same key + same body returns the existing job without a second charge; same key + different body is rejected (422 IDEMPOTENCY_KEY_REUSED).",
+        }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["url"],
+                properties: {
+                  url: { type: "string", format: "uri", description: "Public HTTP/HTTPS page. Private-network/metadata targets rejected free of charge." },
+                  devices: { type: "array", items: { type: "string", enum: ["mobile", "desktop"] }, default: ["mobile"] },
+                  modules: { type: "array", items: { type: "string", enum: ["lighthouse", "accessibility", "browser-network", "security-passive", "ai-summary"] } },
+                  artifacts: {
+                    type: "object",
+                    properties: {
+                      screenshots: { type: "boolean", default: true },
+                      lighthouse_json: { type: "boolean", default: true },
+                      lighthouse_html: { type: "boolean", default: false },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: { description: "Job accepted and queued; payment settles on this response. Save access_token — it is shown only once.", content: { "application/json": { schema: deepJobSchema } } },
+          400: { description: "Invalid or blocked target/request (not charged).", content: { "application/json": { schema: errorSchema } } },
+          402: { description: "Payment required/invalid. Terms in the PAYMENT-REQUIRED header; body is an agent-readable hint." },
+          409: { description: "Idempotent replay: the existing job for this Idempotency-Key (not charged).", content: { "application/json": { schema: deepJobSchema } } },
+          422: { description: "Idempotency-Key reused with a different body.", content: { "application/json": { schema: errorSchema } } },
+          503: { description: "Deep tier not enabled or storage unavailable (not charged).", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/v1/audits/{job_id}": {
+      get: {
+        operationId: "getDeepAuditStatus",
+        tags: ["Deep Page Audit"],
+        summary: "Job status (requires access token)",
+        parameters: [
+          { name: "job_id", in: "path", required: true, schema: { type: "string" } },
+          { name: "token", in: "query", required: false, schema: { type: "string" }, description: "Job access token (alternative to Authorization: Bearer)." },
+        ],
+        responses: {
+          200: { description: "Job state.", content: { "application/json": { schema: deepJobSchema } } },
+          401: { description: "Missing/invalid access token.", content: { "application/json": { schema: errorSchema } } },
+          404: { description: "Unknown job.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/v1/audits/{job_id}/report": {
+      get: {
+        operationId: "getDeepAuditReport",
+        tags: ["Deep Page Audit"],
+        summary: "Completed report (versioned JSON, requires access token)",
+        description:
+          "schema_version 3.0.0. Sections: target, engines (Chromium/Lighthouse/axe versions), module_status, deterministic scores + scoring_method, lab metrics (labeled laboratory data), network metrics, normalized findings (stable id, engine, category, severity, confidence, status, evidence, standards, recommendation), optional ai_summary (model-generated narrative, clearly labeled), artifacts with short-lived signed download URLs, and explicit limitations.",
+        parameters: [
+          { name: "job_id", in: "path", required: true, schema: { type: "string" } },
+          { name: "token", in: "query", required: false, schema: { type: "string" } },
+        ],
+        responses: {
+          200: { description: "The report." },
+          401: { description: "Missing/invalid access token.", content: { "application/json": { schema: errorSchema } } },
+          409: { description: "Job not completed yet (code REPORT_NOT_READY, includes status/stage/progress).", content: { "application/json": { schema: errorSchema } } },
+          404: { description: "Unknown job or expired report.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/v1/audits/{job_id}/cancel": {
+      post: {
+        operationId: "cancelDeepAudit",
+        tags: ["Deep Page Audit"],
+        summary: "Cancel a queued job (requires access token)",
+        description: "Only queued jobs can be cancelled; running/terminal jobs return 409 NOT_CANCELLABLE. The compute reservation is spent either way.",
+        parameters: [{ name: "job_id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          200: { description: "Cancelled." },
+          401: { description: "Missing/invalid access token." },
+          409: { description: "Not cancellable." },
+        },
+      },
+    },
   },
-  tags: [{ name: "Website Audit" }],
+  tags: [{ name: "Website Audit" }, { name: "Deep Page Audit" }],
 };
 
 export async function GET() {

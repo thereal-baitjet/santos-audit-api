@@ -9,7 +9,8 @@ Live: API at **https://api.santosautomation.com** · landing page at
 
 | Surface | URL |
 |---|---|
-| Paid audit ($0.005 USDC) | `GET /api/audit?url=https://example.com` |
+| Quick Audit ($0.005 USDC, synchronous) | `GET /api/audit?url=https://example.com` |
+| **Deep Page Audit** ($0.075 USDC, async job) | `POST /v1/audits` `{"url": "https://example.com"}` |
 | Free demo (1/day per IP) | `GET /api/audit/demo?url=https://example.com` |
 | OpenAPI 3.1 | [`/openapi.json`](https://api.santosautomation.com/openapi.json) |
 | llms.txt | [`/llms.txt`](https://api.santosautomation.com/llms.txt) |
@@ -61,7 +62,19 @@ Same report shape, no payment, 1/day per IP:
 curl "https://api.santosautomation.com/api/audit/demo?url=example.com"
 ```
 
-## Response shape
+## Deep Page Audit (browser-rendered tier)
+
+Real Chromium via Playwright in an isolated Fly.io worker: Lighthouse lab
+metrics, rendered axe-core accessibility findings (with selectors), browser
+network/console evidence, screenshots, and passive security checks. Async:
+the $0.075 payment buys a **bounded compute reservation** (settles on job
+accept, not report completion). `POST /v1/audits` with an `Idempotency-Key`
+header → poll `status_url` with the returned one-time `access_token` → fetch
+`report_url` (versioned `schema_version: 3.0.0` JSON + signed artifact URLs).
+Working buyer example: [`buy-deep.js`](buy-deep.js). Architecture + go-live
+runbook: [`docs/deep-audit.md`](docs/deep-audit.md).
+
+## Response shape (Quick Audit)
 
 ```json
 {

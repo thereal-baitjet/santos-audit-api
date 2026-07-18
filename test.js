@@ -87,6 +87,23 @@ check("MCP tool discloses paid x402 endpoint", /x402|\$0\.005/.test(tools.result
 const badCall = await (await rpc("tools/call", { name: "audit_website_preview", arguments: { url: "http://127.0.0.1/" } })).json();
 check("MCP rejects private URL", badCall.result?.isError === true && /PRIVATE_ADDRESS_BLOCKED/.test(JSON.stringify(badCall.result)));
 
+// 3f) Deep Page Audit tier: honest state either way — 503 while disabled, or a
+// valid $DEEP price x402 challenge when enabled. Reads without tokens are 401/503.
+const deepCreate = await fetch(`${BASE}/v1/audits`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url: "https://example.com" }) });
+if (deepCreate.status === 503) {
+  const b = await deepCreate.json();
+  check("deep tier: disabled state is honest 503 SERVICE_UNAVAILABLE", b.code === "SERVICE_UNAVAILABLE");
+} else {
+  check("deep tier: unpaid create returns 402 with PAYMENT-REQUIRED header", deepCreate.status === 402 && !!deepCreate.headers.get("payment-required"));
+  const dTerms = JSON.parse(Buffer.from(deepCreate.headers.get("payment-required"), "base64").toString("utf-8"));
+  check("deep tier: challenge priced separately from quick tier", dTerms.accepts?.[0]?.amount !== "5000" && Number(dTerms.accepts?.[0]?.amount) > 0, `amount=${dTerms.accepts?.[0]?.amount}`);
+  const noToken = await fetch(`${BASE}/v1/audits/aud_00000000000000000000`);
+  check("deep tier: reads without access token are 401", noToken.status === 401);
+}
+check("openapi documents createDeepAudit", JSON.stringify(oaDoc).includes("createDeepAudit"));
+const manifest2 = await (await fetch(`${BASE}/api`)).json();
+check("manifest lists both tiers with prices", manifest2.tiers?.quick?.price_usdc === "0.005" && !!manifest2.tiers?.["deep-page"]?.price_usdc);
+
 // 4) Paid route without payment -> 402 with valid x402 v2 terms in PAYMENT-REQUIRED header
 const NET = process.env.EXPECT_NETWORK ?? "eip155:8453";
 const unpaid = await fetch(`${BASE}/api/audit?url=example.com`);

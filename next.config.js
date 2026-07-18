@@ -11,6 +11,7 @@ const CSP = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ["pg"],
   turbopack: {
     root: import.meta.dirname,
   },
