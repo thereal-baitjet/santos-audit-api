@@ -53,6 +53,6 @@ export function proxy(request) {
 // next.config.js headers).
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|assets/|audit-widget.js|api/|openapi.json|capabilities.json|llms.txt|robots.txt|sitemap.xml|.well-known/|mcp).*)",
+    "/((?!_next/static|_next/image|favicon.ico|assets/|audit-widget.js|webmcp.js|api/|openapi.json|capabilities.json|llms.txt|robots.txt|sitemap.xml|.well-known/|mcp).*)",
   ],
 };

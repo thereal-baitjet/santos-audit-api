@@ -132,7 +132,14 @@ export default function AgentReadinessRun() {
 
   return (
     <div className="ar-run">
-      <form className="ar-form" onSubmit={submit} noValidate>
+      <form
+        className="ar-form"
+        onSubmit={submit}
+        noValidate
+        toolname="agentReadinessTermsForm"
+        tooldescription="Get the live x402 payment terms for a paid Agent Readiness audit of a public URL. Read-only: shows USDC amount, network, and pay-to address; no payment happens until an x402 client pays the terms."
+        toolautosubmit=""
+      >
         <label htmlFor={inputId}>Public website or service URL to audit</label>
         <div className="ar-input-row">
           <input
@@ -146,6 +153,7 @@ export default function AgentReadinessRun() {
             onChange={(e) => setUrl(e.target.value)}
             aria-describedby={error ? errorId : undefined}
             aria-invalid={state === STATES.INVALID_TARGET || undefined}
+            toolparamdescription="Public website or service URL to audit, e.g. https://example.com"
             required
           />
           <button className="btn primary" type="submit" disabled={isBusy} data-analytics-event="payment_started">

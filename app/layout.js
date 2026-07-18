@@ -92,6 +92,7 @@ export default async function RootLayout({ children }) {
           nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <script src="/webmcp.js" defer nonce={nonce} />
         {children}
       </body>
     </html>

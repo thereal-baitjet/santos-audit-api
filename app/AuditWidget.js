@@ -7,7 +7,15 @@ export default async function AuditWidget() {
   const nonce = (await headers()).get("content-security-policy")?.match(/'nonce-([^']+)'/)?.[1];
   return (
     <div className="audit-widget" data-audit-widget>
-      <form className="audit-form" action="/api/audit/demo" method="get" data-audit-form>
+      <form
+        className="audit-form"
+        action="/api/audit/demo"
+        method="get"
+        data-audit-form
+        toolname="quickAuditForm"
+        tooldescription="Run a free website intelligence audit of a public URL and see its AI Website Intelligence score, dimension scores, and top issues. Limited to one free scan per day; read-only."
+        toolautosubmit=""
+      >
         <label className="sr-only" htmlFor="audit-url">Public website URL</label>
         <input
           id="audit-url"
@@ -16,6 +24,7 @@ export default async function AuditWidget() {
           placeholder="yourdomain.com"
           aria-describedby="audit-note"
           autoComplete="url"
+          toolparamdescription="Public website URL to audit, e.g. https://example.com or example.com"
           required
         />
         <button className="btn primary" type="submit" data-analytics-event="quick_audit_started">Run Quick Intelligence Audit</button>

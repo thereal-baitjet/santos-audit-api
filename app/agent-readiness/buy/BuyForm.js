@@ -37,16 +37,25 @@ export default function BuyForm() {
   }
 
   return (
-    <form className="ar-form buy-form" onSubmit={submit} noValidate>
+    <form
+      className="ar-form buy-form"
+      onSubmit={submit}
+      noValidate
+      toolname="buyAgentReadinessReportForm"
+      tooldescription="Buy a $19 human-readable Agent Readiness report for a website. Starts a hosted Stripe checkout; the report is emailed after payment. Requires explicit user confirmation — this initiates a purchase."
+    >
       <label htmlFor={urlId}>Website URL to audit</label>
-      <input id={urlId} type="url" inputMode="url" autoComplete="url" placeholder="https://example.com"
+      <input id={urlId} name="url" type="url" inputMode="url" autoComplete="url" placeholder="https://example.com"
         value={url} onChange={(e) => setUrl(e.target.value)}
+        toolparamdescription="Website URL to audit, e.g. https://example.com"
         aria-describedby={error ? errId : undefined} required />
 
       <label htmlFor={emailId}>Where should we email your report?</label>
-      <input id={emailId} type="email" inputMode="email" autoComplete="email" placeholder="you@company.com"
+      <input id={emailId} name="email" type="email" inputMode="email" autoComplete="email" placeholder="you@company.com"
         value={email} onChange={(e) => setEmail(e.target.value)}
+        toolparamdescription="Email address to send the finished report to"
         aria-describedby={error ? errId : undefined} required />
+
 
       <button className="btn primary" type="submit" disabled={busy}>
         {busy ? "Starting checkout…" : "Buy report — $19"}
