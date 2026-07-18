@@ -1,12 +1,13 @@
 # Santos Deep Audit worker — isolated Chromium container for Fly.io.
 # Build from the REPO ROOT (needs lib/ + db/ + worker/):
-#   fly deploy --config worker/fly.toml --dockerfile worker/Dockerfile
+#   fly deploy -a santos-audit-worker -c worker/fly.toml --dockerfile worker/Dockerfile
 FROM mcr.microsoft.com/playwright:v1.61.1-jammy
 
 WORKDIR /app
 
-COPY worker/package.json worker/
-RUN cd worker && npm install --omit=dev && npx playwright install chromium
+# Install at /app so BOTH /app/worker/* and /app/lib/* resolve node_modules.
+COPY worker/package.json package.json
+RUN npm install --omit=dev && npx playwright install chromium
 
 COPY lib/ lib/
 COPY db/ db/
