@@ -30,6 +30,8 @@
   "type": "module",
   "dependencies": {
     "@coinbase/x402": "^2.1.0",
+    "@supabase/ssr": "^0.12.3",
+    "@supabase/supabase-js": "^2.110.7",
     "@x402/core": "^2.19.0",
     "@x402/evm": "^2.19.0",
     "@x402/extensions": "^2.19.0",
@@ -42,5 +44,8 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "viem": "^2.55.2"
+  },
+  "devDependencies": {
+    "@flydotio/dockerfile": "^0.7.10"
   }
 }

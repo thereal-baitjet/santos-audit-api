@@ -10,6 +10,7 @@ export default function Home() {
         </span>
         <ul>
           <li><a href="#audit">Audit</a></li>
+          <li><a href="#plans">Plans</a></li>
           <li><a href="#agents">For Agents</a></li>
           <li><a href="#services">Services</a></li>
           <li><a href="#contact">Contact</a></li>
@@ -17,17 +18,20 @@ export default function Home() {
       </nav>
 
       <header className="hero">
-        <div className="kicker">Automate · Build · Elevate</div>
-        <h1>Software for people.<br />APIs that machines pay for.</h1>
-        <p className="lede">
-          Custom web apps and automation systems — plus something new: machine-payable
-          APIs built on the x402 protocol, where AI agents are the customers and every
-          call settles in USDC.
-        </p>
-        <div className="cta-row">
-          <a className="btn primary" href="#audit">Run a free site audit</a>
-          <a className="btn" href="#contact">Work with me</a>
+        <div className="hero-copy">
+          <div className="kicker">Automate · Build · Elevate</div>
+          <h1>Software for people.<br />APIs that machines pay for.</h1>
+          <p className="lede">
+            Custom web apps and automation systems — plus something new: machine-payable
+            APIs built on the x402 protocol, where AI agents are the customers and every
+            call settles in USDC.
+          </p>
+          <div className="cta-row">
+            <a className="btn primary" href="#audit">Run a free site audit</a>
+            <a className="btn" href="#plans">See the plans</a>
+          </div>
         </div>
+        <img className="hero-eagle" src="/assets/santos-eagle.svg" alt="Santos Automation eagle emblem" />
       </header>
 
       <section className="audit" id="audit">
@@ -41,19 +45,82 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="plans" id="plans">
+        <h2>Two audits. Pay per call, in either coin of the realm.</h2>
+        <p className="sub">
+          No accounts, no API keys, no subscriptions. Every audit is a single x402
+          micropayment in USDC on Base — humans get the free daily demo above.
+        </p>
+        <div className="plan-grid">
+          <div className="plan">
+            <div className="plan-head">
+              <h3>Quick Audit</h3>
+              <div className="plan-price">$0.005 <span>USDC / audit</span></div>
+              <div className="plan-mode">synchronous · results in seconds</div>
+            </div>
+            <p className="plan-pitch">
+              A fast, lightweight read of any public page. Perfect for lead
+              qualification, deploy sanity checks, and monitoring sweeps at scale.
+            </p>
+            <ul className="plan-list">
+              <li>Fetch-timing &amp; page-weight performance signals</li>
+              <li>SEO signals: title, meta, headings, canonical, OpenGraph</li>
+              <li>Basic HTML accessibility signals (alt text, lang, viewport)</li>
+              <li>Security-header checks (HTTPS, HSTS, CSP)</li>
+              <li>0–100 category scores + plain-English fixes</li>
+            </ul>
+            <div className="plan-endpoint"><code>GET /api/audit?url=…</code></div>
+          </div>
+
+          <div className="plan plan--deep">
+            <div className="plan-head">
+              <h3>Deep Page Audit</h3>
+              <div className="plan-price">$0.075 <span>USDC / audit</span></div>
+              <div className="plan-mode">async job · typically 30s–2min</div>
+            </div>
+            <p className="plan-pitch">
+              A real browser renders the page in an isolated worker and comes back
+              with evidence — the professional-grade report you&rsquo;d hand a client.
+            </p>
+            <ul className="plan-list">
+              <li>Google Lighthouse lab metrics: LCP, CLS, TBT, Speed Index</li>
+              <li>Rendered axe-core accessibility findings, with CSS selectors</li>
+              <li>Viewport + full-page screenshots (signed download links)</li>
+              <li>Browser network &amp; console evidence, third-party inventory</li>
+              <li>Passive security analysis: CSP quality, cookie flags, mixed content</li>
+              <li>Versioned JSON report with per-finding evidence &amp; severity</li>
+            </ul>
+            <div className="plan-endpoint"><code>POST /v1/audits</code> → poll → report</div>
+          </div>
+        </div>
+        <p className="sub sub--tight plan-fineprint">
+          Both audit a single page — honest scope, no crawler theater. Deep audits
+          are lab measurements, not field data; automated accessibility checks
+          don&rsquo;t certify WCAG conformance. Full contracts in the{" "}
+          <a href="/openapi.json">OpenAPI spec</a>.
+        </p>
+      </section>
+
       <section className="agents" id="agents">
         <h2>Built for the agent economy.</h2>
         <p className="sub">
-          This site&rsquo;s audit API speaks x402 — the Linux Foundation payment standard that lets
-          AI agents pay per-request in stablecoins. No accounts, no API keys, no subscriptions.
-          Your agent hits the endpoint, pays half a cent, gets the report. Two seconds, settled on-chain.
+          Both tiers speak x402 — the Linux Foundation payment standard that lets
+          AI agents pay per-request in stablecoins. Your agent hits the endpoint,
+          pays, and gets the report or a job it can poll. Settled on-chain.
         </p>
         <div className="flow">
-          <span className="c"># any x402-capable agent:</span><br />
+          <span className="c"># quick audit — synchronous:</span><br />
           GET /api/audit?url=example.com<br />
-          <span className="a">← 402 Payment Required · $0.005 USDC · base</span><br />
-          → retry + X-PAYMENT <span className="c">(signed automatically)</span><br />
-          <span className="g">← 200 OK · full audit report + on-chain receipt</span>
+          <span className="a">← 402 · PAYMENT-REQUIRED · $0.005 USDC · eip155:8453</span><br />
+          → retry + PAYMENT-SIGNATURE <span className="c">(signed automatically)</span><br />
+          <span className="g">← 200 OK · full audit report + on-chain receipt</span><br />
+          <br />
+          <span className="c"># deep audit — browser-rendered job:</span><br />
+          POST /v1/audits {"{"}&quot;url&quot;: &quot;example.com&quot;{"}"}<br />
+          <span className="a">← 402 · PAYMENT-REQUIRED · $0.075 USDC</span><br />
+          → retry + PAYMENT-SIGNATURE + Idempotency-Key<br />
+          <span className="g">← 201 · job_id + access_token</span> <span className="c">→ poll status_url</span><br />
+          <span className="g">← report: Lighthouse + axe-core + screenshots + evidence</span>
         </div>
         <p className="sub sub--tight">
           Want an API like this for your business? That&rsquo;s the newest thing I build —
