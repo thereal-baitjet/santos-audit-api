@@ -33,7 +33,10 @@ export const metadata = {
     ],
   },
   robots: { index: true, follow: true },
-  verification: { google: "0r_77rJapSGFUca8wAeqhf4VYpi7YAG-CsU2NEUUmeo" },
+  verification: {
+    google: "0r_77rJapSGFUca8wAeqhf4VYpi7YAG-CsU2NEUUmeo",
+    other: { "msvalidate.01": "178B6851E07081F181CD9E31FFA06425" },
+  },
   icons: {
     icon: [
       {
