@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { runBrowserPass, runLighthouse } from "./engine.js";
 import { normalizeAxe, normalizeLighthouse, passiveSecurity, networkFindings, accessibilityScore, SCORING_METHOD } from "./aggregate.js";
 import { generateSummary } from "./ai-summary.js";
+import { auditAgentReadiness } from "../lib/agent-readiness/analyze.js";
 
 const REPORT_SCHEMA_VERSION = "3.0.0";
 const MAX_ARTIFACT_BYTES = Number(process.env.MAX_ARTIFACT_BYTES ?? 3 * 1024 * 1024);
@@ -18,6 +19,7 @@ export async function runDeepAudit(request, heartbeat = async () => {}) {
   const artifacts = [];
   const metrics = { lab: {}, network: {}, content: {} };
   let lighthouseScores = {};
+  let agentReadiness;
   const engines = {
     santos: REPORT_SCHEMA_VERSION,
     node: process.version,
@@ -127,6 +129,35 @@ export async function runDeepAudit(request, heartbeat = async () => {}) {
   const scoreVals = Object.values(scores);
   if (scoreVals.length) scores.overall = Math.round(scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length);
 
+  // Kept outside the historical overall calculation so opting into this
+  // module cannot silently change existing Deep Page Audit score semantics.
+  if (modules.includes("agent-readiness")) {
+    await heartbeat("agent-readiness", 88);
+    try {
+      agentReadiness = await auditAgentReadiness(url, {
+        mode: "deep",
+        existingPage: {
+          body: evidence.rendered_html ?? "",
+          finalUrl: url,
+          status: evidence.main_response?.status ?? 200,
+          headers: evidence.main_response?.headers ?? {},
+        },
+      });
+      scores.agent_readiness = agentReadiness.score;
+      moduleStatus.agent_readiness = "completed";
+    } catch (error) {
+      moduleStatus.agent_readiness = "failed";
+      findings.push({
+        id: "meta.agent-readiness-failed", engine: "santos", category: "meta", severity: "info",
+        confidence: "high", status: "not_tested", title: "Agent Readiness did not complete",
+        description: String(error.message ?? error).slice(0, 300),
+        recommendation: "Retry the module or inspect the target's public machine interfaces.",
+      });
+    }
+  } else {
+    moduleStatus.agent_readiness = "not_requested";
+  }
+
   // ---- Stage: optional grounded AI summary (never touches scores) ----
   let aiSummary;
   if (modules.includes("ai-summary")) {
@@ -152,6 +183,7 @@ export async function runDeepAudit(request, heartbeat = async () => {}) {
     scores,
     scoring_method: SCORING_METHOD,
     metrics,
+    agent_readiness: agentReadiness,
     findings,
     ai_summary: aiSummary,
     duration_ms: Date.now() - startedAt,

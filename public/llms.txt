@@ -7,7 +7,18 @@ an agent pays per-call inside the HTTP request itself. Built and operated by
 Santos Automation, which also builds custom x402 APIs, web apps, and automation
 systems for hire.
 
-## API — two product tiers
+## API — audit modes
+
+AGENT READINESS AUDIT — synchronous, bounded passive public-interface assessment:
+- Endpoint: https://api.santosautomation.com/api/agent-readiness?url=https%3A%2F%2Fexample.com&depth=quick
+- Capability id: `agent-readiness.quick`; result schema version: `1.0.0`.
+- Classifies the target before scoring. Ordinary websites are not penalized for
+  lacking OpenAPI, MCP, or machine commerce when those surfaces are not applicable.
+- Evaluates discovery/docs, structured identity, API descriptions, MCP, operational
+  trust, and agent commerce. Maximum eight extra requests in the standalone quick pass.
+- Passive only: never authenticates, creates accounts, submits forms, signs payments,
+  transfers funds, calls MCP business tools, or executes target-provided code.
+- This endpoint is unpriced unless the operator configures an x402 price.
 
 QUICK AUDIT — $0.005 USDC, synchronous (seconds), fetch-and-parse engine:
 - Production endpoint: https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com
@@ -27,8 +38,9 @@ network evidence + screenshots + passive security):
 
 Shared machine surfaces:
 - OpenAPI 3.1 specification: https://api.santosautomation.com/openapi.json
-- Remote MCP server (Streamable HTTP, free preview tool: audit_website_preview): https://api.santosautomation.com/mcp
+- Remote MCP server (Streamable HTTP; tools: audit_website_preview and audit_agent_readiness): https://api.santosautomation.com/mcp
 - Service manifest: https://api.santosautomation.com/api
+- Vendor-specific capability manifest (not a formal standard): https://api.santosautomation.com/capabilities.json
 
 ## Capabilities
 
@@ -55,6 +67,12 @@ screenshots, network/console evidence, or a professional-grade report for a
 client. Both audit a single page — neither is a crawler. Use the free demo
 first to inspect the quick-tier response format without paying.
 
+Choose AGENT READINESS when the question is whether an agent can reliably discover,
+understand, select, invoke, and—when explicitly applicable—transact with a public
+service. Its score is separate from the established Quick Audit `overall_score`.
+The MCP server exposes `audit_agent_readiness` with strict input/output schemas and
+a structured result; it does not invoke any tool advertised by the audited target.
+
 ## Payment
 
 - Protocol: x402 v2 (`PAYMENT-REQUIRED` response header carries base64 terms;
@@ -73,6 +91,11 @@ first to inspect the quick-tier response format without paying.
 - Legacy x402 v1 clients (X-PAYMENT header) are NOT supported as of 2026-07-17.
 
 ## Limitations
+
+- llms.txt is a proposal, not a mandatory web standard. MCP Registry evidence is
+  optional and the registry is currently preview infrastructure.
+- OpenAPI assessment is bounded structural validation; it does not dereference
+  remote schemas or execute examples.
 
 - Audits a single public page per call; no crawling, no login-protected or private pages.
 - No JavaScript rendering, Core Web Vitals, interaction testing, color-contrast

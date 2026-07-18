@@ -1,0 +1,51 @@
+import { NextResponse } from "next/server";
+import { withX402 } from "@x402/next";
+import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
+import { auditAgentReadiness } from "../../../lib/agent-readiness/analyze.js";
+import { AGENT_READINESS_RESULT_SCHEMA } from "../../../lib/agent-readiness/contract.js";
+import { validateTarget } from "../../../lib/safe-fetch.js";
+import { auditErrorResponse, CORS } from "../../../lib/errors.js";
+import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+
+const PRICE = process.env.AGENT_READINESS_PRICE_USDC?.trim();
+
+async function handler(req) {
+  try {
+    const url = req.nextUrl.searchParams.get("url") ?? "";
+    const depth = req.nextUrl.searchParams.get("depth") ?? "quick";
+    if (depth !== "quick") return NextResponse.json({ error: "depth must be 'quick'", code: "INVALID_REQUEST" }, { status: 400, headers: CORS });
+    const result = await auditAgentReadiness(url, { mode: "quick" });
+    return NextResponse.json(result, { headers: CORS });
+  } catch (error) {
+    return auditErrorResponse(error);
+  }
+}
+
+const paidHandler = PRICE ? withX402(handler, {
+  accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
+  description: "Run a bounded, passive Agent Readiness audit of public machine-facing interfaces. No authentication, payment, account creation, forms, or advertised business tools are invoked.",
+  mimeType: "application/json",
+  unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "Payment required", code: "PAYMENT_REQUIRED", hint: "Decode PAYMENT-REQUIRED, sign, and retry with PAYMENT-SIGNATURE." } }),
+  serviceName: "Santos Agent Readiness Audit",
+  tags: ["agent-readiness", "openapi", "mcp", "llms-txt", "x402"],
+  extensions: { ...declareDiscoveryExtension({
+    input: { url: "https://example.com", depth: "quick" },
+    inputSchema: { properties: { url: { type: "string", format: "uri" }, depth: { type: "string", enum: ["quick"] } }, required: ["url"] },
+    output: { schema: AGENT_READINESS_RESULT_SCHEMA },
+  }) },
+}, resourceServer) : handler;
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: { ...CORS, "Access-Control-Allow-Methods": "GET, OPTIONS", "Access-Control-Allow-Headers": "Content-Type, PAYMENT-SIGNATURE", "Access-Control-Expose-Headers": "PAYMENT-REQUIRED, PAYMENT-RESPONSE", "Access-Control-Max-Age": "86400" } });
+}
+
+export async function GET(req) {
+  // Reject malformed/private targets before an optional payment challenge.
+  try { validateTarget(req.nextUrl.searchParams.get("url") ?? ""); }
+  catch (error) { return auditErrorResponse(error); }
+  const response = await paidHandler(req);
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
+  response.headers.set("Cache-Control", "no-store");
+  return response;
+}

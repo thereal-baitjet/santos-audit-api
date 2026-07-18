@@ -57,3 +57,22 @@ current CDP Bazaar listing UI) for the resource URL.
 CNAME `api -> cname.vercel-dns.com` is live, the domain is attached to the
 Vercel project, HTTPS is verified, and `PUBLIC_API_BASE_URL` is set in
 Production and Preview. All canonical URLs in this document are current.
+
+## Agent Readiness capability copy (publish only after live verification)
+
+- **Capability ID:** `agent-readiness.quick`
+- **Name:** Santos Agent Readiness Audit
+- **Description:** Bounded passive assessment of how well agents can discover,
+  understand, select, invoke, and—where explicitly applicable—pay for a public
+  website or service. Applicability-aware; no login, payment, forms, business-tool
+  invocation, or active security testing.
+- **Canonical endpoint:** `GET https://api.santosautomation.com/api/agent-readiness?url={url}&depth=quick`
+- **OpenAPI operation:** `auditAgentReadiness`
+- **MCP tool:** `audit_agent_readiness`
+- **Result schema:** `AgentReadinessResult` 1.0.0
+- **Capability manifest:** https://api.santosautomation.com/capabilities.json
+- **Price:** disclose only if `AGENT_READINESS_PRICE_USDC` is configured and the
+  live endpoint actually enforces that x402 price.
+
+The official MCP Registry submission remains a manual owner action. Do not claim
+publication until the listing is externally visible and domain ownership is verified.

@@ -2,6 +2,7 @@
 // Zero heavy deps — fetch + cheerio. Returns structured JSON agents can consume.
 import * as cheerio from "cheerio";
 import { safeFetch } from "./lib/safe-fetch.js";
+import { auditAgentReadiness } from "./lib/agent-readiness/analyze.js";
 
 const UA = "SantosAuditBot/0.1 (+https://santosautomation.com)";
 
@@ -55,15 +56,35 @@ export async function auditSite(rawUrl) {
       cat, Math.round((rules.filter(r => r.pass).length / rules.length) * 100),
     ])
   );
-  const overall = Math.round(Object.values(scores).reduce((a, b) => a + b) / 4);
+  const overall = quickOverallScore(scores);
+  // Additive only: this assessment never changes the established Quick Audit
+  // category or overall scores and performs no additional network requests.
+  const agentReadiness = process.env.AGENT_READINESS_ENABLED === "false" ? undefined :
+    await auditAgentReadiness(rawUrl, {
+      mode: "embedded",
+      maxFetches: 0,
+      existingPage: {
+        body: html,
+        finalUrl: url,
+        status: res.status,
+        headers: res.headers,
+      },
+    });
 
   return {
+    schema_version: "2.1.0",
     url, fetched_at: new Date().toISOString(),
     http_status: res.status, timing_ms: { ttfb: ttfbMs, total: totalMs },
     overall_score: overall, scores, checks,
     issues: Object.values(checks).flat().filter(r => !r.pass).map(r => r.fix),
+    ...(agentReadiness ? { agent_readiness: agentReadiness } : {}),
     audited_by: "Santos Automation — santosautomation.com",
   };
 }
 
 const rule = (pass, ok, fix) => ({ pass, detail: pass ? ok : fix, ...(pass ? {} : { fix }) });
+
+export function quickOverallScore(scores) {
+  const historical = ["performance", "seo", "accessibility", "security"];
+  return Math.round(historical.reduce((sum, key) => sum + scores[key], 0) / historical.length);
+}

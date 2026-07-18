@@ -1,12 +1,13 @@
 {
   "name": "santos-audit-api",
-  "version": "2.0.0",
+  "version": "2.2.0",
   "description": "$0.005 x402 v2 machine-payable API that runs a lightweight single-page website audit: performance signals, SEO signals, accessibility signals, and security-header checks. No account, no API key — agents pay per call in USDC on Base mainnet.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node test.js"
+    "test": "node test.js",
+    "test:agent-readiness": "node --test tests/agent-readiness.test.js"
   },
   "keywords": [
     "x402",
@@ -37,13 +38,16 @@
     "@x402/extensions": "^2.19.0",
     "@x402/fetch": "^2.19.0",
     "@x402/next": "^2.19.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "cheerio": "^1.2.0",
     "dotenv": "^17.4.2",
     "next": "^16.2.10",
     "pg": "^8.22.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "viem": "^2.55.2"
+    "viem": "^2.55.2",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.7.10"

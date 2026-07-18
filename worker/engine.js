@@ -11,6 +11,7 @@ import { BrowserGuard } from "./browser-guard.js";
 const NAV_TIMEOUT = Number(process.env.BROWSER_NAVIGATION_TIMEOUT_MS ?? 45000);
 const CDP_PORT = Number(process.env.WORKER_CDP_PORT ?? 9223);
 const MAX_FRAMES = Number(process.env.BROWSER_MAX_FRAMES ?? 30);
+const MAX_RENDERED_HTML_BYTES = Number(process.env.AGENT_READINESS_RENDERED_HTML_MAX_BYTES ?? 1024 * 1024);
 const UA_SUFFIX = "SantosDeepAuditBot/1.0 (+https://api.santosautomation.com/llms.txt)";
 
 function redactUrl(raw) {
@@ -105,6 +106,14 @@ export async function runBrowserPass(url, device, heartbeat) {
       };
       let chain = resp.request().redirectedFrom();
       while (chain) { evidence.redirect_chain.unshift(redactUrl(chain.url())); chain = chain.redirectedFrom(); }
+    }
+
+    const renderedHtml = await page.content();
+    if (Buffer.byteLength(renderedHtml) <= MAX_RENDERED_HTML_BYTES) {
+      evidence.rendered_html = renderedHtml;
+    } else {
+      evidence.rendered_html = renderedHtml.slice(0, MAX_RENDERED_HTML_BYTES);
+      evidence.rendered_html_truncated = true;
     }
 
     await heartbeat?.("browser-evidence");

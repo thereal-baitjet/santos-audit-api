@@ -58,7 +58,7 @@ export default function Home() {
       </section>
 
       <section className="plans" id="plans">
-        <h2>Two audits. Pay per call, in either coin of the realm.</h2>
+        <h2>Three audit modes. One honest scope for each.</h2>
         <p className="sub">
           No accounts, no API keys, no subscriptions. Every audit is a single x402
           micropayment in USDC on Base — humans get the free daily demo above.
@@ -82,6 +82,27 @@ export default function Home() {
               <li>0–100 category scores + plain-English fixes</li>
             </ul>
             <div className="plan-endpoint"><code>GET /api/audit?url=…</code></div>
+          </div>
+
+          <div className="plan plan--agent">
+            <div className="plan-head">
+              <h3>Agent Readiness</h3>
+              <div className="plan-price">Public preview <span>· versioned JSON</span></div>
+              <div className="plan-mode">synchronous · bounded passive discovery</div>
+            </div>
+            <p className="plan-pitch">
+              See whether agents can discover, understand, invoke, and—only where
+              applicable—pay for a site or service without guesswork.
+            </p>
+            <ul className="plan-list">
+              <li>llms.txt and machine-interface discovery</li>
+              <li>Structured identity and Schema.org WebAPI signals</li>
+              <li>OpenAPI operations, schemas, and access documentation</li>
+              <li>MCP transport, tool schema, output, and safety metadata</li>
+              <li>Operational trust and optional x402 challenge quality</li>
+              <li>Applicability-aware scoring for ordinary websites</li>
+            </ul>
+            <div className="plan-endpoint"><code>GET /api/agent-readiness?url=…</code></div>
           </div>
 
           <div className="plan plan--deep">
@@ -136,7 +157,10 @@ export default function Home() {
         </div>
         <p className="sub sub--tight">
           Want an API like this for your business? That&rsquo;s the newest thing I build —
-          see <a href="/llms.txt">llms.txt</a> for the machine-readable spec.
+          see <a href="/llms.txt">llms.txt</a> for the machine-readable guide. Agents
+          can also discover the <a href="/openapi.json">OpenAPI contract</a>,{" "}
+          <a href="/capabilities.json">capability manifest</a>, and{" "}
+          <a href="https://api.santosautomation.com/mcp">MCP endpoint</a>.
         </p>
       </section>
 

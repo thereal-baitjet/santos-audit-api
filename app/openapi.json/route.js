@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
+import { AGENT_READINESS_RESULT_SCHEMA } from "../../lib/agent-readiness/contract.js";
 
 const scoreSchema = { type: "integer", minimum: 0, maximum: 100 };
 
@@ -7,6 +8,7 @@ const auditReportSchema = {
   type: "object",
   required: ["tier", "url", "fetched_at", "http_status", "timing_ms", "overall_score", "scores", "checks", "issues"],
   properties: {
+    schema_version: { type: "string", enum: ["2.1.0"] },
     tier: { type: "string", enum: ["paid", "free-demo"] },
     url: { type: "string", format: "uri", description: "The final URL audited, after redirects." },
     fetched_at: { type: "string", format: "date-time" },
@@ -48,6 +50,7 @@ const auditReportSchema = {
       items: { type: "string" },
       description: "Plain-English remediation instructions for every failed check.",
     },
+    agent_readiness: { $ref: "#/components/schemas/AgentReadinessResult" },
     audited_by: { type: "string" },
   },
 };
@@ -100,13 +103,29 @@ const document = {
   openapi: "3.1.0",
   info: {
     title: "Santos Site Audit API",
-    version: "2.1.0",
+    version: "2.2.0",
     description:
       "Machine-payable website auditing for AI agents and automated workflows — two tiers, both paid per-call in USDC on Base mainnet (eip155:8453) via x402 v2, no account or API key. QUICK AUDIT (GET /api/audit, $0.005, synchronous, seconds): lightweight single-page fetch-and-parse audit. DEEP PAGE AUDIT (POST /v1/audits, $0.075, asynchronous job, typically tens of seconds to a few minutes): real Chromium via Playwright, Lighthouse lab metrics, rendered axe-core accessibility checks, browser network/console evidence, screenshots, and passive security checks. Deep-audit payment purchases a bounded compute reservation and settles when the job is accepted, not on report completion.",
     contact: { name: "Santos Automation", email: "baitjet@gmail.com", url: "https://santosautomation.com" },
   },
   servers: [{ url: PUBLIC_API_BASE_URL }],
   paths: {
+    "/api/agent-readiness": {
+      get: {
+        operationId: "auditAgentReadiness",
+        tags: ["Agent Readiness"],
+        summary: "Assess public agent-facing interfaces (bounded and passive)",
+        description: "Classifies the target before scoring and evaluates only applicable surfaces: discovery/docs, structured identity, APIs, MCP, operational trust, and machine commerce. The quick pass performs at most eight additional bounded public requests. It never authenticates, creates accounts, submits forms, signs payments, transfers funds, or invokes advertised MCP/business tools. llms.txt is treated as a proposal and the MCP Registry as preview infrastructure. This endpoint is free unless AGENT_READINESS_PRICE_USDC is configured, in which case x402 v2 terms are returned before execution.",
+        parameters: [urlParam, { name: "depth", in: "query", required: false, schema: { type: "string", enum: ["quick"], default: "quick" } }],
+        responses: {
+          200: { description: "Versioned Agent Readiness result.", content: { "application/json": { schema: { $ref: "#/components/schemas/AgentReadinessResult" } } } },
+          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
+          402: { description: "Present only when operator pricing is configured; terms are in PAYMENT-REQUIRED." },
+          502: { description: "Target or required public interface was unreachable.", content: { "application/json": { schema: errorSchema } } },
+          504: { description: "Bounded audit timed out.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
     "/api/audit": {
       get: {
         operationId: "auditWebsite",
@@ -191,7 +210,7 @@ const document = {
                 properties: {
                   url: { type: "string", format: "uri", description: "Public HTTP/HTTPS page. Private-network/metadata targets rejected free of charge." },
                   devices: { type: "array", items: { type: "string", enum: ["mobile", "desktop"] }, default: ["mobile"] },
-                  modules: { type: "array", items: { type: "string", enum: ["lighthouse", "accessibility", "browser-network", "security-passive", "ai-summary"] } },
+                  modules: { type: "array", items: { type: "string", enum: ["lighthouse", "accessibility", "browser-network", "security-passive", "agent-readiness", "ai-summary"] } },
                   artifacts: {
                     type: "object",
                     properties: {
@@ -265,7 +284,8 @@ const document = {
       },
     },
   },
-  tags: [{ name: "Website Audit" }, { name: "Deep Page Audit" }],
+  components: { schemas: { AgentReadinessResult: AGENT_READINESS_RESULT_SCHEMA } },
+  tags: [{ name: "Website Audit" }, { name: "Agent Readiness" }, { name: "Deep Page Audit" }],
 };
 
 export async function GET() {
