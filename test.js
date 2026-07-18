@@ -29,11 +29,35 @@ const bad = await fetch(`${BASE}/api/audit/demo?url=${encodeURIComponent("not a 
 check("invalid URL handled gracefully (4xx, JSON error)", bad.status >= 400 && bad.status < 500);
 
 // 3b) SSRF guard: private/metadata/localhost targets blocked with stable code
-for (const target of ["http://169.254.169.254/latest/meta-data/", "http://localhost:3000/", "http://10.0.0.1/", "ftp://example.com/"]) {
+const ssrfCases = [
+  ["http://169.254.169.254/latest/meta-data/", "PRIVATE_ADDRESS_BLOCKED"],
+  ["http://localhost:3000/", "PRIVATE_ADDRESS_BLOCKED"],
+  ["http://10.0.0.1/", "PRIVATE_ADDRESS_BLOCKED"],
+  ["http://100.64.0.1/", "PRIVATE_ADDRESS_BLOCKED"],
+  ["http://[::1]/", "PRIVATE_ADDRESS_BLOCKED"],
+  ["http://[::ffff:10.0.0.1]/", "PRIVATE_ADDRESS_BLOCKED"],
+  ["http://[::ffff:a00:1]/", "PRIVATE_ADDRESS_BLOCKED"],
+  ["http://[fd00::1]/", "PRIVATE_ADDRESS_BLOCKED"],
+  ["ftp://example.com/", "UNSUPPORTED_SCHEME"],
+  ["http://user:pass@example.com/", "URL_CREDENTIALS_NOT_ALLOWED"],
+  ["http://example.com:8080/", "UNSUPPORTED_PORT"],
+  [`http://example.com/${"a".repeat(2100)}`, "URL_TOO_LONG"],
+];
+for (const [target, expectCode] of ssrfCases) {
   const r = await fetch(`${BASE}/api/audit/demo?url=${encodeURIComponent(target)}`);
   const b = await r.json().catch(() => ({}));
-  check(`blocked: ${target}`, r.status >= 400 && ["PRIVATE_ADDRESS_BLOCKED", "UNSUPPORTED_SCHEME", "INVALID_URL"].includes(b.code), `got ${r.status} code=${b.code}`);
+  check(`blocked (${expectCode}): ${target.slice(0, 60)}`, r.status >= 400 && b.code === expectCode, `got ${r.status} code=${b.code}`);
 }
+
+// 3b2) CORS preflight for browser agents on the paid route
+const pre = await fetch(`${BASE}/api/audit`, {
+  method: "OPTIONS",
+  headers: { Origin: "https://example-agent.app", "Access-Control-Request-Method": "GET", "Access-Control-Request-Headers": "PAYMENT-SIGNATURE" },
+});
+check("paid route preflight allows PAYMENT-SIGNATURE + exposes payment headers",
+  pre.status === 204 &&
+  /PAYMENT-SIGNATURE/i.test(pre.headers.get("access-control-allow-headers") ?? "") &&
+  /PAYMENT-REQUIRED/i.test(pre.headers.get("access-control-expose-headers") ?? ""));
 
 // 3c) OpenAPI document
 const oa = await fetch(`${BASE}/openapi.json`);
@@ -47,13 +71,20 @@ const llmsText = await llms.text();
 check("llms.txt reachable + text", llms.status === 200 && (llms.headers.get("content-type") ?? "").includes("text"));
 check("llms.txt has required sections + endpoints", ["# Santos Site Audit API", "## API", "## Capabilities", "## Payment", "## Limitations", "## Support"].every(h => llmsText.includes(h)) && llmsText.includes("/api/audit") && llmsText.includes("openapi.json"));
 
-// 3e) MCP server: initialize, tools/list, invalid-URL rejection
-const rpc = (method, params, id = 1) => fetch(`${BASE}/mcp`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id, method, params }) }).then(r => r.json());
-const init = await rpc("initialize", { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "test", version: "0" } });
-check("MCP initialize", init.result?.serverInfo?.name === "santos-site-audit");
-const tools = await rpc("tools/list", {});
-check("MCP lists audit_website with strict schema", tools.result?.tools?.[0]?.name === "audit_website" && tools.result?.tools?.[0]?.inputSchema?.required?.includes("url"));
-const badCall = await rpc("tools/call", { name: "audit_website", arguments: { url: "http://127.0.0.1/" } });
+// 3e) MCP server: negotiation, origin policy, tools/list, invalid-URL rejection
+const rpc = (method, params, id = 1, headers = {}) => fetch(`${BASE}/mcp`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify({ jsonrpc: "2.0", id, method, params }) });
+const init = await (await rpc("initialize", { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "test", version: "0" } })).json();
+check("MCP initialize (supported version echoed)", init.result?.serverInfo?.name === "santos-site-audit" && init.result?.protocolVersion === "2025-03-26");
+const initNeg = await (await rpc("initialize", { protocolVersion: "1999-01-01", capabilities: {}, clientInfo: { name: "test", version: "0" } })).json();
+check("MCP initialize negotiates unsupported version to server latest", initNeg.result?.protocolVersion === "2025-06-18");
+const badVer = await rpc("tools/list", {}, 2, { "mcp-protocol-version": "1999-01-01" });
+check("MCP rejects unsupported MCP-Protocol-Version header", badVer.status === 400);
+const badOrigin = await rpc("tools/list", {}, 3, { Origin: "https://evil.example" });
+check("MCP rejects untrusted browser Origin", badOrigin.status === 403);
+const tools = await (await rpc("tools/list", {})).json();
+check("MCP lists audit_website_preview with strict schema", tools.result?.tools?.[0]?.name === "audit_website_preview" && tools.result?.tools?.[0]?.inputSchema?.required?.includes("url") && tools.result?.tools?.[0]?.inputSchema?.additionalProperties === false);
+check("MCP tool discloses paid x402 endpoint", /x402|\$0\.005/.test(tools.result?.tools?.[0]?.description ?? ""));
+const badCall = await (await rpc("tools/call", { name: "audit_website_preview", arguments: { url: "http://127.0.0.1/" } })).json();
 check("MCP rejects private URL", badCall.result?.isError === true && /PRIVATE_ADDRESS_BLOCKED/.test(JSON.stringify(badCall.result)));
 
 // 4) Paid route without payment -> 402 with valid x402 v2 terms in PAYMENT-REQUIRED header

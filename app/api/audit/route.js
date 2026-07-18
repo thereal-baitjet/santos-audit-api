@@ -29,7 +29,7 @@ const paidHandler = withX402(
       payTo: SELLER,
     },
     description:
-      "Audit a public website for performance, SEO, accessibility, and security. Returns category scores (0-100), detailed checks, detected issues, and plain-English remediation guidance.",
+      "Run a fast, lightweight audit of a single public web page: performance signals (fetch timing, page weight), SEO signals, basic HTML accessibility signals, and security-header checks. Returns 0-100 category scores, detailed pass/fail checks, detected issues, and plain-English remediation guidance.",
     mimeType: "application/json",
     unpaidResponseBody: () => ({
       contentType: "application/json",
@@ -66,8 +66,26 @@ const paidHandler = withX402(
   resourceServer
 );
 
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      ...CORS,
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, PAYMENT-SIGNATURE",
+      "Access-Control-Expose-Headers": "PAYMENT-REQUIRED, PAYMENT-RESPONSE",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
+}
+
 export async function GET(req) {
   const res = await paidHandler(req);
+  // Browser agents must be able to read the challenge and receipt headers,
+  // and payment exchanges must never be cached.
+  res.headers.set("Access-Control-Allow-Origin", "*");
+  res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
+  res.headers.set("Cache-Control", "no-store");
   const receipt = res.headers.get("PAYMENT-RESPONSE");
   if (receipt && res.status < 400) {
     try {

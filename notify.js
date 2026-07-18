@@ -1,8 +1,11 @@
 // Fire-and-forget Discord notification for a settled x402 payment.
 // Never throws — a notification failure must never affect the paid response.
+import { redactUrl } from "./lib/redact.js";
+
 export async function notifyTransaction({ url, payer, transaction, network, amount }) {
   const webhook = process.env.DISCORD_WEBHOOK_URL;
   if (!webhook) return;
+  url = redactUrl(url); // never forward customer query strings/tokens to Discord
 
   const isMainnet = network === "base" || network === "eip155:8453";
   const explorer = isMainnet ? "https://basescan.org/tx/" : "https://sepolia.basescan.org/tx/";

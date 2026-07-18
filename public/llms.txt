@@ -12,14 +12,19 @@ systems for hire.
 - Production endpoint: https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com
 - Free demo endpoint (1/day per IP, same report shape): https://api.santosautomation.com/api/audit/demo?url=https%3A%2F%2Fexample.com
 - OpenAPI 3.1 specification: https://api.santosautomation.com/openapi.json
-- Remote MCP server (Streamable HTTP, tool: audit_website): https://api.santosautomation.com/mcp
+- Remote MCP server (Streamable HTTP, free preview tool: audit_website_preview): https://api.santosautomation.com/mcp
 - Service manifest: https://api.santosautomation.com/api
 
 ## Capabilities
 
-Given a public HTTP or HTTPS URL, the API returns JSON with:
+A fast, lightweight audit of a SINGLE public web page (no crawling). Given a
+public HTTP or HTTPS URL, the API returns JSON with:
 
 - `overall_score` and per-category `scores` (performance, seo, accessibility, security), each 0-100.
+  - performance: fetch-timing and page-weight signals (TTFB, HTML size, script/stylesheet counts) — not browser-measured Core Web Vitals.
+  - seo: title, meta description, heading structure, canonical, OpenGraph tags.
+  - accessibility: basic HTML signals (image alt text, html[lang], viewport meta) — not full WCAG conformance.
+  - security: transport and security-header checks (HTTPS, HSTS, CSP) — not vulnerability scanning or penetration testing.
 - `checks`: every individual check with pass/fail and detail.
 - `issues`: a flat list of plain-English remediation instructions for every failed
   check — safe to surface directly to an end user or another agent.
@@ -53,10 +58,14 @@ response format without paying.
 
 ## Limitations
 
-- Audits a single public page per call; no login-protected or private pages.
-- Localhost, private-network, link-local, and cloud-metadata addresses are rejected.
-- 15-second fetch timeout, 5 redirects max, 5 MB response cap.
-- Free demo and MCP tool: 1 audit per day per IP.
+- Audits a single public page per call; no crawling, no login-protected or private pages.
+- No JavaScript rendering, Core Web Vitals, interaction testing, color-contrast
+  analysis, full WCAG conformance, TLS analysis, or vulnerability scanning.
+- Localhost, private-network, link-local, and cloud-metadata addresses are rejected
+  (including via redirects). Only ports 80 and 443; no URLs with embedded credentials.
+- 15-second fetch timeout, 5 redirects max, 5 MB response cap, 2048-char URL cap,
+  HTML/XHTML/plain-text content only.
+- Free demo and MCP preview tool: 1 audit per day per IP (shared quota).
 
 ## Support
 
