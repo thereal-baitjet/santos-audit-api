@@ -193,6 +193,7 @@ export default function Home() {
           <a href="https://instagram.com/mr.j.c.santos">@mr.j.c.santos</a>
           <a href="https://github.com/thereal-baitjet">GitHub</a>
           <a href="https://cal.com/santosautomation">Book a call</a>
+          <a href="/terms">Terms &amp; privacy</a>
         </div>
         <p className="fine">santosautomation.com · audit API powered by x402 · payments settle in USDC on Base</p>
       </footer>

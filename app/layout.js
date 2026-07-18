@@ -58,6 +58,7 @@ const jsonLd = {
       "@type": "WebAPI", "@id": "https://api.santosautomation.com/#api",
       name: "Santos Site Audit API", url: "https://api.santosautomation.com/api",
       documentation: "https://api.santosautomation.com/openapi.json",
+      termsOfService: "https://santosautomation.com/terms",
       provider: { "@id": "https://santosautomation.com/#organization" },
       description: "Quick, deep-page, and passive Agent Readiness audits for public websites and services.",
       offers: [
