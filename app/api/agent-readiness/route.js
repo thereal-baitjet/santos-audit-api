@@ -25,7 +25,7 @@ async function handler(req) {
 
 const paidHandler = withX402(handler, {
   accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
-  description: "Run a bounded, passive Agent Readiness audit of public machine-facing interfaces. No authentication, payment, account creation, forms, or advertised business tools are invoked.",
+  description: "Run a bounded, passive Agent Readiness audit of public machine-facing interfaces. The auditor never authenticates to or pays the audited target, creates target accounts, submits forms, or invokes advertised business tools.",
   mimeType: "application/json",
   unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "Payment required", code: "PAYMENT_REQUIRED", hint: `x402 v2: decode PAYMENT-REQUIRED for the $${PRICE} USDC terms, sign, and retry with PAYMENT-SIGNATURE. Payment settles only after a successful audit response.` } }),
   serviceName: "Santos Agent Readiness Audit",
