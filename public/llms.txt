@@ -93,6 +93,11 @@ audit or invoke any tool advertised by the audited target.
 - Deep Page Audit price: $0.075 USDC per bounded compute reservation (75000 atomic units).
 - Network: `eip155:8453` (Base mainnet). Asset: USDC at 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.
 - Pay to: 0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B.
+- Humans without a USDC wallet: a one-time $19 USD "Agent Readiness Report" is
+  available by card (Stripe Checkout) at https://www.santosautomation.com/agent-readiness/buy —
+  no account, emailed as a private tokened link. This is a human convenience; the
+  machine-payable per-call price remains $0.025 USDC via x402. Refunds by email
+  to info@santosautomation.com.
 - Flow: request without payment returns HTTP 402; decode the `PAYMENT-REQUIRED`
   header for full terms (`accepts[0]`); sign an EIP-3009 transferWithAuthorization
   for the quoted amount; retry with `PAYMENT-SIGNATURE`. Any x402 v2 client

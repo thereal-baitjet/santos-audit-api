@@ -1,4 +1,10 @@
-export default function AuditWidget() {
+import { headers } from "next/headers";
+
+export default async function AuditWidget() {
+  // Under the nonce + strict-dynamic CSP (middleware.js), 'self' is ignored, so
+  // this external script needs the per-request nonce to load. Read it from the
+  // request CSP header that middleware set.
+  const nonce = (await headers()).get("content-security-policy")?.match(/'nonce-([^']+)'/)?.[1];
   return (
     <div className="audit-widget" data-audit-widget>
       <form className="audit-form" action="/api/audit/demo" method="get" data-audit-form>
@@ -24,7 +30,7 @@ export default function AuditWidget() {
         <div data-issues />
         <p className="fix-cta">Want the complete machine-interface assessment? <a href="/agent-readiness-audit">Run Agent Readiness</a> or inspect the <a href="/reports/sample-agent-readiness">sample report</a>.</p>
       </div>
-      <script src="/audit-widget.js" defer />
+      <script src="/audit-widget.js" defer nonce={nonce} />
     </div>
   );
 }

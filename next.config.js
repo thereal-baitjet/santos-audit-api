@@ -1,14 +1,7 @@
-const CSP = [
-  "default-src 'self'",
-  "script-src 'self'",
-  "style-src 'self'",
-  "img-src 'self'",
-  "connect-src 'self'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-].join("; ");
-
+// CSP for HTML routes is set per-request (with a nonce) in middleware.js.
+// A static script-src 'self' here would block Next.js's inline hydration
+// scripts, so it is intentionally NOT emitted. The other security headers are
+// safe as static values and apply to every route.
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   serverExternalPackages: ["pg"],
@@ -20,7 +13,6 @@ const nextConfig = {
       {
         source: "/:path*",
         headers: [
-          { key: "Content-Security-Policy", value: CSP },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" },

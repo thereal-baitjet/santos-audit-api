@@ -59,6 +59,14 @@ export default function TermsPage() {
         job is accepted. Use an Idempotency-Key for Deep job retries. Never rely on a price
         that is not enforced by the live route.
       </p>
+      <p>
+        Card purchases: the human Agent Readiness Report is a one-time $19 USD charge
+        processed by Stripe (no account is created by Santos). The price is fixed
+        server-side. After payment you receive a private, tokened link to your report by
+        email. Refunds for card purchases are handled manually — email{" "}
+        <a href="mailto:info@santosautomation.com">info@santosautomation.com</a> with your
+        purchase email and we will review the request.
+      </p>
 
       <h2>Availability and support</h2>
       <p>
