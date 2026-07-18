@@ -64,7 +64,7 @@ export default function TermsPage() {
       <p>
         Services are provided as available and may change through versioned contracts.
         Report problems, replacement-run requests caused by Santos infrastructure, or
-        privacy questions to <a href="mailto:baitjet@gmail.com">baitjet@gmail.com</a>.
+        privacy questions to <a href="mailto:info@santosautomation.com">info@santosautomation.com</a>.
         These plain-language terms should be reviewed by qualified counsel as the service grows.
       </p>
     </article>

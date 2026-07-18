@@ -1,8 +1,12 @@
+import { AnalyticsBoot } from "./AnalyticsBoot.js";
+
 export function SiteNav() {
   return (
     <nav className="site-nav" aria-label="Primary navigation">
-      <a className="brand" href="/" aria-label="Santos Website Intelligence home">
-        <img src="/assets/santos-eagle.svg" alt="Santos gold eagle emblem" width="1254" height="1254" />
+      {/* Eagle is decorative here — the adjacent visible "Santos Intelligence"
+          names the link, so alt="" avoids a redundant screen-reader announcement. */}
+      <a className="brand" href="/">
+        <img src="/assets/santos-eagle.svg" alt="" width="1254" height="1254" />
         <span>Santos Intelligence</span>
       </a>
       <ul>
@@ -27,13 +31,28 @@ export function SiteFooter() {
         <div className="links" aria-label="Footer links">
           <a href="/reports/sample-agent-readiness">Sample report</a>
           <a href="/learn/what-is-ai-website-intelligence">Learn</a>
-          <a href="/openapi.json">OpenAPI</a>
+          <a href="/openapi.json" data-analytics-event="openapi_downloaded">OpenAPI</a>
           <a href="/llms.txt">llms.txt</a>
           <a href="/terms">Terms &amp; privacy</a>
-          <a href="mailto:baitjet@gmail.com">Support</a>
         </div>
       </div>
+
+      <section className="footer-support" aria-labelledby="support-h">
+        <h2 id="support-h">Contact &amp; support</h2>
+        <p className="sub">
+          Questions, integration help, or a billing issue? Email{" "}
+          <a href="mailto:info@santosautomation.com" data-analytics-event="contact_clicked">info@santosautomation.com</a>.
+        </p>
+        <p className="fine">
+          Payments &amp; retries: audits settle only after a successful response, so a failed
+          or blocked audit is not charged. If our infrastructure fails a paid Deep audit after
+          its retries, email us for a replacement run. We do not process automated on-chain
+          refunds; billing questions are handled by email.
+        </p>
+      </section>
+
       <p className="fine">Santos Website Intelligence · x402 payments settle in USDC on Base</p>
+      <AnalyticsBoot />
     </footer>
   );
 }

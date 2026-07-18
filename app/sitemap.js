@@ -5,6 +5,7 @@ export default function sitemap() {
   const paths = [
     "/",
     ...Object.values(PRODUCT_PAGES).map((page) => page.path),
+    "/agent-readiness/run",
     "/methodology/agent-readiness",
     "/reports/sample-agent-readiness",
     ...Object.keys(LEARN_ARTICLES).map((slug) => `/learn/${slug}`),

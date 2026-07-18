@@ -220,4 +220,4 @@ Copy-ready submission text for x402 catalogs and the MCP registry:
 ## Operator
 
 Santos Automation (Juan Santos) — custom x402 APIs, web apps, e-commerce, and
-automation systems. baitjet@gmail.com · https://santosautomation.com
+automation systems. info@santosautomation.com · https://santosautomation.com
