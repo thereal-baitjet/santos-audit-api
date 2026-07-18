@@ -8,8 +8,18 @@ prioritized fixes. No account or traditional API key; paid resources use the
 
 From discoverable to callable.
 
+[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fwww.santosautomation.com&label=live%20site)](https://www.santosautomation.com/)
+[![Vercel production](https://img.shields.io/badge/production-Vercel-black?logo=vercel)](https://vercel.com/thereal-baitjets-projects/santos-api)
+[![API version](https://img.shields.io/badge/API-v2.3.0-d4a24e)](https://api.santosautomation.com/openapi.json)
+[![x402](https://img.shields.io/badge/payments-x402%20v2%20%7C%20USDC%20on%20Base-2775ca)](https://x402.org/)
+[![OpenAPI](https://img.shields.io/badge/spec-OpenAPI%203.1-6ba539)](https://api.santosautomation.com/openapi.json)
+[![License](https://img.shields.io/badge/license-ISC-blue)](package.json)
+
 Live: API at **https://api.santosautomation.com** · landing page at
 **https://www.santosautomation.com** (same app, two hostnames)
+
+The public site is positioned as Santos Website Intelligence. Its responsive
+navigation uses the gold Santos eagle SVG emblem from `public/assets`.
 
 | Surface | URL |
 |---|---|
@@ -22,6 +32,33 @@ Live: API at **https://api.santosautomation.com** · landing page at
 | MCP server (tools: `audit_website_preview`, `audit_agent_readiness`) | `POST /mcp` |
 | Service manifest | [`/api`](https://api.santosautomation.com/api) |
 | Capability manifest | [`/capabilities.json`](https://api.santosautomation.com/capabilities.json) |
+| Well-known capability manifest | [`/.well-known/agent-capabilities.json`](https://www.santosautomation.com/.well-known/agent-capabilities.json) |
+| Sitemap / crawler rules | [`/sitemap.xml`](https://www.santosautomation.com/sitemap.xml) · [`/robots.txt`](https://www.santosautomation.com/robots.txt) |
+
+## Website Intelligence model
+
+Santos measures four dimensions across completed, applicable checks:
+
+- **Discoverable** — crawler access, canonical URLs, sitemaps, `llms.txt`, documentation, and interface links.
+- **Understandable** — structured identity, JSON-LD, semantic HTML, metadata, pricing, and business context.
+- **Callable** — OpenAPI, MCP, capability manifests, typed schemas, stable errors, job endpoints, and x402 where applicable.
+- **Trustworthy** — HTTPS, security headers, accessibility, performance, browser behavior, support, and evidence quality.
+
+The additive `website_intelligence_score` and `website_intelligence` fields appear
+alongside historical Quick Audit fields. Existing `overall_score`, category
+scores, endpoint paths, capability ids, and payment behavior remain compatible.
+
+## Public product pages
+
+- [AI Website Intelligence](https://www.santosautomation.com/ai-website-intelligence)
+- [Agent Readiness Audit](https://www.santosautomation.com/agent-readiness-audit)
+- [Website Intelligence API](https://www.santosautomation.com/website-intelligence-api)
+- [MCP Readiness Checker](https://www.santosautomation.com/mcp-readiness-checker)
+- [llms.txt Checker](https://www.santosautomation.com/llms-txt-checker)
+- [OpenAPI Readiness Checker](https://www.santosautomation.com/openapi-readiness-checker)
+- [Agent Readiness Methodology](https://www.santosautomation.com/methodology/agent-readiness)
+- [Sample Agent Readiness Report](https://www.santosautomation.com/reports/sample-agent-readiness)
+- [Learning guides](https://www.santosautomation.com/learn/what-is-ai-website-intelligence)
 
 ## How agents pay (x402)
 
@@ -68,7 +105,7 @@ Same report shape, no payment, 1/day per IP:
 curl "https://api.santosautomation.com/api/audit/demo?url=example.com"
 ```
 
-## Deep Page Audit (browser-rendered tier)
+## Deep Website Intelligence (browser-rendered tier)
 
 Real Chromium via Playwright in an isolated Fly.io worker: Lighthouse lab
 metrics, rendered axe-core accessibility findings (with selectors), browser
@@ -94,6 +131,9 @@ Agent Readiness is also available as the opt-in `agent-readiness` module for
 additively as a lower-coverage embedded preview inside the Quick Audit response.
 The standalone result costs **$0.025 USDC per successful response** through x402 v2;
 failed audits do not settle. The existing Quick Audit `overall_score` is unchanged.
+The standalone response also includes the additive Website Intelligence score and
+four-dimensional presentation, with `callable` marked not applicable when the
+target does not advertise callable services.
 Scoring and standards baselines are documented in
 [`docs/agent-readiness-scoring.md`](docs/agent-readiness-scoring.md) and
 [`docs/agent-readiness-spec-baseline.md`](docs/agent-readiness-spec-baseline.md).
@@ -108,6 +148,19 @@ Scoring and standards baselines are documented in
   "timing_ms": { "ttfb": 166, "total": 168 },
   "overall_score": 68,
   "scores": { "performance": 100, "seo": 40, "accessibility": 100, "security": 33 },
+  "website_intelligence_score": 74,
+  "website_intelligence": {
+    "dimensions": {
+      "discoverable": 81,
+      "understandable": 68,
+      "callable": null,
+      "trustworthy": 73
+    },
+    "applicability": { "callable": "not_applicable" },
+    "coverage": { "tests_executed": 28, "tested_percent": 88 },
+    "confidence": 0.86,
+    "priority_fixes": []
+  },
   "checks": { "performance": [ { "pass": true, "detail": "TTFB 166ms" } ] },
   "issues": ["Missing canonical link", "Missing Content-Security-Policy header"]
 }
@@ -136,6 +189,14 @@ npm test                     # e2e checks against BASE (default localhost:3000)
 BASE=https://api.santosautomation.com EXPECT_NETWORK=base npm test
 ```
 
+Focused checks for the Website Intelligence layer:
+
+```bash
+npm run test:agent-readiness
+npm run test:website-intelligence
+npm run build
+```
+
 ### Environment variables
 
 See [`.env.example`](.env.example). Required in production: `CDP_API_KEY_ID`,
@@ -145,7 +206,9 @@ output), audit tuning knobs.
 
 ### Deploy
 
-`vercel --prod` from a linked checkout. The receiving wallet and network are
+`vercel --prod` from a linked checkout. Vercel deploys the website and API control
+plane; the browser-rendered worker is a separate Fly.io deployment and must be
+released independently when worker code changes. The receiving wallet and network are
 hard-coded in `app/api/audit/route.js` on purpose — stale env vars must not
 silently flip the API back to testnet.
 
