@@ -59,7 +59,7 @@ export async function GET() {
           price_usdc: readinessPrice,
           billing_unit: AGENT_READINESS_BILLING_UNIT,
           mode: "synchronous, bounded passive discovery",
-          engine: "fetch + HTML/JSON interface analysis; no authentication, payment, or business tool invocation",
+          engine: "fetch + HTML/JSON interface analysis; no authentication to or payment of the audited target; no business tool invocation",
           schema_version: "1.0.0",
           enabled: process.env.AGENT_READINESS_ENABLED !== "false",
         },

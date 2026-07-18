@@ -82,8 +82,8 @@ The versioned `AgentReadinessResult` assesses public agent-facing discovery,
 structured identity, OpenAPI, MCP, operational trust, and x402/machine-commerce
 signals. It first classifies applicability, so a normal website is not penalized
 for lacking an API, MCP server, or payment interface. The standalone quick pass
-uses at most eight bounded requests and never authenticates, pays, submits forms,
-creates accounts, invokes target tools, or executes target code.
+uses at most eight bounded requests and never authenticates to or pays the audited
+target, submits forms, creates target accounts, invokes target tools, or executes code.
 
 Agent Readiness is also available as the opt-in `agent-readiness` module for
 `POST /v1/audits`, through the MCP `audit_agent_readiness` paid-HTTP handoff, and

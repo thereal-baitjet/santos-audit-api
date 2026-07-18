@@ -16,8 +16,8 @@ AGENT READINESS AUDIT — $0.025 USDC per successful audit, synchronous, bounded
   lacking OpenAPI, MCP, or machine commerce when those surfaces are not applicable.
 - Evaluates discovery/docs, structured identity, API descriptions, MCP, operational
   trust, and agent commerce. Maximum eight extra requests in the standalone quick pass.
-- Passive only: never authenticates, creates accounts, submits forms, signs payments,
-  transfers funds, calls MCP business tools, or executes target-provided code.
+- Passive only: never authenticates to or pays the audited target, creates target
+  accounts, submits forms, calls MCP business tools, or executes target-provided code.
 - Access: x402 v2 on Base mainnet; no account or API key. An unpaid request returns
   `PAYMENT-REQUIRED` terms for 25000 atomic USDC units. Settlement occurs only after
   a successful audit response.

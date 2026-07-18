@@ -33,7 +33,7 @@ export default function TermsPage() {
       <h2>Privacy and collected data</h2>
       <ul>
         <li>Target URLs and operational request metadata may be processed to run and protect the service.</li>
-        <li>Agent Readiness never authenticates, creates accounts, submits forms, signs payments, or invokes target business tools.</li>
+        <li>Agent Readiness never authenticates to or pays the audited target, creates target accounts, submits forms, or invokes target business tools.</li>
         <li>Cookie values, API keys, credentials, payment signatures, and target-user personal data are not intentionally collected.</li>
         <li>Query strings, fragments, credentials, and sensitive headers are redacted from audit evidence where applicable.</li>
       </ul>
