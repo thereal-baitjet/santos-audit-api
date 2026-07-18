@@ -1,6 +1,7 @@
 import { PageShell } from "../../components/SiteChrome.js";
 import BuyForm from "./BuyForm.js";
 import { getAgentReadinessPriceUsdc } from "../../../lib/agent-readiness/product-pricing.js";
+import { stripeConfigured } from "../../../lib/stripe/client.js";
 
 const X402_PRICE = getAgentReadinessPriceUsdc();
 
@@ -35,7 +36,23 @@ export default function BuyPage() {
 
         <section className="ar-section" aria-labelledby="buy-h">
           <h2 id="buy-h" className="sr-only">Purchase</h2>
-          <div className="audit-box"><BuyForm /></div>
+          <div className="audit-box">
+            {stripeConfigured() ? (
+              <BuyForm />
+            ) : (
+              <div className="ar-form buy-form" role="status">
+                <p><strong>Card checkout is almost ready.</strong> We're finishing setup
+                  with our payment provider — check back shortly.</p>
+                <p className="fine">
+                  Can't wait? Email{" "}
+                  <a href="mailto:info@santosautomation.com" data-analytics-event="contact_clicked">info@santosautomation.com</a>{" "}
+                  and we'll run your report manually, or use the{" "}
+                  <a href="/agent-readiness/run">x402 endpoint</a> if you have a funded
+                  USDC wallet on Base.
+                </p>
+              </div>
+            )}
+          </div>
         </section>
 
         <section className="ar-section two-tracks" aria-labelledby="tracks-h">
