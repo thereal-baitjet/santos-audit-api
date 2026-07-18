@@ -50,9 +50,10 @@ export default function TermsPage() {
       <h2>Payments and retries</h2>
       <p>
         Enforced prices and billing units appear in the live x402 challenge. Quick Audit
-        settles only on a successful response. Deep Page payment purchases one bounded
-        compute reservation and settles when the job is accepted. Use an Idempotency-Key
-        for Deep job retries. Never rely on a price that is not enforced by the live route.
+        and the $0.025 USDC Agent Readiness Audit settle only on a successful response.
+        Deep Page payment purchases one bounded compute reservation and settles when the
+        job is accepted. Use an Idempotency-Key for Deep job retries. Never rely on a price
+        that is not enforced by the live route.
       </p>
 
       <h2>Availability and support</h2>

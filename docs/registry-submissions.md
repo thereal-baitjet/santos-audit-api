@@ -71,8 +71,8 @@ Production and Preview. All canonical URLs in this document are current.
 - **MCP tool:** `audit_agent_readiness`
 - **Result schema:** `AgentReadinessResult` 1.0.0
 - **Capability manifest:** https://api.santosautomation.com/capabilities.json
-- **Price:** disclose only if `AGENT_READINESS_PRICE_USDC` is configured and the
-  live endpoint actually enforces that x402 price.
+- **Price:** $0.025 USDC per successful audit through x402 v2 on Base mainnet
+  (`amount: "25000"`, billing unit: successful response).
 
 The official MCP Registry submission remains a manual owner action. Do not claim
 publication until the listing is externally visible and domain ownership is verified.

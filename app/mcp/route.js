@@ -1,14 +1,16 @@
 // Minimal stateless MCP server (Streamable HTTP transport, JSON responses).
 // Exposes audit_website_preview — the FREE limited tier (1/day per IP, shared
-// with /api/audit/demo). Unlimited audits are paid via the x402 HTTP endpoint,
-// which the tool description and results disclose explicitly.
+// with /api/audit/demo). Paid tools return canonical x402 HTTP handoffs so MCP
+// cannot bypass the resource server's verification and settlement flow.
 import { NextResponse } from "next/server";
 import { auditSite } from "../../audit.js";
 import { AuditError, validateTarget } from "../../lib/safe-fetch.js";
 import { hasFreeAudit, markFreeAudit, ipFromRequest } from "../../lib/demo-limit.js";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
-import { auditAgentReadiness } from "../../lib/agent-readiness/analyze.js";
 import { AGENT_READINESS_RESULT_SCHEMA } from "../../lib/agent-readiness/contract.js";
+import { getAgentReadinessPriceUsdc } from "../../lib/agent-readiness/product-pricing.js";
+
+const AGENT_READINESS_PRICE = getAgentReadinessPriceUsdc();
 
 // Newest first. Initialize negotiates: requested if supported, else our latest.
 const SUPPORTED_PROTOCOL_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26"];
@@ -46,7 +48,7 @@ const PREVIEW_TOOL = {
 
 const AGENT_READINESS_TOOL = {
   name: "audit_agent_readiness",
-  description: "Passively assess how well a public website or service can be discovered, understood, invoked, and—where explicitly applicable—paid by agents. Normalizes resource-scoped pricing claims and compares them with unsigned x402 challenge terms. Classifies applicability before scoring so ordinary websites are not penalized for lacking APIs, MCP, or machine commerce. Uses bounded public reads only: never authenticates, creates accounts, submits forms, signs payments, transfers funds, or invokes advertised business tools.",
+  description: `PAID CAPABILITY ($${AGENT_READINESS_PRICE} USDC per successful audit via x402 v2). Passively assesses how well a public website or service can be discovered, understood, invoked, and—where explicitly applicable—paid by agents. This MCP call validates the target and returns the canonical x402 HTTP handoff; payment and the versioned result are exchanged at GET ${PUBLIC_API_BASE_URL}/api/agent-readiness?url=...&depth=quick. No account or API key is required.`,
   inputSchema: {
     type: "object",
     properties: {
@@ -96,13 +98,20 @@ async function callAuditTool(args, ip) {
   }
 }
 
-async function callAgentReadinessTool(args) {
+function callAgentReadinessTool(args) {
   if (!args || typeof args.url !== "string" || !args.url.trim() || (args.depth && args.depth !== "quick")) {
     return { isError: true, content: [{ type: "text", text: "INVALID_ARGUMENTS: 'url' is required and depth, when supplied, must be 'quick'." }] };
   }
   try {
-    const report = await auditAgentReadiness(args.url.trim(), { mode: "quick" });
-    return { content: [{ type: "text", text: JSON.stringify(report, null, 2) }], structuredContent: report };
+    const target = validateTarget(args.url.trim()).href;
+    const endpoint = `${PUBLIC_API_BASE_URL}/api/agent-readiness?url=${encodeURIComponent(target)}&depth=quick`;
+    return {
+      isError: true,
+      content: [{
+        type: "text",
+        text: `PAYMENT_REQUIRED: Agent Readiness costs $${AGENT_READINESS_PRICE} USDC per successful audit on Base mainnet via x402 v2. Request ${endpoint} without a signature to receive PAYMENT-REQUIRED terms, then sign and retry with PAYMENT-SIGNATURE.`,
+      }],
+    };
   } catch (error) {
     const code = error instanceof AuditError ? error.code : "AUDIT_FAILED";
     return { isError: true, content: [{ type: "text", text: `${code}: ${error.message}` }] };
@@ -143,9 +152,9 @@ export async function POST(req) {
       return rpcResult(id, {
         protocolVersion: negotiated,
         capabilities: { tools: {} },
-        serverInfo: { name: "santos-site-audit", version: "2.2.1" },
+        serverInfo: { name: "santos-site-audit", version: "2.2.2" },
         instructions:
-          "Use audit_website_preview for a free (1/day per IP) lightweight single-page audit, or audit_agent_readiness for a bounded passive assessment of public agent-facing interfaces. Unlimited quick audits are available via the x402-paid HTTP endpoint documented in the preview tool description.",
+          `Use audit_website_preview for a free (1/day per IP) lightweight page audit. Agent Readiness is a paid $${AGENT_READINESS_PRICE} USDC capability; audit_agent_readiness validates the target and returns its canonical x402 HTTP handoff.`,
       });
     }
     case "ping":

@@ -1,4 +1,7 @@
 import AuditWidget from "./AuditWidget";
+import { getAgentReadinessPriceUsdc } from "../lib/agent-readiness/product-pricing.js";
+
+const agentReadinessPrice = getAgentReadinessPriceUsdc();
 
 export default function Home() {
   return (
@@ -87,7 +90,7 @@ export default function Home() {
           <div className="plan plan--agent">
             <div className="plan-head">
               <h3>Agent Readiness</h3>
-              <div className="plan-price">Public preview <span>· versioned JSON</span></div>
+              <div className="plan-price">${agentReadinessPrice} <span>USDC / successful audit</span></div>
               <div className="plan-mode">synchronous · bounded passive discovery</div>
             </div>
             <p className="plan-pitch">

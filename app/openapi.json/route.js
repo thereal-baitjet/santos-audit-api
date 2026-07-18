@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
 import { AGENT_READINESS_RESULT_SCHEMA } from "../../lib/agent-readiness/contract.js";
+import { getAgentReadinessPriceUsdc, usdcAtomicAmount } from "../../lib/agent-readiness/product-pricing.js";
+
+const AGENT_READINESS_PRICE = getAgentReadinessPriceUsdc();
+const AGENT_READINESS_ATOMIC_PRICE = usdcAtomicAmount(AGENT_READINESS_PRICE);
 
 const scoreSchema = { type: "integer", minimum: 0, maximum: 100 };
 
@@ -103,9 +107,9 @@ const document = {
   openapi: "3.1.0",
   info: {
     title: "Santos Site Audit API",
-    version: "2.2.1",
+    version: "2.2.2",
     description:
-      "Machine-payable website auditing for AI agents and automated workflows — two tiers, both paid per-call in USDC on Base mainnet (eip155:8453) via x402 v2, no account or API key. QUICK AUDIT (GET /api/audit, $0.005, synchronous, seconds): lightweight single-page fetch-and-parse audit. DEEP PAGE AUDIT (POST /v1/audits, $0.075, asynchronous job, typically tens of seconds to a few minutes): real Chromium via Playwright, Lighthouse lab metrics, rendered axe-core accessibility checks, browser network/console evidence, screenshots, and passive security checks. Deep-audit payment purchases a bounded compute reservation and settles when the job is accepted, not on report completion.",
+      `Machine-payable website auditing for AI agents and automated workflows — three paid capabilities in USDC on Base mainnet (eip155:8453) via x402 v2, no account or API key. QUICK AUDIT (GET /api/audit, $0.005, synchronous): lightweight single-page fetch-and-parse audit. AGENT READINESS (GET /api/agent-readiness, $${AGENT_READINESS_PRICE}, synchronous): bounded passive discovery and assessment of agent-facing interfaces. DEEP PAGE AUDIT (POST /v1/audits, $0.075, asynchronous): real Chromium via Playwright, Lighthouse, rendered axe-core, browser evidence, screenshots, and passive security checks. Quick and Agent Readiness payments settle only on a successful response; Deep payment purchases a bounded compute reservation and settles when the job is accepted.`,
     contact: { name: "Santos Automation", email: "baitjet@gmail.com", url: "https://santosautomation.com" },
   },
   servers: [{ url: PUBLIC_API_BASE_URL }],
@@ -114,13 +118,13 @@ const document = {
       get: {
         operationId: "auditAgentReadiness",
         tags: ["Agent Readiness"],
-        summary: "Assess public agent-facing interfaces (bounded and passive)",
-        description: "Classifies the target before scoring and evaluates only applicable surfaces: discovery/docs, structured identity, APIs, MCP, operational trust, and machine commerce. For paid surfaces it normalizes public pricing claims and compares only claims scoped to the same paid resource against an unsigned x402 challenge. The quick pass performs at most eight additional bounded public requests. It never authenticates, creates accounts, submits forms, signs payments, transfers funds, or invokes advertised MCP/business tools. llms.txt is treated as a proposal and the MCP Registry as preview infrastructure. This endpoint is free unless AGENT_READINESS_PRICE_USDC is configured, in which case x402 v2 terms are returned before execution.",
+        summary: `Assess public agent-facing interfaces ($${AGENT_READINESS_PRICE} USDC via x402)`,
+        description: `Requires $${AGENT_READINESS_PRICE} USDC through x402 v2 and settles only after a successful audit response. Classifies the target before scoring and evaluates only applicable surfaces: discovery/docs, structured identity, APIs, MCP, operational trust, and machine commerce. For paid surfaces it normalizes public pricing claims and compares only claims scoped to the same paid resource against an unsigned x402 challenge. The quick pass performs at most eight additional bounded public requests. It never authenticates, creates accounts, submits forms, signs target payments, transfers funds to the target, or invokes advertised MCP/business tools. llms.txt is treated as a proposal and the MCP Registry as preview infrastructure.`,
         parameters: [urlParam, { name: "depth", in: "query", required: false, schema: { type: "string", enum: ["quick"], default: "quick" } }],
         responses: {
           200: { description: "Versioned Agent Readiness result.", content: { "application/json": { schema: { $ref: "#/components/schemas/AgentReadinessResult" } } } },
           400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
-          402: { description: "Present only when operator pricing is configured; terms are in PAYMENT-REQUIRED." },
+          402: { description: `Payment required. PAYMENT-REQUIRED contains x402 v2 terms for $${AGENT_READINESS_PRICE} USDC (${AGENT_READINESS_ATOMIC_PRICE} atomic units) on eip155:8453.` },
           502: { description: "Target or required public interface was unreachable.", content: { "application/json": { schema: errorSchema } } },
           504: { description: "Bounded audit timed out.", content: { "application/json": { schema: errorSchema } } },
         },

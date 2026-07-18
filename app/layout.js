@@ -1,4 +1,7 @@
 import "./globals.css";
+import { getAgentReadinessPriceUsdc } from "../lib/agent-readiness/product-pricing.js";
+
+const agentReadinessPrice = getAgentReadinessPriceUsdc();
 
 export const metadata = {
   metadataBase: new URL("https://www.santosautomation.com"),
@@ -64,7 +67,7 @@ const jsonLd = {
       offers: [
         { "@type": "Offer", name: "Quick Audit", price: "0.005", priceCurrency: "USDC" },
         { "@type": "Offer", name: "Deep Page Audit", price: process.env.DEEP_AUDIT_PRICE_USDC ?? "0.075", priceCurrency: "USDC" },
-        ...(process.env.AGENT_READINESS_PRICE_USDC ? [{ "@type": "Offer", name: "Agent Readiness Audit", price: process.env.AGENT_READINESS_PRICE_USDC, priceCurrency: "USDC" }] : []),
+        { "@type": "Offer", name: "Agent Readiness Audit", price: agentReadinessPrice, priceCurrency: "USDC" },
       ],
     },
   ],

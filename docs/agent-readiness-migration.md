@@ -15,9 +15,13 @@ This release is additive for existing Quick Audit clients.
 - MCP clients may continue using `audit_website_preview`; `audit_agent_readiness` is a
   new read-only tool. The server now negotiates MCP `2025-11-25` while retaining the
   two previously supported versions.
-- The dedicated endpoint is unpriced by default. Set
-  `AGENT_READINESS_PRICE_USDC` only when the x402 route should enforce and advertise a
-  price. Leaving it unset never advertises a phantom price.
+- The dedicated endpoint is paid at `0.025` USDC per successful response through x402
+  v2. `AGENT_READINESS_PRICE_USDC` may override that default with another positive
+  value of at most six decimal places; invalid values fail the build rather than
+  advertising unenforced terms.
+- The MCP `audit_agent_readiness` tool no longer executes the full standalone audit for
+  free. It validates the target and returns the canonical paid HTTP handoff. The
+  zero-additional-request Quick Audit object remains a lower-coverage embedded preview.
 - Agent-commerce results now include an additive `interfaces.pricing` object with
   normalized claims, enforced challenge terms, missing fields, and resource-scoped
   contradictions. Existing fields and category weights are unchanged.

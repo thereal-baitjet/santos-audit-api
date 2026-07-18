@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.2.2 — 2026-07-18
+
+- Make the standalone Agent Readiness service paid by default at $0.025 USDC per
+  successful audit through x402 v2 on Base mainnet.
+- Publish one validated price across the route, website, OpenAPI, JSON-LD, service
+  and capability manifests, MCP, llms.txt, terms, and operator documentation.
+- Close the free MCP execution bypass: `audit_agent_readiness` now validates input
+  and returns the canonical paid HTTP handoff. The embedded Quick Audit object remains
+  an explicitly lower-coverage preview.
+
 ## 2.2.1 — 2026-07-18
 
 - Add resource-scoped Agent Readiness pricing analysis across public text, JSON-LD

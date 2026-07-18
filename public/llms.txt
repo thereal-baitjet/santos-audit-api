@@ -1,15 +1,15 @@
 # Santos Site Audit API
 
-Machine-payable website audits for performance, SEO, accessibility, and security.
-Each production audit costs $0.005 USDC on Base mainnet (eip155:8453) through the
-x402 payment protocol. No user account and no traditional API key are required —
-an agent pays per-call inside the HTTP request itself. Built and operated by
+Machine-payable website and Agent Readiness audits on Base mainnet (eip155:8453)
+through x402 v2: $0.005 USDC for Quick Audit, $0.025 for Agent Readiness, and
+$0.075 for a Deep Page compute reservation. No user account and no traditional API
+key are required — an agent pays inside the HTTP request itself. Built and operated by
 Santos Automation, which also builds custom x402 APIs, web apps, and automation
 systems for hire.
 
 ## API — audit modes
 
-AGENT READINESS AUDIT — synchronous, bounded passive public-interface assessment:
+AGENT READINESS AUDIT — $0.025 USDC per successful audit, synchronous, bounded passive public-interface assessment:
 - Endpoint: https://api.santosautomation.com/api/agent-readiness?url=https%3A%2F%2Fexample.com&depth=quick
 - Capability id: `agent-readiness.quick`; result schema version: `1.0.0`.
 - Classifies the target before scoring. Ordinary websites are not penalized for
@@ -18,7 +18,9 @@ AGENT READINESS AUDIT — synchronous, bounded passive public-interface assessme
   trust, and agent commerce. Maximum eight extra requests in the standalone quick pass.
 - Passive only: never authenticates, creates accounts, submits forms, signs payments,
   transfers funds, calls MCP business tools, or executes target-provided code.
-- This endpoint is unpriced unless the operator configures an x402 price.
+- Access: x402 v2 on Base mainnet; no account or API key. An unpaid request returns
+  `PAYMENT-REQUIRED` terms for 25000 atomic USDC units. Settlement occurs only after
+  a successful audit response.
 
 QUICK AUDIT — $0.005 USDC, synchronous (seconds), fetch-and-parse engine:
 - Production endpoint: https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com
@@ -73,15 +75,18 @@ service. Its score is separate from the established Quick Audit `overall_score`.
 For paid services it compares resource-scoped pricing in public text, JSON-LD Offers,
 capability manifests, and unsigned x402 challenge terms; separate product tiers may
 have different prices. It never sends a payment signature or transfers funds.
-The MCP server exposes `audit_agent_readiness` with strict input/output schemas and
-a structured result; it does not invoke any tool advertised by the audited target.
+The MCP server advertises `audit_agent_readiness` with strict schemas. Its call validates
+the target and returns the canonical paid HTTP handoff; it does not provide a free full
+audit or invoke any tool advertised by the audited target.
 
 ## Payment
 
 - Protocol: x402 v2 (`PAYMENT-REQUIRED` response header carries base64 terms;
   pay by retrying with a `PAYMENT-SIGNATURE` request header; the settled response
   includes a base64 `PAYMENT-RESPONSE` receipt header).
-- Price: $0.005 USDC per production audit (5000 atomic units, `amount: "5000"`).
+- Quick Audit price: $0.005 USDC per successful audit (5000 atomic units).
+- Agent Readiness price: $0.025 USDC per successful audit (25000 atomic units).
+- Deep Page Audit price: $0.075 USDC per bounded compute reservation (75000 atomic units).
 - Network: `eip155:8453` (Base mainnet). Asset: USDC at 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.
 - Pay to: 0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B.
 - Flow: request without payment returns HTTP 402; decode the `PAYMENT-REQUIRED`
