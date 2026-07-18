@@ -2,7 +2,7 @@ export function SiteNav() {
   return (
     <nav className="site-nav" aria-label="Primary navigation">
       <a className="brand" href="/" aria-label="Santos Website Intelligence home">
-        <img src="/assets/santos-logo.png" alt="Santos gold mountain emblem" width="1024" height="1024" />
+        <img src="/assets/santos-eagle.svg" alt="Santos gold eagle emblem" width="1254" height="1254" />
         <span>Santos Intelligence</span>
       </a>
       <ul>
