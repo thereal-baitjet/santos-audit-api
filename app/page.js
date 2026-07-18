@@ -5,7 +5,12 @@ export default function Home() {
     <div className="wrap">
       <nav>
         <span className="brand">
-          <img src="/assets/santos-logo.png" alt="Santos Automation logo" />
+          <img
+            src="/assets/santos-logo.png"
+            alt="Gold mountain mark for Santos Automation"
+            width="1024"
+            height="1024"
+          />
           Santos Automation
         </span>
         <ul>
@@ -31,7 +36,14 @@ export default function Home() {
             <a className="btn" href="#plans">See the plans</a>
           </div>
         </div>
-        <img className="hero-eagle" src="/assets/santos-eagle.svg" alt="Santos Automation eagle emblem" />
+        <img
+          className="hero-eagle"
+          src="/assets/santos-eagle.svg"
+          alt="Gold geometric eagle, the Santos Automation emblem"
+          width="1254"
+          height="1254"
+          fetchPriority="high"
+        />
       </header>
 
       <section className="audit" id="audit">
