@@ -3,6 +3,7 @@
 import * as cheerio from "cheerio";
 import { safeFetch } from "./lib/safe-fetch.js";
 import { auditAgentReadiness } from "./lib/agent-readiness/analyze.js";
+import { websiteIntelligenceSummary } from "./lib/website-intelligence.js";
 
 const UA = "SantosAuditBot/0.1 (+https://santosautomation.com)";
 
@@ -71,11 +72,15 @@ export async function auditSite(rawUrl) {
       },
     });
 
+  const websiteIntelligence = websiteIntelligenceSummary({ scores, agentReadiness });
+
   return {
     schema_version: "2.1.0",
     url, fetched_at: new Date().toISOString(),
     http_status: res.status, timing_ms: { ttfb: ttfbMs, total: totalMs },
     overall_score: overall, scores, checks,
+    website_intelligence_score: websiteIntelligence.score,
+    website_intelligence: websiteIntelligence,
     issues: Object.values(checks).flat().filter(r => !r.pass).map(r => r.fix),
     ...(agentReadiness ? { agent_readiness: agentReadiness } : {}),
     audited_by: "Santos Automation — santosautomation.com",

@@ -13,6 +13,7 @@ const manifest = await root.json();
 check("manifest returns 200", root.status === 200);
 check("manifest lists demo + paid endpoints", !!manifest.endpoints?.["GET /api/audit/demo?url="] && !!manifest.endpoints?.["GET /api/audit?url="]);
 check("manifest lists Agent Readiness", !!manifest.endpoints?.["GET /api/agent-readiness?url=&depth=quick"] && manifest.tiers?.["agent-readiness"]?.capability_id === "agent-readiness.quick");
+check("manifest uses Website Intelligence positioning", manifest.name === "Santos Website Intelligence API" && manifest.version === "2.3.0");
 
 // 2) Free demo: 200 with a report, or 429 if this IP already used today's audit
 const demo = await fetch(`${BASE}/api/audit/demo?url=example.com`);
@@ -66,6 +67,7 @@ const oaDoc = await oa.json().catch(() => ({}));
 check("openapi.json reachable + JSON", oa.status === 200 && (oa.headers.get("content-type") ?? "").includes("json"));
 check("openapi 3.1 with auditWebsite operation", oaDoc.openapi === "3.1.0" && oaDoc.paths?.["/api/audit"]?.get?.operationId === "auditWebsite" && !!oaDoc.paths?.["/api/audit/demo"]);
 check("openapi documents Agent Readiness contract", oaDoc.paths?.["/api/agent-readiness"]?.get?.operationId === "auditAgentReadiness" && oaDoc.components?.schemas?.AgentReadinessResult?.properties?.schema_version?.const === "1.0.0");
+check("openapi documents additive Website Intelligence", oaDoc.info?.title === "Santos Website Intelligence API" && oaDoc.components?.schemas?.WebsiteIntelligence?.properties?.dimensions?.properties?.callable);
 
 const readinessBad = await fetch(`${BASE}/api/agent-readiness?url=${encodeURIComponent("http://127.0.0.1/")}`);
 const readinessBadBody = await readinessBad.json().catch(() => ({}));
@@ -82,12 +84,12 @@ check("vendor capability manifest is explicit, versioned, and prices Agent Readi
 const llms = await fetch(`${BASE}/llms.txt`);
 const llmsText = await llms.text();
 check("llms.txt reachable + text", llms.status === 200 && (llms.headers.get("content-type") ?? "").includes("text"));
-check("llms.txt has required sections + endpoints", ["# Santos Site Audit API", "## API", "## Capabilities", "## Payment", "## Limitations", "## Support"].every(h => llmsText.includes(h)) && llmsText.includes("/api/audit") && llmsText.includes("openapi.json"));
+check("llms.txt has required sections + endpoints", ["# Santos Website Intelligence API", "## API", "## Capabilities", "## Payment", "## Limitations", "## Support"].every(h => llmsText.includes(h)) && llmsText.includes("/api/audit") && llmsText.includes("openapi.json"));
 
 // 3e) MCP server: negotiation, origin policy, tools/list, invalid-URL rejection
 const rpc = (method, params, id = 1, headers = {}) => fetch(`${BASE}/mcp`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify({ jsonrpc: "2.0", id, method, params }) });
 const init = await (await rpc("initialize", { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "test", version: "0" } })).json();
-check("MCP initialize (supported version echoed)", init.result?.serverInfo?.name === "santos-site-audit" && init.result?.protocolVersion === "2025-03-26");
+check("MCP initialize (supported version echoed)", init.result?.serverInfo?.name === "santos-website-intelligence" && init.result?.protocolVersion === "2025-03-26");
 const initNeg = await (await rpc("initialize", { protocolVersion: "1999-01-01", capabilities: {}, clientInfo: { name: "test", version: "0" } })).json();
 check("MCP initialize negotiates unsupported version to server latest", initNeg.result?.protocolVersion === "2025-11-25");
 const badVer = await rpc("tools/list", {}, 2, { "mcp-protocol-version": "1999-01-01" });

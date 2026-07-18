@@ -5,6 +5,7 @@ import { runBrowserPass, runLighthouse } from "./engine.js";
 import { normalizeAxe, normalizeLighthouse, passiveSecurity, networkFindings, accessibilityScore, SCORING_METHOD } from "./aggregate.js";
 import { generateSummary } from "./ai-summary.js";
 import { auditAgentReadiness } from "../lib/agent-readiness/analyze.js";
+import { websiteIntelligenceSummary } from "../lib/website-intelligence.js";
 
 const REPORT_SCHEMA_VERSION = "3.0.0";
 const MAX_ARTIFACT_BYTES = Number(process.env.MAX_ARTIFACT_BYTES ?? 3 * 1024 * 1024);
@@ -181,6 +182,8 @@ export async function runDeepAudit(request, heartbeat = async () => {}) {
     engines,
     module_status: moduleStatus,
     scores,
+    website_intelligence_score: websiteIntelligenceSummary({ scores, agentReadiness }).score,
+    website_intelligence: websiteIntelligenceSummary({ scores, agentReadiness }),
     scoring_method: SCORING_METHOD,
     metrics,
     agent_readiness: agentReadiness,

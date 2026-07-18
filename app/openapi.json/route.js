@@ -8,6 +8,40 @@ const AGENT_READINESS_ATOMIC_PRICE = usdcAtomicAmount(AGENT_READINESS_PRICE);
 
 const scoreSchema = { type: "integer", minimum: 0, maximum: 100 };
 
+const websiteIntelligenceSchema = {
+  type: "object",
+  description: "Additive presentation-layer synthesis. Historical score fields retain their established semantics.",
+  required: ["schema_version", "score", "dimensions", "applicability", "coverage", "scoring_note"],
+  properties: {
+    schema_version: { type: "string", const: "1.0.0" },
+    score: { type: ["integer", "null"], minimum: 0, maximum: 100 },
+    dimensions: {
+      type: "object",
+      required: ["discoverable", "understandable", "callable", "trustworthy"],
+      properties: {
+        discoverable: { type: ["integer", "null"], minimum: 0, maximum: 100 },
+        understandable: { type: ["integer", "null"], minimum: 0, maximum: 100 },
+        callable: { type: ["integer", "null"], minimum: 0, maximum: 100 },
+        trustworthy: { type: ["integer", "null"], minimum: 0, maximum: 100 },
+      },
+    },
+    applicability: { type: "object", properties: { callable: { type: "string", enum: ["tested", "not_applicable"] } } },
+    coverage: {
+      type: "object",
+      properties: {
+        tests_available: { type: "integer", minimum: 0 },
+        tests_executed: { type: "integer", minimum: 0 },
+        tests_not_applicable: { type: "integer", minimum: 0 },
+        tests_skipped: { type: "integer", minimum: 0 },
+        tested_percent: { type: "integer", minimum: 0, maximum: 100 },
+      },
+    },
+    confidence: { type: ["number", "null"], minimum: 0, maximum: 1 },
+    priority_fixes: { type: "array", items: { type: "object" } },
+    scoring_note: { type: "string" },
+  },
+};
+
 const auditReportSchema = {
   type: "object",
   required: ["tier", "url", "fetched_at", "http_status", "timing_ms", "overall_score", "scores", "checks", "issues"],
@@ -23,6 +57,8 @@ const auditReportSchema = {
       description: "Time-to-first-byte and total fetch time in milliseconds.",
     },
     overall_score: scoreSchema,
+    website_intelligence_score: { type: ["integer", "null"], minimum: 0, maximum: 100 },
+    website_intelligence: { $ref: "#/components/schemas/WebsiteIntelligence" },
     scores: {
       type: "object",
       required: ["performance", "seo", "accessibility", "security"],
@@ -106,10 +142,10 @@ const deepJobSchema = {
 const document = {
   openapi: "3.1.0",
   info: {
-    title: "Santos Site Audit API",
-    version: "2.2.2",
+    title: "Santos Website Intelligence API",
+    version: "2.3.0",
     description:
-      `Machine-payable website auditing for AI agents and automated workflows — three paid capabilities in USDC on Base mainnet (eip155:8453) via x402 v2, no account or API key. QUICK AUDIT (GET /api/audit, $0.005, synchronous): lightweight single-page fetch-and-parse audit. AGENT READINESS (GET /api/agent-readiness, $${AGENT_READINESS_PRICE}, synchronous): bounded passive discovery and assessment of agent-facing interfaces. DEEP PAGE AUDIT (POST /v1/audits, $0.075, asynchronous): real Chromium via Playwright, Lighthouse, rendered axe-core, browser evidence, screenshots, and passive security checks. Quick and Agent Readiness payments settle only on a successful response; Deep payment purchases a bounded compute reservation and settles when the job is accepted.`,
+      `AI Website Intelligence for determining whether public websites can be discovered, understood, trusted, and used by agents. Three paid capabilities use USDC on Base mainnet (eip155:8453) via x402 v2 with no account or traditional API key. QUICK INTELLIGENCE (GET /api/audit, $0.005, synchronous): lightweight single-page fetch-and-parse audit. AGENT READINESS (GET /api/agent-readiness, $${AGENT_READINESS_PRICE}, synchronous): bounded passive discovery and applicability-aware assessment of agent-facing interfaces. DEEP WEBSITE INTELLIGENCE (POST /v1/audits, $0.075, asynchronous): real Chromium via Playwright, Lighthouse, rendered axe-core, browser evidence, screenshots, and passive security checks. Quick and Agent Readiness payments settle only on a successful response; Deep payment purchases a bounded compute reservation and settles when the job is accepted.`,
     contact: { name: "Santos Automation", email: "baitjet@gmail.com", url: "https://santosautomation.com" },
   },
   servers: [{ url: PUBLIC_API_BASE_URL }],
@@ -122,7 +158,7 @@ const document = {
         description: `Requires $${AGENT_READINESS_PRICE} USDC through x402 v2 and settles only after a successful audit response. Classifies the target before scoring and evaluates only applicable surfaces: discovery/docs, structured identity, APIs, MCP, operational trust, and machine commerce. For paid surfaces it normalizes public pricing claims and compares only claims scoped to the same paid resource against an unsigned x402 challenge. The quick pass performs at most eight additional bounded public requests. It never authenticates, creates accounts, submits forms, signs target payments, transfers funds to the target, or invokes advertised MCP/business tools. llms.txt is treated as a proposal and the MCP Registry as preview infrastructure.`,
         parameters: [urlParam, { name: "depth", in: "query", required: false, schema: { type: "string", enum: ["quick"], default: "quick" } }],
         responses: {
-          200: { description: "Versioned Agent Readiness result.", content: { "application/json": { schema: { $ref: "#/components/schemas/AgentReadinessResult" } } } },
+          200: { description: "Versioned Agent Readiness result with additive Website Intelligence presentation fields.", content: { "application/json": { schema: { $ref: "#/components/schemas/AgentReadinessResult" } } } },
           400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
           402: { description: `Payment required. PAYMENT-REQUIRED contains x402 v2 terms for $${AGENT_READINESS_PRICE} USDC (${AGENT_READINESS_ATOMIC_PRICE} atomic units) on eip155:8453.` },
           502: { description: "Target or required public interface was unreachable.", content: { "application/json": { schema: errorSchema } } },
@@ -133,8 +169,8 @@ const document = {
     "/api/audit": {
       get: {
         operationId: "auditWebsite",
-        tags: ["Website Audit"],
-        summary: "Run a full site audit ($0.005 USDC via x402)",
+        tags: ["Quick Intelligence"],
+        summary: "Run a Quick Intelligence Audit ($0.005 USDC via x402)",
         description:
           "Requires x402 v2 payment. An unpaid request returns HTTP 402 with machine-readable terms in the base64 `PAYMENT-REQUIRED` response header (`accepts[0]`: $0.005 USDC as amount \"5000\", network eip155:8453, scheme `exact`), including an x402 Bazaar discovery extension with input/output JSON Schemas. Sign an EIP-3009 transferWithAuthorization for the quoted amount and retry with the `PAYMENT-SIGNATURE` request header. Any x402 v2 client (e.g. @x402/fetch) automates this. Payment settles only after a successful (2xx) response — failed audits cost nothing. Rejected payments and audit failures return structured errors.",
         parameters: [urlParam],
@@ -179,8 +215,8 @@ const document = {
     "/api/audit/demo": {
       get: {
         operationId: "auditWebsiteDemo",
-        tags: ["Website Audit"],
-        summary: "Free demo audit (1/day per IP)",
+        tags: ["Quick Intelligence"],
+        summary: "Free Quick Intelligence demo (1/day per IP)",
         description:
           "Identical report shape to the paid endpoint (tier is \"free-demo\"). Use it to inspect the result format before integrating payment. Rate-limited to 1 request per IP per day; 429 with code RATE_LIMITED after that.",
         parameters: [urlParam],
@@ -196,8 +232,8 @@ const document = {
     "/v1/audits": {
       post: {
         operationId: "createDeepAudit",
-        tags: ["Deep Page Audit"],
-        summary: "Create a Deep Page Audit job ($0.075 USDC via x402, asynchronous)",
+        tags: ["Deep Website Intelligence"],
+        summary: "Create a Deep Website Intelligence job ($0.075 USDC via x402, asynchronous)",
         description:
           "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE). The payment purchases one bounded compute reservation — it settles when the job is ACCEPTED (201), not when the report completes. Runs a real Chromium browser (Playwright) against the page: Lighthouse (mobile lab metrics), rendered axe-core accessibility checks (WCAG 2.x A/AA tags), browser network/console evidence, screenshots, and passive security checks. Send an Idempotency-Key header so retries return the existing job (409 IDEMPOTENT_REPLAY, not charged) instead of purchasing a duplicate. Typical completion: tens of seconds to a few minutes; poll status_url.",
         parameters: [{
@@ -266,7 +302,7 @@ const document = {
           { name: "token", in: "query", required: false, schema: { type: "string" } },
         ],
         responses: {
-          200: { description: "The report." },
+          200: { description: "The report.", content: { "application/json": { schema: { type: "object", properties: { schema_version: { type: "string", const: "3.0.0" }, scores: { type: "object" }, website_intelligence_score: { type: ["integer", "null"] }, website_intelligence: { $ref: "#/components/schemas/WebsiteIntelligence" }, agent_readiness: { $ref: "#/components/schemas/AgentReadinessResult" }, findings: { type: "array", items: { type: "object" } } } } } } },
           401: { description: "Missing/invalid access token.", content: { "application/json": { schema: errorSchema } } },
           409: { description: "Job not completed yet (code REPORT_NOT_READY, includes status/stage/progress).", content: { "application/json": { schema: errorSchema } } },
           404: { description: "Unknown job or expired report.", content: { "application/json": { schema: errorSchema } } },
@@ -288,12 +324,12 @@ const document = {
       },
     },
   },
-  components: { schemas: { AgentReadinessResult: AGENT_READINESS_RESULT_SCHEMA } },
-  tags: [{ name: "Website Audit" }, { name: "Agent Readiness" }, { name: "Deep Page Audit" }],
+  components: { schemas: { AgentReadinessResult: AGENT_READINESS_RESULT_SCHEMA, WebsiteIntelligence: websiteIntelligenceSchema } },
+  tags: [{ name: "Quick Intelligence" }, { name: "Agent Readiness" }, { name: "Deep Website Intelligence" }],
 };
 
 export async function GET() {
   return NextResponse.json(document, {
-    headers: { "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=3600" },
+    headers: { "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=3600", "X-Robots-Tag": "noindex" },
   });
 }

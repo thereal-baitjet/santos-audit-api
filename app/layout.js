@@ -1,17 +1,14 @@
 import "./globals.css";
-import { getAgentReadinessPriceUsdc } from "../lib/agent-readiness/product-pricing.js";
-
-const agentReadinessPrice = getAgentReadinessPriceUsdc();
 
 export const metadata = {
   metadataBase: new URL("https://www.santosautomation.com"),
-  title: "Santos Automation — Software, Systems & Machine-Payable APIs",
+  title: "AI Website Intelligence & Agent Readiness API | Santos",
   description:
-    "Custom web apps, automation systems, and x402 machine-payable APIs. Run a free site audit in seconds — humans welcome, agents pay per call.",
+    "Audit any website for AI Agent Readiness, MCP, llms.txt, OpenAPI, structured data, crawler access, SEO, accessibility, performance and security. Get structured JSON with evidence and prioritized fixes.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Santos Automation",
-    description: "Software, automation systems, and machine-payable APIs. Audit your site free in seconds.",
+    title: "AI Website Intelligence & Agent Readiness API | Santos",
+    description: "Measure whether a website can be discovered, understood, trusted, and used by AI agents.",
     type: "website",
     url: "/",
     images: [
@@ -25,8 +22,8 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Santos Automation",
-    description: "Software, automation systems, and machine-payable x402 APIs. Audit your site free in seconds.",
+    title: "AI Website Intelligence & Agent Readiness API | Santos",
+    description: "From discoverable to callable: structured website intelligence with evidence and prioritized fixes.",
     images: [
       {
         url: "/assets/santos-logo.png",
@@ -54,21 +51,15 @@ const jsonLd = {
       "@type": "ProfessionalService", "@id": "https://santosautomation.com/#organization",
       name: "Santos Automation", url: "https://santosautomation.com", email: "baitjet@gmail.com",
       founder: { "@type": "Person", name: "Juan Santos" }, areaServed: "US",
-      description: "Custom web apps, automation systems, and machine-payable x402 APIs.",
+      description: "Operator of Santos Website Intelligence, an evidence-based AI Website Intelligence and Agent Readiness API.",
       sameAs: ["https://github.com/thereal-baitjet", "https://instagram.com/mr.j.c.santos"],
     },
     {
-      "@type": "WebAPI", "@id": "https://api.santosautomation.com/#api",
-      name: "Santos Site Audit API", url: "https://api.santosautomation.com/api",
-      documentation: "https://api.santosautomation.com/openapi.json",
-      termsOfService: "https://santosautomation.com/terms",
-      provider: { "@id": "https://santosautomation.com/#organization" },
-      description: "Quick, deep-page, and passive Agent Readiness audits for public websites and services.",
-      offers: [
-        { "@type": "Offer", name: "Quick Audit", price: "0.005", priceCurrency: "USDC" },
-        { "@type": "Offer", name: "Deep Page Audit", price: process.env.DEEP_AUDIT_PRICE_USDC ?? "0.075", priceCurrency: "USDC" },
-        { "@type": "Offer", name: "Agent Readiness Audit", price: agentReadinessPrice, priceCurrency: "USDC" },
-      ],
+      "@type": "WebSite", "@id": "https://santosautomation.com/#website",
+      name: "Santos Website Intelligence", alternateName: "Santos Automation",
+      url: "https://santosautomation.com",
+      publisher: { "@id": "https://santosautomation.com/#organization" },
+      description: "Website intelligence for the agentic web—from discoverable to callable.",
     },
   ],
 };
@@ -80,6 +71,7 @@ export default function RootLayout({ children }) {
         <link rel="service-desc" type="application/vnd.oai.openapi+json" href="https://api.santosautomation.com/openapi.json" />
         <link rel="alternate" type="text/plain" href="https://api.santosautomation.com/llms.txt" title="Agent-readable service guide" />
         <link rel="alternate" type="application/json" href="https://api.santosautomation.com/capabilities.json" title="Vendor-specific capability manifest" />
+        <link rel="alternate" type="application/json" href="https://www.santosautomation.com/.well-known/agent-capabilities.json" title="Agent capability manifest" />
       </head>
       <body>
         <script

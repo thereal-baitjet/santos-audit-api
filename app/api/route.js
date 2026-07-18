@@ -8,10 +8,11 @@ export async function GET() {
   return NextResponse.json(
     {
       manifest_version: "1",
-      name: "Santos Site Audit API",
-      version: "2.2.2",
+      name: "Santos Website Intelligence API",
+      alternate_name: "Santos Agent Readiness API",
+      version: "2.3.0",
       description:
-        "A lightweight machine-payable single-page website audit API. Returns performance signals, SEO signals, basic HTML accessibility signals, security-header checks, 0-100 category scores, and actionable remediation guidance.",
+        "AI Website Intelligence for measuring whether public websites can be discovered, understood, trusted, and used by AI agents. Returns structured evidence, applicability, coverage, scores, and prioritized remediation.",
       canonical_url: PUBLIC_API_BASE_URL,
       openapi_url: `${PUBLIC_API_BASE_URL}/openapi.json`,
       llms_url: `${PUBLIC_API_BASE_URL}/llms.txt`,
@@ -33,6 +34,8 @@ export async function GET() {
         receipt_header: "PAYMENT-RESPONSE",
       },
       capabilities: [
+        "AI Website Intelligence dimensions (Discoverable, Understandable, Callable, Trustworthy)",
+        "applicability-aware Agent Readiness with evidence coverage and confidence",
         "performance signals (fetch timing, page weight, script/stylesheet counts)",
         "SEO signals (title, meta description, headings, canonical, OpenGraph)",
         "basic HTML accessibility signals (alt text, lang, viewport)",
@@ -48,6 +51,7 @@ export async function GET() {
       ],
       tiers: {
         quick: {
+          title: "Quick Intelligence Audit",
           endpoint: "GET /api/audit?url=",
           price_usdc: "0.005",
           mode: "synchronous",
@@ -64,6 +68,7 @@ export async function GET() {
           enabled: process.env.AGENT_READINESS_ENABLED !== "false",
         },
         "deep-page": {
+          title: "Deep Website Intelligence Audit",
           endpoint: "POST /v1/audits",
           price_usdc: process.env.DEEP_AUDIT_PRICE_USDC ?? "0.075",
           mode: "asynchronous job (poll status_url)",
