@@ -70,6 +70,9 @@ first to inspect the quick-tier response format without paying.
 Choose AGENT READINESS when the question is whether an agent can reliably discover,
 understand, select, invoke, and—when explicitly applicable—transact with a public
 service. Its score is separate from the established Quick Audit `overall_score`.
+For paid services it compares resource-scoped pricing in public text, JSON-LD Offers,
+capability manifests, and unsigned x402 challenge terms; separate product tiers may
+have different prices. It never sends a payment signature or transfers funds.
 The MCP server exposes `audit_agent_readiness` with strict input/output schemas and
 a structured result; it does not invoke any tool advertised by the audited target.
 

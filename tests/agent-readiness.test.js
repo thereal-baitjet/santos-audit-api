@@ -91,7 +91,46 @@ test("x402 inspection is an unsigned challenge read only", async () => {
   const challenge = report.findings.find((f) => f.id === "agent.commerce.challenge");
   assert.equal(challenge?.status, "pass");
   assert.equal(challenge?.evidence.payment_signature_sent, false);
+  assert.equal(challenge?.evidence.normalized_amount, "0.005");
+  assert.equal(report.interfaces.pricing.status, "consistent");
+  assert.equal(report.interfaces.pricing.enforced.amount, "0.005");
+  assert.equal(report.findings.find((f) => f.id === "agent.commerce.discovery")?.status, "pass");
   assert.ok(calls.every((call) => !Object.keys(call.headers).some((name) => name.toLowerCase() === "payment-signature")));
+});
+
+test("flags a documented price that contradicts the enforced x402 amount", async () => {
+  const terms = Buffer.from(JSON.stringify({ x402Version: 2, resource: { url: `${origin}/api/audit?url=example.com` }, accepts: [{ scheme: "exact", network: "eip155:8453", amount: "5000", asset: "0xusdc", payTo: "0xpayee" }] })).toString("base64");
+  const report = await auditAgentReadiness(origin, {
+    fetcher: mockFetcher({
+      [`${origin}/`]: response(200, `<html><body><main><h1>Paid API</h1><p>x402 v2 pricing: GET /api/audit?url=example.com costs $0.010 USDC per request on Base mainnet. Retry and duplicate requests are idempotent; settlement failures produce receipts and support guidance.</p><a href="/api/audit?url=example.com">Paid resource</a></main></body></html>`),
+      [`${origin}/api/audit?url=example.com`]: response(402, JSON.stringify({ code: "PAYMENT_REQUIRED" }), { "content-type": "application/json", "payment-required": terms }),
+    }),
+  });
+  assert.equal(report.interfaces.pricing.status, "contradictory");
+  assert.ok(report.interfaces.pricing.contradictions.some((item) => item.field === "amount" && item.documented.amount === "0.01" && item.enforced.amount === "0.005"));
+  assert.equal(report.findings.find((f) => f.id === "agent.commerce.discovery")?.status, "fail");
+  assert.equal(report.findings.find((f) => f.id === "agent.metadata.consistency")?.status, "fail");
+});
+
+test("allows distinct prices for separately scoped capabilities", async () => {
+  const terms = Buffer.from(JSON.stringify({ x402Version: 2, resource: { url: `${origin}/api/audit?url=example.com` }, accepts: [{ scheme: "exact", network: "eip155:8453", amount: "5000", asset: "0xusdc", payTo: "0xpayee" }] })).toString("base64");
+  const manifest = {
+    manifest_type: "vendor-capabilities",
+    capabilities: [
+      { id: "quick", description: "Quick audit", endpoint: `${origin}/api/audit?url={url}`, method: "GET", billing_unit: "successful audit", access: "x402 v2", price: { amount: "0.005", currency: "USDC", network: "eip155:8453", protocol: "x402-v2" } },
+      { id: "deep", description: "Deep audit", endpoint: `${origin}/v1/audits`, method: "POST", billing_unit: "bounded compute reservation", access: "x402 v2", price: { amount: "0.075", currency: "USDC", network: "eip155:8453", protocol: "x402-v2" } },
+    ],
+  };
+  const report = await auditAgentReadiness(origin, {
+    fetcher: mockFetcher({
+      [`${origin}/`]: response(200, `<html><head><link rel="service" href="/capabilities.json"></head><body><main><h1>Audit API</h1><p>Machine-payable x402 audit services with documented retries, settlement failures, receipts, privacy, limits, and support.</p><a href="/api/audit?url=example.com">Paid quick audit</a></main></body></html>`),
+      [`${origin}/capabilities.json`]: response(200, JSON.stringify(manifest), { "content-type": "application/json" }),
+      [`${origin}/api/audit?url=example.com`]: response(402, JSON.stringify({ code: "PAYMENT_REQUIRED" }), { "content-type": "application/json", "payment-required": terms }),
+    }),
+  });
+  assert.equal(report.interfaces.pricing.status, "consistent");
+  assert.deepEqual(report.interfaces.pricing.claims.filter((claim) => claim.source === "capability_manifest").map((claim) => claim.amount).sort(), ["0.005", "0.075"]);
+  assert.equal(report.interfaces.pricing.contradictions.length, 0);
 });
 
 test("request and embedded modes honor their budgets", async () => {

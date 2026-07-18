@@ -26,6 +26,21 @@ Readiness levels are 0 Human-only, 1 LLM-readable, 2 Machine-described, 3
 Tool-invokable, and 4 Transaction-ready. Levels depend on observed interfaces, not
 the numeric score alone.
 
+## Pricing and agent-commerce logic
+
+When machine commerce is applicable, `interfaces.pricing` reports normalized pricing
+claims from public page text, `llms.txt`, Schema.org `Offer` data, capability
+manifests, and a live unpaid x402 challenge. The challenge is read without a
+`PAYMENT-SIGNATURE`; the analyzer never signs or transfers funds.
+
+Pricing comparisons are scoped to the canonical paid-resource path. Prices for two
+different capabilities are therefore allowed to differ. For the same resource, a
+contradiction in amount, currency, or network fails `agent.commerce.discovery` and
+`agent.metadata.consistency`. A complete result also requires a price, currency or
+asset, network, billing unit, and canonical paid resource. USDC x402 atomic amounts
+are normalized with six decimals when the asset can be identified as USDC, while the
+original atomic amount remains in evidence.
+
 The embedded Quick Audit uses the page already fetched and makes zero additional
 requests. Its Agent Readiness coverage is therefore intentionally lower. The
 historical Quick Audit `overall_score` remains the mean of performance, SEO,

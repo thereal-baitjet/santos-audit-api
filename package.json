@@ -1,6 +1,6 @@
 {
   "name": "santos-audit-api",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "$0.005 x402 v2 machine-payable API that runs a lightweight single-page website audit: performance signals, SEO signals, accessibility signals, and security-header checks. No account, no API key — agents pay per call in USDC on Base mainnet.",
   "scripts": {
     "dev": "next dev",

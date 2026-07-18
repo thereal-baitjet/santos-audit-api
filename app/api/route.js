@@ -7,7 +7,7 @@ export async function GET() {
     {
       manifest_version: "1",
       name: "Santos Site Audit API",
-      version: "2.2.0",
+      version: "2.2.1",
       description:
         "A lightweight machine-payable single-page website audit API. Returns performance signals, SEO signals, basic HTML accessibility signals, security-header checks, 0-100 category scores, and actionable remediation guidance.",
       canonical_url: PUBLIC_API_BASE_URL,
