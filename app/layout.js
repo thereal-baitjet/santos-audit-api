@@ -11,16 +11,37 @@ export const metadata = {
     description: "Software, automation systems, and machine-payable APIs. Audit your site free in seconds.",
     type: "website",
     url: "/",
-    images: ["/assets/santos-logo.png"],
+    images: [
+      {
+        url: "/assets/santos-logo.png",
+        width: 1024,
+        height: 1024,
+        alt: "Gold mountain mark for Santos Automation",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Santos Automation",
     description: "Software, automation systems, and machine-payable x402 APIs. Audit your site free in seconds.",
-    images: ["/assets/santos-logo.png"],
+    images: [
+      {
+        url: "/assets/santos-logo.png",
+        alt: "Gold mountain mark for Santos Automation",
+      },
+    ],
   },
   robots: { index: true, follow: true },
-  icons: { icon: "/assets/santos-logo.png" },
+  icons: {
+    icon: [
+      {
+        url: "/assets/santos-eagle.svg",
+        type: "image/svg+xml",
+        sizes: "any",
+      },
+    ],
+    shortcut: "/assets/santos-eagle.svg",
+  },
 };
 
 const jsonLd = {
