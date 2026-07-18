@@ -44,12 +44,14 @@ export default function MarketingPage({ page, showAudit = false }) {
           <h1>{page.h1}</h1>
           <p className="lede">{page.intro}</p>
           <div className="cta-row">
-            <a className="btn primary" href={showAudit ? "#run-audit" : "/agent-readiness-audit#run-audit"} data-analytics-event="primary_cta_clicked">Run an Agent Readiness Audit</a>
-            <a className="btn" href="/openapi.json" data-analytics-event="api_documentation_viewed">Explore the API</a>
+            <a className="btn primary" href="/agent-readiness/run">Run Paid Agent Readiness Audit</a>
+            <a className="btn" href={showAudit ? "#run-audit" : "/#audit"} data-analytics-event="free_audit_started">Run Free Quick Audit</a>
+            <a className="btn" href="/reports/sample-agent-readiness" data-analytics-event="sample_report_viewed">View Sample Report</a>
+            <a className="btn" href="/openapi.json" data-analytics-event="openapi_downloaded">Explore API Documentation</a>
           </div>
         </header>
 
-        {showAudit && <section id="run-audit" className="content-section"><h2>Start with a free Quick Intelligence scan</h2><p className="sub">Use the live entry point to inspect the report shape. The complete Agent Readiness endpoint costs 0.025 USDC per successful audit.</p><div className="audit-box"><AuditWidget /></div></section>}
+        {showAudit && <section id="run-audit" className="content-section"><h2>Free browser demo — one scan per day</h2><p className="sub">Inspect the report shape with a free daily scan (one per day per IP; a shared office, VPN, or network may share that limit). The production Quick API costs 0.005 USDC per successful audit, and the complete <a href="/agent-readiness/run">Agent Readiness audit</a> costs 0.025 USDC per successful audit.</p><div className="audit-box"><AuditWidget /></div></section>}
 
         {page.highlights?.length > 0 && <section className="content-section"><h2>What the assessment covers</h2><div className="feature-grid">{page.highlights.map((item) => <div className="feature-card" key={item.name}><h3>{item.name}</h3><p>{item.text}</p></div>)}</div></section>}
 

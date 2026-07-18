@@ -58,7 +58,7 @@ export default async function LearnPage({ params }) {
         </header>
         <div className="article-body">
           {article.sections.map(([heading, body]) => <section key={heading}><h2>{heading}</h2><p>{body}</p></section>)}
-          <aside className="callout"><h2>Measure the public evidence</h2><p>Run the applicability-aware assessment or inspect the published scoring rules before changing your interface.</p><div className="cta-row"><a className="btn primary" href="/agent-readiness-audit#run-audit">Run an Agent Readiness Audit</a><a className="btn" href="/methodology/agent-readiness">Read the methodology</a></div></aside>
+          <aside className="callout"><h2>Measure the public evidence</h2><p>Run the applicability-aware assessment or inspect the published scoring rules before changing your interface.</p><div className="cta-row"><a className="btn primary" href="/agent-readiness/run">Run Paid Agent Readiness Audit</a><a className="btn" href="/methodology/agent-readiness">Read the methodology</a></div></aside>
           <section><h2>Related reading</h2><ul className="text-links"><li><a href="/ai-website-intelligence">AI Website Intelligence platform guide</a></li><li><a href="/learn/how-ai-agents-discover-capabilities">How agents discover capabilities</a></li><li><a href="/learn/agent-ready-website-checklist">Agent-ready website checklist</a></li></ul></section>
         </div>
       </article>

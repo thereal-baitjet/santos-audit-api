@@ -18,7 +18,7 @@ const SUPPORTED_PROTOCOL_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26"];
 const ALLOWED_ORIGINS = new Set(
   [
     "https://www.santosautomation.com",
-    "https://santosautomation.com",
+    "https://www.santosautomation.com",
     "https://api.santosautomation.com",
     "http://localhost:3000",
     "http://127.0.0.1:3000",

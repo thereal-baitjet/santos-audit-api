@@ -333,3 +333,46 @@ tr:last-child th, tr:last-child td { border-bottom: 0; }
   h1 { font-size: 32px; }
   .plan-price { font-size: 27px; }
 }
+
+/* ---- Agent Readiness run page ---- */
+.ar-page header { margin-bottom: 8px; }
+.ar-section { padding: 28px 0; border-top: 1px solid var(--border); }
+.ar-section:first-of-type { border-top: none; }
+.ar-form label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+.ar-input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.ar-input-row input {
+  flex: 1; min-width: 240px; padding: 13px 16px; font-size: 16px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--ink); font-family: var(--mono);
+  min-height: 46px;
+}
+.ar-input-row input:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.ar-input-row input[aria-invalid="true"] { border-color: var(--bad); }
+.ar-form .btn { min-height: 46px; }
+.ar-error { color: var(--bad); font-size: 14px; margin-top: 10px; }
+.ar-status { color: var(--muted); font-size: 14px; min-height: 1.4em; margin-top: 14px; }
+.ar-terms { margin-top: 22px; background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 24px; }
+.ar-terms h2 { font-size: 19px; margin-bottom: 4px; }
+.ar-dl { display: grid; gap: 2px; margin: 16px 0 20px; }
+.ar-dl > div { display: grid; grid-template-columns: 150px 1fr; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.ar-dl dt { color: var(--muted); font-size: 13px; }
+.ar-dl dd { font-size: 14px; word-break: break-word; }
+.ar-dl dd code { font-family: var(--mono); font-size: 12.5px; color: var(--accent); }
+.ar-dl .muted { color: var(--muted); }
+.ar-instructions { margin-top: 8px; }
+.ar-code { margin-top: 16px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.ar-code-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 12px; background: var(--surface-2); font-size: 12.5px; color: var(--muted); }
+.ar-code pre { margin: 0; padding: 14px 16px; overflow-x: auto; background: var(--bg); }
+.ar-code pre code { font-family: var(--mono); font-size: 12.5px; color: var(--ink); white-space: pre; }
+.btn.small { padding: 6px 12px; font-size: 13px; min-height: 34px; }
+
+/* ---- footer support block ---- */
+.footer-support { border-top: 1px solid var(--border); margin-top: 28px; padding-top: 24px; }
+.footer-support h2 { font-size: 18px; margin-bottom: 8px; }
+
+@media (max-width: 520px) {
+  .ar-dl > div { grid-template-columns: 1fr; gap: 2px; }
+  .ar-input-row .btn { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}

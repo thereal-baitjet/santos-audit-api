@@ -13,10 +13,10 @@ export const metadata = {
     url: "/",
     images: [
       {
-        url: "/assets/santos-logo.png",
-        width: 1024,
-        height: 1024,
-        alt: "Gold mountain mark for Santos Automation",
+        url: "/assets/santos-og.png",
+        width: 1200,
+        height: 630,
+        alt: "Santos Website Intelligence gold eagle emblem",
       },
     ],
   },
@@ -26,8 +26,8 @@ export const metadata = {
     description: "From discoverable to callable: structured website intelligence with evidence and prioritized fixes.",
     images: [
       {
-        url: "/assets/santos-logo.png",
-        alt: "Gold mountain mark for Santos Automation",
+        url: "/assets/santos-og.png",
+        alt: "Santos Website Intelligence gold eagle emblem",
       },
     ],
   },
@@ -48,17 +48,19 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "ProfessionalService", "@id": "https://santosautomation.com/#organization",
-      name: "Santos Automation", url: "https://santosautomation.com", email: "baitjet@gmail.com",
+      "@type": "ProfessionalService", "@id": "https://www.santosautomation.com/#organization",
+      name: "Santos Automation", url: "https://www.santosautomation.com", email: "info@santosautomation.com",
+      image: "https://www.santosautomation.com/assets/santos-og.png",
       founder: { "@type": "Person", name: "Juan Santos" }, areaServed: "US",
       description: "Operator of Santos Website Intelligence, an evidence-based AI Website Intelligence and Agent Readiness API.",
       sameAs: ["https://github.com/thereal-baitjet", "https://instagram.com/mr.j.c.santos"],
+      contactPoint: { "@type": "ContactPoint", contactType: "customer support", email: "info@santosautomation.com" },
     },
     {
-      "@type": "WebSite", "@id": "https://santosautomation.com/#website",
+      "@type": "WebSite", "@id": "https://www.santosautomation.com/#website",
       name: "Santos Website Intelligence", alternateName: "Santos Automation",
-      url: "https://santosautomation.com",
-      publisher: { "@id": "https://santosautomation.com/#organization" },
+      url: "https://www.santosautomation.com",
+      publisher: { "@id": "https://www.santosautomation.com/#organization" },
       description: "Website intelligence for the agentic web—from discoverable to callable.",
     },
   ],

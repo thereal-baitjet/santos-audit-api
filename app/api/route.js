@@ -85,7 +85,7 @@ export async function GET() {
         "POST /mcp": "MCP server (Streamable HTTP) — free preview tool audit_website_preview",
       },
       capability_manifest: capabilityManifest(),
-      contact: "https://santosautomation.com",
+      contact: "https://www.santosautomation.com",
     },
     { headers: { "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=3600" } }
   );

@@ -120,8 +120,8 @@ audit or invoke any tool advertised by the audited target.
 
 ## Support
 
-- Website: https://santosautomation.com
-- Terms, privacy, acceptable use, and retention: https://santosautomation.com/terms
-- Email: baitjet@gmail.com
+- Website: https://www.santosautomation.com
+- Terms, privacy, acceptable use, and retention: https://www.santosautomation.com/terms
+- Email: info@santosautomation.com
 - Operator: Santos Automation (Juan Santos) — custom x402 APIs, web apps,
   e-commerce, and automation systems for hire.
