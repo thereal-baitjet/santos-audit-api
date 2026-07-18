@@ -39,7 +39,7 @@ const paidHandler = withX402(
         hint: "x402 v2: decode the base64 PAYMENT-REQUIRED response header for full terms ($0.005 USDC on eip155:8453), sign, and retry with a PAYMENT-SIGNATURE header. Any x402 v2 client (e.g. @x402/fetch) automates this. Docs: /llms.txt and /openapi.json.",
       },
     }),
-    serviceName: "Santos Site Audit API",
+    serviceName: "Santos Quick Intelligence Audit",
     tags: ["website-audit", "seo", "accessibility", "security", "performance"],
     extensions: {
       ...declareDiscoveryExtension({

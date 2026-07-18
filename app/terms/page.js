@@ -1,17 +1,21 @@
+import { PageShell } from "../components/SiteChrome.js";
+
 export const metadata = {
   title: "Terms, Privacy & Data Retention — Santos Automation",
-  description: "Plain-language operating terms, privacy, acceptable-use, and data-retention information for Santos Automation audit services.",
+  description: "Plain-language terms, privacy, acceptable-use, payment, and data-retention information for Santos Website Intelligence services.",
   alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {
   return (
-    <main className="wrap legal-page">
-      <a className="legal-back" href="/">← Santos Automation</a>
+    <PageShell>
+    <article className="legal-page">
+      <a className="legal-back" href="/">← Santos Website Intelligence</a>
       <h1>Terms, privacy, and data retention.</h1>
       <p>
         Effective July 18, 2026. This page explains the public operating rules for
-        Santos Site Audit API and its Quick, Deep Page, and Agent Readiness services.
+        Santos Website Intelligence API and its Quick Intelligence, Deep Website
+        Intelligence, and Agent Readiness services.
       </p>
 
       <h2>Acceptable use</h2>
@@ -26,11 +30,11 @@ export default function TermsPage() {
       <p>
         Reports are automated technical observations, not legal, compliance,
         accessibility-certification, financial, or security guarantees. Quick and Agent
-        Readiness audits use bounded public requests. Deep Page Audit uses an isolated
+        Readiness audits use bounded public requests. Deep Website Intelligence uses an isolated
         browser and remains a single-page laboratory assessment, not a penetration test.
       </p>
 
-      <h2>Privacy and collected data</h2>
+      <h2 id="privacy">Privacy and collected data</h2>
       <ul>
         <li>Target URLs and operational request metadata may be processed to run and protect the service.</li>
         <li>Agent Readiness never authenticates to or pays the audited target, creates target accounts, submits forms, or invokes target business tools.</li>
@@ -49,9 +53,9 @@ export default function TermsPage() {
 
       <h2>Payments and retries</h2>
       <p>
-        Enforced prices and billing units appear in the live x402 challenge. Quick Audit
+        Enforced prices and billing units appear in the live x402 challenge. Quick Intelligence
         and the $0.025 USDC Agent Readiness Audit settle only on a successful response.
-        Deep Page payment purchases one bounded compute reservation and settles when the
+        Deep Website Intelligence payment purchases one bounded compute reservation and settles when the
         job is accepted. Use an Idempotency-Key for Deep job retries. Never rely on a price
         that is not enforced by the live route.
       </p>
@@ -63,6 +67,7 @@ export default function TermsPage() {
         privacy questions to <a href="mailto:baitjet@gmail.com">baitjet@gmail.com</a>.
         These plain-language terms should be reviewed by qualified counsel as the service grows.
       </p>
-    </main>
+    </article>
+    </PageShell>
   );
 }

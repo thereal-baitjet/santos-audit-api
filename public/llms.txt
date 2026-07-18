@@ -1,11 +1,12 @@
-# Santos Site Audit API
+# Santos Website Intelligence API
 
-Machine-payable website and Agent Readiness audits on Base mainnet (eip155:8453)
+AI Website Intelligence for measuring whether a public website can be discovered,
+understood, trusted, and used by AI agents. Machine-payable website and Agent
+Readiness audits run on Base mainnet (eip155:8453)
 through x402 v2: $0.005 USDC for Quick Audit, $0.025 for Agent Readiness, and
 $0.075 for a Deep Page compute reservation. No user account and no traditional API
 key are required — an agent pays inside the HTTP request itself. Built and operated by
-Santos Automation, which also builds custom x402 APIs, web apps, and automation
-systems for hire.
+Santos Automation. From discoverable to callable.
 
 ## API — audit modes
 
@@ -22,11 +23,11 @@ AGENT READINESS AUDIT — $0.025 USDC per successful audit, synchronous, bounded
   `PAYMENT-REQUIRED` terms for 25000 atomic USDC units. Settlement occurs only after
   a successful audit response.
 
-QUICK AUDIT — $0.005 USDC, synchronous (seconds), fetch-and-parse engine:
+QUICK INTELLIGENCE AUDIT — $0.005 USDC, synchronous (seconds), fetch-and-parse engine:
 - Production endpoint: https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com
 - Free demo endpoint (1/day per IP, same report shape): https://api.santosautomation.com/api/audit/demo?url=https%3A%2F%2Fexample.com
 
-DEEP PAGE AUDIT — $0.075 USDC, asynchronous job (typically tens of seconds to a few
+DEEP WEBSITE INTELLIGENCE AUDIT — $0.075 USDC, asynchronous job (typically tens of seconds to a few
 minutes), real-browser engine (Chromium/Playwright + Lighthouse + rendered axe-core +
 network evidence + screenshots + passive security):
 - Create job: POST https://api.santosautomation.com/v1/audits  {"url": "https://example.com"}
@@ -50,6 +51,9 @@ A fast, lightweight audit of a SINGLE public web page (no crawling). Given a
 public HTTP or HTTPS URL, the API returns JSON with:
 
 - `overall_score` and per-category `scores` (performance, seo, accessibility, security), each 0-100.
+- Additive `website_intelligence_score` and `website_intelligence.dimensions` for
+  Discoverable, Understandable, Callable, and Trustworthy. Existing score fields
+  retain their established meaning. Callable can be null when not applicable.
   - performance: fetch-timing and page-weight signals (TTFB, HTML size, script/stylesheet counts) — not browser-measured Core Web Vitals.
   - seo: title, meta description, heading structure, canonical, OpenGraph tags.
   - accessibility: basic HTML signals (image alt text, html[lang], viewport meta) — not full WCAG conformance.

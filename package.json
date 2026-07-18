@@ -1,17 +1,20 @@
 {
   "name": "santos-audit-api",
-  "version": "2.2.2",
-  "description": "$0.005 x402 v2 machine-payable API that runs a lightweight single-page website audit: performance signals, SEO signals, accessibility signals, and security-header checks. No account, no API key — agents pay per call in USDC on Base mainnet.",
+  "version": "2.3.0",
+  "description": "AI Website Intelligence and Agent Readiness API with Quick and browser-rendered audits, structured evidence, and x402 USDC payment on Base.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "test": "node test.js",
-    "test:agent-readiness": "node --test tests/agent-readiness.test.js"
+    "test:agent-readiness": "node --test tests/agent-readiness.test.js",
+    "test:website-intelligence": "node --test tests/website-intelligence.test.js"
   },
   "keywords": [
     "x402",
     "ai-agents",
+    "ai-website-intelligence",
+    "agent-readiness",
     "website-audit",
     "seo-api",
     "accessibility",

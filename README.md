@@ -1,17 +1,21 @@
-# Santos Site Audit API
+# Santos Website Intelligence API
 
-**$0.005 x402 website audit API for AI agents** — performance, SEO, accessibility, and
-security, with no account and no API key. Payment happens inside the HTTP request via
-the [x402 protocol](https://x402.org): USDC on Base mainnet, settled per-call.
+**AI Website Intelligence and Agent Readiness for the agentic web** — measure whether
+a public website can be discovered, understood, trusted, and used by agents. Quick,
+Agent Readiness, and browser-rendered Deep audits return structured evidence and
+prioritized fixes. No account or traditional API key; paid resources use the
+[x402 protocol](https://x402.org) with USDC on Base.
+
+From discoverable to callable.
 
 Live: API at **https://api.santosautomation.com** · landing page at
 **https://www.santosautomation.com** (same app, two hostnames)
 
 | Surface | URL |
 |---|---|
-| Quick Audit ($0.005 USDC, synchronous) | `GET /api/audit?url=https://example.com` |
+| Quick Intelligence Audit ($0.005 USDC, synchronous) | `GET /api/audit?url=https://example.com` |
 | **Agent Readiness** ($0.025 USDC, bounded passive assessment) | `GET /api/agent-readiness?url=https://example.com&depth=quick` |
-| **Deep Page Audit** ($0.075 USDC, async job) | `POST /v1/audits` `{"url": "https://example.com"}` |
+| **Deep Website Intelligence Audit** ($0.075 USDC, async job) | `POST /v1/audits` `{"url": "https://example.com"}` |
 | Free demo (1/day per IP) | `GET /api/audit/demo?url=https://example.com` |
 | OpenAPI 3.1 | [`/openapi.json`](https://api.santosautomation.com/openapi.json) |
 | llms.txt | [`/llms.txt`](https://api.santosautomation.com/llms.txt) |
@@ -94,7 +98,7 @@ Scoring and standards baselines are documented in
 [`docs/agent-readiness-scoring.md`](docs/agent-readiness-scoring.md) and
 [`docs/agent-readiness-spec-baseline.md`](docs/agent-readiness-spec-baseline.md).
 
-## Response shape (Quick Audit)
+## Response shape (Quick Intelligence Audit)
 
 ```json
 {

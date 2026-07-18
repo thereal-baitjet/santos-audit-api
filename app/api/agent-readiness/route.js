@@ -8,6 +8,7 @@ import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
 import { notifyTransaction } from "../../../notify.js";
 import { getAgentReadinessPriceUsdc } from "../../../lib/agent-readiness/product-pricing.js";
+import { websiteIntelligenceSummary } from "../../../lib/website-intelligence.js";
 
 const PRICE = getAgentReadinessPriceUsdc();
 
@@ -17,7 +18,12 @@ async function handler(req) {
     const depth = req.nextUrl.searchParams.get("depth") ?? "quick";
     if (depth !== "quick") return NextResponse.json({ error: "depth must be 'quick'", code: "INVALID_REQUEST" }, { status: 400, headers: CORS });
     const result = await auditAgentReadiness(url, { mode: "quick" });
-    return NextResponse.json(result, { headers: CORS });
+    const websiteIntelligence = websiteIntelligenceSummary({ agentReadiness: result });
+    return NextResponse.json({
+      website_intelligence_score: websiteIntelligence.score,
+      website_intelligence: websiteIntelligence,
+      ...result,
+    }, { headers: CORS });
   } catch (error) {
     return auditErrorResponse(error);
   }

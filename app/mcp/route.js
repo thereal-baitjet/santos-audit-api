@@ -29,7 +29,7 @@ const ALLOWED_ORIGINS = new Set(
 const PREVIEW_TOOL = {
   name: "audit_website_preview",
   description:
-    "FREE PREVIEW (1 audit per day per IP) of the Santos Site Audit API. Runs a fast, lightweight audit of a single public web page: fetch-timing and page-weight performance signals, SEO signals (title, meta description, headings, canonical, OpenGraph), basic HTML accessibility signals (alt text, lang, viewport), and security-header checks (HTTPS, HSTS, CSP). Returns 0-100 category scores, individual pass/fail checks, and plain-English remediation guidance. It audits one page only — no crawling, JavaScript rendering, Core Web Vitals, WCAG conformance, or vulnerability scanning. " +
+    "FREE PREVIEW (1 audit per day per IP) of Santos Website Intelligence. Runs a fast Quick Intelligence Audit of one public page: fetch timing, page weight, SEO, basic HTML accessibility, security headers, Website Intelligence dimensions, pass/fail checks, and remediation guidance. It audits one page only—no crawling, JavaScript rendering, Core Web Vitals, WCAG certification, or vulnerability scanning. " +
     `For unlimited audits, use the machine-payable production endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... — $0.005 USDC per successful audit on Base mainnet (eip155:8453) via x402 v2; no account or API key required.`,
   inputSchema: {
     type: "object",
@@ -152,7 +152,7 @@ export async function POST(req) {
       return rpcResult(id, {
         protocolVersion: negotiated,
         capabilities: { tools: {} },
-        serverInfo: { name: "santos-site-audit", version: "2.2.2" },
+        serverInfo: { name: "santos-website-intelligence", version: "2.3.0" },
         instructions:
           `Use audit_website_preview for a free (1/day per IP) lightweight page audit. Agent Readiness is a paid $${AGENT_READINESS_PRICE} USDC capability; audit_agent_readiness validates the target and returns its canonical x402 HTTP handoff.`,
       });
