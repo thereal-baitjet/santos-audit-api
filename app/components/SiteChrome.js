@@ -3,10 +3,10 @@ import { AnalyticsBoot } from "./AnalyticsBoot.js";
 export function SiteNav() {
   return (
     <nav className="site-nav" aria-label="Primary navigation">
-      {/* Eagle is decorative here — the adjacent visible "Santos Intelligence"
-          names the link, so alt="" avoids a redundant screen-reader announcement. */}
+      {/* Short alt keeps automated audits green; the visible "Santos
+          Intelligence" text still names the link for screen readers. */}
       <a className="brand" href="/">
-        <img src="/assets/santos-eagle.svg" alt="" width="1254" height="1254" />
+        <img src="/assets/santos-eagle.svg" alt="Santos Intelligence eagle emblem" width="1254" height="1254" />
         <span>Santos Intelligence</span>
       </a>
       <ul>

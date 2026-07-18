@@ -5,7 +5,7 @@ export const metadata = {
   metadataBase: new URL("https://www.santosautomation.com"),
   title: "AI Website Intelligence & Agent Readiness API | Santos",
   description:
-    "Audit any website for AI Agent Readiness, MCP, llms.txt, OpenAPI, structured data, crawler access, SEO, accessibility, performance and security. Get structured JSON with evidence and prioritized fixes.",
+    "Audit any website for AI Agent Readiness, MCP, llms.txt, OpenAPI, SEO, accessibility and security. Structured JSON with evidence and prioritized fixes.",
   alternates: { canonical: "/" },
   openGraph: {
     title: "AI Website Intelligence & Agent Readiness API | Santos",
