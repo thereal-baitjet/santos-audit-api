@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.2.1 — 2026-07-18
+
+- Add resource-scoped Agent Readiness pricing analysis across public text, JSON-LD
+  Offers, vendor capability manifests, and passive x402 v2 challenges.
+- Normalize enforced USDC atomic amounts, report pricing evidence under
+  `interfaces.pricing`, and fail consistency checks when public metadata contradicts
+  live payment terms without treating distinct product tiers as conflicts.
+
 ## 2.2.0 — 2026-07-18
 
 - Add versioned Agent Readiness analyzer, standalone endpoint, MCP tool, capability

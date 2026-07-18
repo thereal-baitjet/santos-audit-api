@@ -46,7 +46,7 @@ const PREVIEW_TOOL = {
 
 const AGENT_READINESS_TOOL = {
   name: "audit_agent_readiness",
-  description: "Passively assess how well a public website or service can be discovered, understood, invoked, and—where explicitly applicable—paid by agents. Classifies applicability before scoring so ordinary websites are not penalized for lacking APIs, MCP, or machine commerce. Uses bounded public reads only: never authenticates, creates accounts, submits forms, signs payments, transfers funds, or invokes advertised business tools.",
+  description: "Passively assess how well a public website or service can be discovered, understood, invoked, and—where explicitly applicable—paid by agents. Normalizes resource-scoped pricing claims and compares them with unsigned x402 challenge terms. Classifies applicability before scoring so ordinary websites are not penalized for lacking APIs, MCP, or machine commerce. Uses bounded public reads only: never authenticates, creates accounts, submits forms, signs payments, transfers funds, or invokes advertised business tools.",
   inputSchema: {
     type: "object",
     properties: {
@@ -143,7 +143,7 @@ export async function POST(req) {
       return rpcResult(id, {
         protocolVersion: negotiated,
         capabilities: { tools: {} },
-        serverInfo: { name: "santos-site-audit", version: "2.2.0" },
+        serverInfo: { name: "santos-site-audit", version: "2.2.1" },
         instructions:
           "Use audit_website_preview for a free (1/day per IP) lightweight single-page audit, or audit_agent_readiness for a bounded passive assessment of public agent-facing interfaces. Unlimited quick audits are available via the x402-paid HTTP endpoint documented in the preview tool description.",
       });

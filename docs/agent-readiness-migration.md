@@ -18,3 +18,6 @@ This release is additive for existing Quick Audit clients.
 - The dedicated endpoint is unpriced by default. Set
   `AGENT_READINESS_PRICE_USDC` only when the x402 route should enforce and advertise a
   price. Leaving it unset never advertises a phantom price.
+- Agent-commerce results now include an additive `interfaces.pricing` object with
+  normalized claims, enforced challenge terms, missing fields, and resource-scoped
+  contradictions. Existing fields and category weights are unchanged.

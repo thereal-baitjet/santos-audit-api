@@ -103,7 +103,7 @@ const document = {
   openapi: "3.1.0",
   info: {
     title: "Santos Site Audit API",
-    version: "2.2.0",
+    version: "2.2.1",
     description:
       "Machine-payable website auditing for AI agents and automated workflows — two tiers, both paid per-call in USDC on Base mainnet (eip155:8453) via x402 v2, no account or API key. QUICK AUDIT (GET /api/audit, $0.005, synchronous, seconds): lightweight single-page fetch-and-parse audit. DEEP PAGE AUDIT (POST /v1/audits, $0.075, asynchronous job, typically tens of seconds to a few minutes): real Chromium via Playwright, Lighthouse lab metrics, rendered axe-core accessibility checks, browser network/console evidence, screenshots, and passive security checks. Deep-audit payment purchases a bounded compute reservation and settles when the job is accepted, not on report completion.",
     contact: { name: "Santos Automation", email: "baitjet@gmail.com", url: "https://santosautomation.com" },
@@ -115,7 +115,7 @@ const document = {
         operationId: "auditAgentReadiness",
         tags: ["Agent Readiness"],
         summary: "Assess public agent-facing interfaces (bounded and passive)",
-        description: "Classifies the target before scoring and evaluates only applicable surfaces: discovery/docs, structured identity, APIs, MCP, operational trust, and machine commerce. The quick pass performs at most eight additional bounded public requests. It never authenticates, creates accounts, submits forms, signs payments, transfers funds, or invokes advertised MCP/business tools. llms.txt is treated as a proposal and the MCP Registry as preview infrastructure. This endpoint is free unless AGENT_READINESS_PRICE_USDC is configured, in which case x402 v2 terms are returned before execution.",
+        description: "Classifies the target before scoring and evaluates only applicable surfaces: discovery/docs, structured identity, APIs, MCP, operational trust, and machine commerce. For paid surfaces it normalizes public pricing claims and compares only claims scoped to the same paid resource against an unsigned x402 challenge. The quick pass performs at most eight additional bounded public requests. It never authenticates, creates accounts, submits forms, signs payments, transfers funds, or invokes advertised MCP/business tools. llms.txt is treated as a proposal and the MCP Registry as preview infrastructure. This endpoint is free unless AGENT_READINESS_PRICE_USDC is configured, in which case x402 v2 terms are returned before execution.",
         parameters: [urlParam, { name: "depth", in: "query", required: false, schema: { type: "string", enum: ["quick"], default: "quick" } }],
         responses: {
           200: { description: "Versioned Agent Readiness result.", content: { "application/json": { schema: { $ref: "#/components/schemas/AgentReadinessResult" } } } },
