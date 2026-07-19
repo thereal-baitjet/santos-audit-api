@@ -1,12 +1,34 @@
 # Santos Website Intelligence API
 
-**AI Website Intelligence and Agent Readiness for the agentic web** — measure whether
-a public website can be discovered, understood, trusted, and used by agents. Quick,
+<p align="center">
+  <img src="https://img.shields.io/badge/AI-Website%20Intelligence-7c3aed?style=for-the-badge&logo=robot" alt="AI Website Intelligence" />
+  <img src="https://img.shields.io/badge/Agent-Readiness-2563eb?style=for-the-badge&logo=lightning" alt="Agent Readiness" />
+  <img src="https://img.shields.io/badge/x402-USDC%20on%20Base-0ea5e9?style=for-the-badge&logo=bitcoin" alt="x402 on Base" />
+  <img src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs" alt="Next.js" />
+</p>
+
+<p align="center">
+  <strong>Measure whether a public website is discoverable, understandable, callable, and trustworthy for agents.</strong>
+</p>
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│   SANTOS WEBSITE INTELLIGENCE • AI-READY WEB EVALUATION   │
+│   Discover • Understand • Call • Trust                    │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**AI Website Intelligence and Agent Readiness for the agentic web** — Quick,
 Agent Readiness, and browser-rendered Deep audits return structured evidence and
 prioritized fixes. No account or traditional API key; paid resources use the
 [x402 protocol](https://x402.org) with USDC on Base.
 
-From discoverable to callable.
+### Highlights
+
+- 🔍 Quick audits for website intelligence and agent-readiness signals
+- 🧠 Browser-rendered Deep audits with Chromium, Lighthouse, and axe-core
+- 💳 x402-based payments with USDC on Base
+- 📡 OpenAPI, MCP, llms.txt, and capability manifest support
 
 [![Live site](https://img.shields.io/website?url=https%3A%2F%2Fwww.santosautomation.com&label=live%20site)](https://www.santosautomation.com/)
 [![Vercel production](https://img.shields.io/badge/production-Vercel-black?logo=vercel)](https://vercel.com/thereal-baitjets-projects/santos-api)
