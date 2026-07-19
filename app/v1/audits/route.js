@@ -16,6 +16,7 @@ import { newJobId, accessTokenFor } from "../../../lib/deep/ids.js";
 import { deepAuditGate, NO_STORE } from "../../../lib/deep/gate.js";
 import { PUBLIC_API_BASE_URL } from "../../../lib/base-url.js";
 import { notifyTransaction } from "../../../notify.js";
+import { x402EnvCheck } from "../../../lib/x402-env-check.js";
 
 const PRICE = `$${process.env.DEEP_AUDIT_PRICE_USDC ?? "0.225"}`;
 const IDEM_SECRET = process.env.IDEMPOTENCY_HASH_SECRET ?? "dev-only-idem-secret";
@@ -117,7 +118,7 @@ async function handler(req) {
 const routeConfig = {
     accepts: { scheme: "exact", price: PRICE, network: NETWORK, payTo: SELLER },
     description:
-      `Create one Deep Page Audit job (asynchronous, browser-rendered): real Chromium via Playwright, Lighthouse lab metrics, rendered axe-core accessibility checks, browser network/console evidence, screenshots, and passive security checks against a single public web page. Returns a job_id + access token; poll status_url and fetch report_url when completed (typically tens of seconds to a few minutes). ${PAYMENT_CONTRACT}`,
+      `Create one Deep Page Audit job with browser-rendered checks and a bounded compute reservation. ${PAYMENT_CONTRACT}`,
     mimeType: "application/json",
     serviceName: "Santos Deep Page Audit",
     tags: ["website-audit", "lighthouse", "accessibility", "axe-core", "security-headers", "browser-rendered"],
@@ -164,6 +165,33 @@ const paidHandler = withX402FromHTTPServer(handler, httpServer);
 export async function POST(req) {
   const gate = deepAuditGate();
   if (gate) return gate;
+  // Payment settles the moment a job is accepted, so refuse new jobs (before
+  // the paywall — 503 charges nothing) unless a worker heartbeat is fresh.
+  // Reads on existing jobs stay available regardless of worker state.
+  try {
+    if (!(await getStore().workerAlive())) {
+      return NextResponse.json(
+        {
+          error: "No audit worker is online right now, so new Deep Page Audit jobs are not being accepted (you have not been charged). The Quick Audit at GET /api/audit and Agent Readiness at GET /api/agent-readiness remain available.",
+          code: "SERVICE_UNAVAILABLE",
+        },
+        { status: 503, headers: { ...NO_STORE, "Retry-After": "600" } }
+      );
+    }
+  } catch (e) {
+    console.error("worker liveness check failed:", e.message);
+    return NextResponse.json(
+      { error: "Could not verify audit capacity. No charge was made.", code: "SERVICE_UNAVAILABLE" },
+      { status: 503, headers: NO_STORE }
+    );
+  }
+  const missingEnv = x402EnvCheck();
+  if (missingEnv.length) {
+    return NextResponse.json(
+      { error: "x402 facilitator credentials are not configured for this deployment.", code: "SERVICE_UNAVAILABLE", missing: missingEnv },
+      { status: 503, headers: NO_STORE }
+    );
+  }
   const res = await paidHandler(req);
   res.headers.set("Access-Control-Allow-Origin", "*");
   res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");

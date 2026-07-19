@@ -69,6 +69,9 @@ console.log(JSON.stringify({ worker: WORKER_ID, msg: "worker online", poll_ms: P
 for (;;) {
   if (shuttingDown) { console.log(JSON.stringify({ worker: WORKER_ID, msg: "drained, exiting" })); process.exit(0); }
   try {
+    // Liveness beat first: the API only accepts (and charges for) new jobs
+    // while some worker has beaten recently.
+    await store.workerHeartbeat(WORKER_ID);
     const job = await store.leaseNextJob(WORKER_ID);
     if (job) {
       await processJob(job);
