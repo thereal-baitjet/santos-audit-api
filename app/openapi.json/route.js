@@ -360,7 +360,7 @@ const document = {
         tags: ["Screenshot & PDF Render"],
         summary: "Render one page as PNG/JPEG/PDF in a real browser ($0.01 USDC via x402, synchronous)",
         description:
-          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only when render bytes are returned — timeouts (504) and failures (502/503) are free. Renders in an isolated SSRF-guarded Chromium session with request/byte budgets, then returns the binary directly with an X-Render-Job header. Typical latency: seconds when a worker is warm; a cold worker wakes on demand and may 504 the first try — retry.",
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only when render bytes are returned — timeouts (504) and failures (502/503) are free. Renders in an isolated SSRF-guarded Chromium session with request/byte budgets, executing JavaScript so SPAs, client-rendered charts, and post-load layout are captured as a real visitor sees them; the binary returns directly with an X-Render-Job header. Common agent uses: verifying a deployed page renders correctly, visual change monitoring, link previews, print-rendered A4 PDF archival, and producing input for vision-capable models. Every render is a fresh anonymous visitor: no login-protected content, no cookies carried. Typical latency: seconds when a worker is warm; a cold worker wakes on demand and may 504 the first try — retry.",
         parameters: [
           urlParam,
           { name: "format", in: "query", required: false, schema: { type: "string", enum: ["png", "jpeg", "pdf"], default: "png" } },

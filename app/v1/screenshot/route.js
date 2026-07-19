@@ -96,7 +96,7 @@ async function handler(req) {
 const routeConfig = {
   accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
   description:
-    "Render one public page in a real isolated Chromium browser and get the image or PDF bytes back synchronously: format png (default), jpeg, or pdf; device desktop (default) or mobile; full_page=true for the whole page. SSRF-guarded browsing with request and byte budgets. Payment settles only when bytes are returned — timeouts and failures are free.",
+    "Render one public page in a real isolated Chromium browser and get the image or PDF bytes back synchronously: format png (default), jpeg, or pdf (print-rendered A4); device desktop 1366x900 (default) or mobile 390x844 at 3x; full_page=true for whole-page height. JavaScript executes, so SPAs, client-rendered charts, and post-load layout are captured as a real visitor sees them — useful for deploy verification, visual monitoring, link previews, PDF archival, and vision-model input. Every render is a fresh anonymous visitor (no cookies, no login-protected content), SSRF-guarded with request and byte budgets. Payment settles only when bytes are returned — timeouts and failures are free.",
   mimeType: "image/png",
   serviceName: "Santos Screenshot & PDF Render",
   tags: ["screenshot", "pdf-render", "browser", "headless-chrome", "x402"],

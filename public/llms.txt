@@ -90,10 +90,19 @@ canonical URL, outbound links, and word count for one public page — no
 crawling and no JavaScript rendering.
 
 Choose SCREENSHOT & PDF RENDER ($0.01, seconds) when you need a VISUAL of the
-rendered page — PNG/JPEG for verification and previews, PDF for archival —
-from a real isolated Chromium browser (desktop or mobile viewport, optional
-full-page capture). Binary response; settles only when bytes are returned; a
-cold render worker wakes on demand, so retry once on a 504.
+rendered page from a real isolated Chromium browser. Because it executes
+JavaScript, it captures what fetch-and-parse tiers cannot: SPAs, client-rendered
+charts, web fonts, and post-load layout. Typical agent uses: verifying your own
+deploy or generated site actually renders, visual change monitoring, link
+previews/thumbnails, archiving a page as a print-rendered A4 PDF, and giving a
+vision-capable model something it can literally look at. Options: format=png
+(default) | jpeg | pdf; device=desktop (1366x900, default) | mobile (390x844 at
+3x with touch emulation); full_page=true for whole-page height. Limits: public
+pages only — no login-protected content, no cookies carried (every render is a
+fresh anonymous visitor), SSRF-guarded (private/link-local/metadata addresses
+blocked including via redirects), ports 80/443 only. Binary response; settles
+only when bytes are returned; a cold render worker wakes on demand, so retry
+once on a 504.
 
 Choose AGENT READINESS when the question is whether an agent can reliably discover,
 understand, select, invoke, and—when explicitly applicable—transact with a public
