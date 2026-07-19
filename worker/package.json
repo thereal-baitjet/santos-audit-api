@@ -6,7 +6,8 @@
   "description": "Isolated Chromium worker for Santos Deep Page Audits: Playwright + Lighthouse + axe-core + passive security checks. Polls the Postgres job queue; no inbound network surface.",
   "scripts": {
     "start": "node worker.js",
-    "audit-one": "node run-local.js"
+    "audit-one": "node run-local.js",
+    "start:local": "node --env-file=.env.worker worker.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",
