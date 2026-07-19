@@ -16,6 +16,10 @@ async function handler(req) {
   try {
     const url = req.nextUrl.searchParams.get("url") ?? "";
     const depth = req.nextUrl.searchParams.get("depth") ?? "quick";
+    // Target validation runs AFTER the paywall so unpaid discovery probes get
+    // the 402 challenge; a paid-but-invalid request 400s here, which does not
+    // settle (settlement only happens on <400).
+    validateTarget(url);
     if (depth !== "quick") return NextResponse.json({ error: "depth must be 'quick'", code: "INVALID_REQUEST" }, { status: 400, headers: CORS });
     const result = await auditAgentReadiness(url, { mode: "quick" });
     const websiteIntelligence = websiteIntelligenceSummary({ agentReadiness: result });
@@ -55,9 +59,6 @@ export async function OPTIONS() {
 }
 
 export async function GET(req) {
-  // Reject malformed/private targets before an optional payment challenge.
-  try { validateTarget(req.nextUrl.searchParams.get("url") ?? ""); }
-  catch (error) { return auditErrorResponse(error); }
   const response = await paidHandler(req);
   response.headers.set("Access-Control-Allow-Origin", "*");
   response.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");

@@ -44,6 +44,28 @@ export const jobView = (job) => ({
 });
 
 async function handler(req) {
+  // Worker liveness runs AFTER the paywall so unpaid discovery probes always
+  // see the 402 challenge. A paid request with no live worker 503s here, which
+  // does not settle (settlement only happens on <400) — nobody is charged for
+  // a job nothing would process.
+  try {
+    if (!(await getStore().workerAlive())) {
+      return NextResponse.json(
+        {
+          error: "No audit worker is online right now, so new Deep Page Audit jobs are not being accepted (you have not been charged). The Quick Audit at GET /api/audit and Agent Readiness at GET /api/agent-readiness remain available.",
+          code: "SERVICE_UNAVAILABLE",
+        },
+        { status: 503, headers: { ...NO_STORE, "Retry-After": "600" } }
+      );
+    }
+  } catch (e) {
+    console.error("worker liveness check failed:", e.message);
+    return NextResponse.json(
+      { error: "Could not verify audit capacity. No charge was made.", code: "SERVICE_UNAVAILABLE" },
+      { status: 503, headers: NO_STORE }
+    );
+  }
+
   let body;
   try {
     body = await req.json();
@@ -165,26 +187,6 @@ const paidHandler = withX402FromHTTPServer(handler, httpServer);
 export async function POST(req) {
   const gate = deepAuditGate();
   if (gate) return gate;
-  // Payment settles the moment a job is accepted, so refuse new jobs (before
-  // the paywall — 503 charges nothing) unless a worker heartbeat is fresh.
-  // Reads on existing jobs stay available regardless of worker state.
-  try {
-    if (!(await getStore().workerAlive())) {
-      return NextResponse.json(
-        {
-          error: "No audit worker is online right now, so new Deep Page Audit jobs are not being accepted (you have not been charged). The Quick Audit at GET /api/audit and Agent Readiness at GET /api/agent-readiness remain available.",
-          code: "SERVICE_UNAVAILABLE",
-        },
-        { status: 503, headers: { ...NO_STORE, "Retry-After": "600" } }
-      );
-    }
-  } catch (e) {
-    console.error("worker liveness check failed:", e.message);
-    return NextResponse.json(
-      { error: "Could not verify audit capacity. No charge was made.", code: "SERVICE_UNAVAILABLE" },
-      { status: 503, headers: NO_STORE }
-    );
-  }
   const missingEnv = x402EnvCheck();
   if (missingEnv.length) {
     return NextResponse.json(

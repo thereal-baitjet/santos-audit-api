@@ -215,6 +215,7 @@ const document = {
     "/api/audit/demo": {
       get: {
         operationId: "auditWebsiteDemo",
+        security: [], // free endpoint — excluded from x402 registry probing
         tags: ["Quick Intelligence"],
         summary: "Free Quick Intelligence demo (1/day per IP)",
         description:
@@ -277,6 +278,7 @@ const document = {
     "/v1/audits/{job_id}": {
       get: {
         operationId: "getDeepAuditStatus",
+        security: [], // token-authed job read, not x402-paid — excluded from registry probing
         tags: ["Deep Page Audit"],
         summary: "Job status (requires access token)",
         parameters: [
@@ -293,6 +295,7 @@ const document = {
     "/v1/audits/{job_id}/report": {
       get: {
         operationId: "getDeepAuditReport",
+        security: [], // token-authed job read, not x402-paid — excluded from registry probing
         tags: ["Deep Page Audit"],
         summary: "Completed report (versioned JSON, requires access token)",
         description:
@@ -312,6 +315,7 @@ const document = {
     "/v1/audits/{job_id}/cancel": {
       post: {
         operationId: "cancelDeepAudit",
+        security: [], // token-authed job action, not x402-paid — excluded from registry probing
         tags: ["Deep Page Audit"],
         summary: "Cancel a queued job (requires access token)",
         description: "Only queued jobs can be cancelled; running/terminal jobs return 409 NOT_CANCELLABLE. The compute reservation is spent either way.",
