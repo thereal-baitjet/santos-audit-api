@@ -3,3 +3,4 @@ node_modules/
 .vercel
 .env*
 .next/
+mcp-registry-key.pem

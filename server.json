@@ -1,0 +1,13 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.santosautomation/site-audit",
+  "description": "Website intelligence audits for AI agents: free preview plus x402-paid Agent Readiness scoring (USDC on Base)",
+  "version": "1.0.0",
+  "websiteUrl": "https://www.santosautomation.com",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.santosautomation.com/mcp"
+    }
+  ]
+}
