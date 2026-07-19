@@ -3,9 +3,9 @@
   "version": "2.3.1",
   "description": "AI Website Intelligence and Agent Readiness API with Quick and browser-rendered audits, structured evidence, and x402 USDC payment on Base.",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 127.0.0.1 -p 3000",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -H 127.0.0.1 -p 3000",
     "test": "node test.js",
     "test:agent-readiness": "node --test tests/agent-readiness.test.js",
     "test:website-intelligence": "node --test tests/website-intelligence.test.js"
