@@ -18,6 +18,16 @@ const API_ORIGIN = process.env.PUBLIC_API_BASE_URL ?? "https://api.santosautomat
 const STRIPE_PATHS = ["/agent-readiness/buy"];
 
 export function proxy(request) {
+  // Apex canonicalization lives here (not as a Vercel domain-level redirect) so
+  // /.well-known/* — excluded from this middleware's matcher — is served
+  // directly on the apex. The MCP registry's domain verifier refuses redirects.
+  const host = request.headers.get("host");
+  if (host === "santosautomation.com") {
+    const to = request.nextUrl.clone();
+    to.host = "www.santosautomation.com";
+    return NextResponse.redirect(to, 308);
+  }
+
   const nonce = btoa(crypto.randomUUID());
   const path = request.nextUrl.pathname;
   const stripe = STRIPE_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
