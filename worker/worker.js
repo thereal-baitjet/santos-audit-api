@@ -12,6 +12,10 @@ const WORKER_ID = `${hostname()}-${randomUUID().slice(0, 8)}`;
 const POLL_MS = Number(process.env.WORKER_POLL_MS ?? 3000);
 const JOB_TIMEOUT_MS = Number(process.env.WORKER_JOB_TIMEOUT_SECONDS ?? 300) * 1000;
 const CLEANUP_EVERY = 50;
+// Wake-per-job mode (Fly): exit 0 after this much idle time so the machine
+// stops billing; the API starts it again when the next paid job arrives.
+// 0 (default) = run forever — the right mode for the laptop/launchd worker.
+const IDLE_EXIT_MS = Number(process.env.WORKER_IDLE_EXIT_SECONDS ?? 0) * 1000;
 
 if (!hasDatabase()) {
   console.error("DATABASE_URL is required for the worker. Exiting.");
@@ -65,16 +69,22 @@ async function processJob(job) {
   }
 }
 
-console.log(JSON.stringify({ worker: WORKER_ID, msg: "worker online", poll_ms: POLL_MS }));
+console.log(JSON.stringify({ worker: WORKER_ID, msg: "worker online", poll_ms: POLL_MS, idle_exit_s: IDLE_EXIT_MS / 1000 }));
+let lastWorkAt = Date.now();
 for (;;) {
   if (shuttingDown) { console.log(JSON.stringify({ worker: WORKER_ID, msg: "drained, exiting" })); process.exit(0); }
+  if (IDLE_EXIT_MS && Date.now() - lastWorkAt > IDLE_EXIT_MS) {
+    console.log(JSON.stringify({ worker: WORKER_ID, msg: "idle limit reached, exiting" }));
+    process.exit(0);
+  }
   try {
     // Liveness beat first: the API only accepts (and charges for) new jobs
-    // while some worker has beaten recently.
+    // while some worker has beaten recently or can be woken on demand.
     await store.workerHeartbeat(WORKER_ID);
     const job = await store.leaseNextJob(WORKER_ID);
     if (job) {
       await processJob(job);
+      lastWorkAt = Date.now();
     } else {
       await new Promise((r) => setTimeout(r, POLL_MS));
     }
