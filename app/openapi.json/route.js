@@ -236,7 +236,7 @@ const document = {
         tags: ["Safe Fetch"],
         summary: "Fetch one public URL through the hardened safe-fetcher ($0.002 USDC via x402, synchronous)",
         description:
-          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful fetch. Returns the raw text body plus response metadata: final URL after redirects, HTTP status, selected response headers, byte count, and timing. SSRF-guarded (private/link-local/cloud-metadata addresses blocked including via redirects), 15s timeout, 5 redirects max, 5MB cap, ports 80/443 only. Text formats only: HTML, JSON, XML, feeds, plain text, JavaScript, SVG. A POST variant with a JSON {url} body is paywalled identically. Free demo: GET /v1/fetch/demo (1/day per IP, shared quota).",
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful fetch. Returns the raw text body plus response metadata: final URL after redirects, HTTP status, selected response headers, byte count, and timing. SSRF-guarded (private/link-local/cloud-metadata addresses blocked including via redirects), 15s timeout, 5 redirects max, 2MB cap, ports 80/443 only. Text formats only: HTML, JSON, XML, feeds, plain text, JavaScript, SVG. A POST variant with a JSON {url} body is paywalled identically. Free demo: GET /v1/fetch/demo (1/day per IP, shared quota).",
         parameters: [urlParam],
         responses: {
           200: {

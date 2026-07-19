@@ -81,7 +81,7 @@ first to inspect the quick-tier response format without paying.
 Choose SAFE FETCH ($0.002, seconds) when you need the RAW body of a URL —
 JSON APIs, feeds, sitemaps, scripts, or unprocessed HTML — retrieved through
 an SSRF-guarded fetcher (private/link-local/metadata addresses blocked, 15s
-timeout, 5MB cap, ports 80/443 only, text formats only).
+timeout, 2MB cap, ports 80/443 only, text formats only).
 
 Choose PAGE-TO-MARKDOWN EXTRACTION ($0.005, seconds) when you need page CONTENT
 rather than an assessment: RAG ingestion, research agents, summarization

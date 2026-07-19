@@ -34,7 +34,7 @@ async function handler(req) {
 const routeConfig = {
   accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
   description:
-    "Fetch one public URL through a hardened safe-fetcher and get the raw text body plus response metadata (final URL after redirects, status, selected headers, byte count, timing). SSRF-guarded — private, link-local, and cloud-metadata addresses are blocked including via redirects — with a 15s timeout, 5MB cap, and ports 80/443 only. Text formats only (HTML, JSON, XML, feeds, plain text, JS, SVG); read-only, no crawling, no JavaScript rendering.",
+    "Fetch one public URL through a hardened safe-fetcher and get the raw text body plus response metadata (final URL after redirects, status, selected headers, byte count, timing). SSRF-guarded — private, link-local, and cloud-metadata addresses are blocked including via redirects — with a 15s timeout, 2MB cap, and ports 80/443 only. Text formats only (HTML, JSON, XML, feeds, plain text, JS, SVG); read-only, no crawling, no JavaScript rendering.",
   mimeType: "application/json",
   serviceName: "Santos Safe Fetch",
   tags: ["web-fetch", "http-client", "ssrf-safe", "scraping", "x402"],
