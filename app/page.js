@@ -21,6 +21,7 @@ const homepageJsonLd = {
     { "@type": "Offer", name: "Quick Intelligence Audit", price: "0.015", priceCurrency: "USDC", url: "https://api.santosautomation.com/api/audit" },
     { "@type": "Offer", name: "Agent Readiness Audit", price: readinessPrice, priceCurrency: "USDC", url: "https://api.santosautomation.com/api/agent-readiness" },
     { "@type": "Offer", name: "Deep Website Intelligence Audit", price: process.env.DEEP_AUDIT_PRICE_USDC ?? "0.225", priceCurrency: "USDC", url: "https://api.santosautomation.com/v1/audits" },
+    { "@type": "Offer", name: "Page-to-Markdown Extraction", price: process.env.EXTRACT_PRICE_USDC ?? "0.005", priceCurrency: "USDC", url: "https://api.santosautomation.com/v1/extract" },
     { "@type": "Offer", name: "Agent Readiness Report by card (human checkout)", price: "5", priceCurrency: "USD", url: "https://www.santosautomation.com/agent-readiness/buy" },
   ],
 };

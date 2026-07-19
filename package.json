@@ -34,6 +34,7 @@
   "type": "module",
   "dependencies": {
     "@coinbase/x402": "^2.1.0",
+    "@mozilla/readability": "^0.6.0",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.7",
     "@x402/core": "^2.19.0",
@@ -45,11 +46,13 @@
     "ajv-formats": "^3.0.1",
     "cheerio": "^1.2.0",
     "dotenv": "^17.4.2",
+    "linkedom": "^0.18.13",
     "next": "^16.2.10",
     "pg": "^8.22.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "stripe": "^22.3.2",
+    "turndown": "^7.2.4",
     "viem": "^2.55.2",
     "yaml": "^2.9.0"
   },

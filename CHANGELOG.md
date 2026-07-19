@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.4.0 — 2026-07-19 — Page-to-Markdown extraction (suite product 1)
+
+### Added
+- **POST /v1/extract** ($0.005 USDC via x402 v2, GET ?url= variant paywalled
+  identically): one public page → readability-isolated Markdown, title,
+  description, canonical URL, outbound links (max 200), word count. Same
+  safe-fetch guarantees as the quick audit; settles only on success.
+- **GET /v1/extract/demo** — free 1/day/IP demo (quota shared with
+  /api/audit/demo) and MCP tool `extract_page_markdown` (same shared quota).
+- Discovery surfaces updated everywhere per the suite template: OpenAPI,
+  llms.txt, capabilities manifest (`content.extract-markdown`), JSON-LD Offer,
+  robots.txt Allow, Bazaar discovery extension in the 402.
+
 ## 2.3.1 — 2026-07-18 — Real Bazaar route templates, agent-friendly robots.txt
 
 ### Fixed

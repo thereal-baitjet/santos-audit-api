@@ -11,7 +11,7 @@ export default function robots() {
         "/", "/llms.txt", "/openapi.json", "/capabilities.json",
         "/.well-known/agent-capabilities.json",
         "/api/audit", "/api/audit/demo", "/api/agent-readiness",
-        "/v1/audits", "/mcp",
+        "/v1/audits", "/v1/extract", "/mcp",
       ],
       disallow: ["/api/", "/v1/", "/_next/"],
     }],

@@ -230,6 +230,76 @@ const document = {
         },
       },
     },
+    "/v1/extract": {
+      post: {
+        operationId: "extractPageMarkdown",
+        tags: ["Content Extraction"],
+        summary: "Extract one page as clean Markdown ($0.005 USDC via x402, synchronous)",
+        description:
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful extraction. Fetches one public page (SSRF-guarded, 15s timeout, 5MB cap) and returns readability-isolated main content as Markdown plus title, description, canonical URL, outbound links (max 200), and word count. Single page only — no crawling, no JavaScript rendering. A GET variant with ?url= is also paywalled identically. Free demo: GET /v1/extract/demo (1/day per IP, shared quota with /api/audit/demo).",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["url"],
+                properties: {
+                  url: { type: "string", format: "uri", description: "Public HTTP/HTTPS page. Private-network/metadata targets rejected free of charge." },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Extraction complete.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["schema_version", "url", "final_url", "http_status", "markdown", "word_count"],
+                  properties: {
+                    schema_version: { type: "string", const: "1.0.0" },
+                    url: { type: "string" },
+                    final_url: { type: "string", format: "uri" },
+                    http_status: { type: "integer" },
+                    title: { type: ["string", "null"] },
+                    byline: { type: ["string", "null"] },
+                    description: { type: ["string", "null"] },
+                    canonical_url: { type: ["string", "null"] },
+                    markdown: { type: "string" },
+                    links: { type: "array", items: { type: "object", properties: { url: { type: "string" }, text: { type: "string" } }, required: ["url"] } },
+                    word_count: { type: "integer" },
+                    fetched_at: { type: "string", format: "date-time" },
+                    timing_ms: { type: "object", properties: { ttfb: { type: "integer" }, total: { type: "integer" } } },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Invalid or blocked target URL (not charged).", content: { "application/json": { schema: errorSchema } } },
+          402: { description: "Payment required/invalid. Terms in the PAYMENT-REQUIRED header; body is an agent-readable hint." },
+          502: { description: "Target site unreachable (not charged).", content: { "application/json": { schema: errorSchema } } },
+          504: { description: "Target site timed out (not charged).", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/v1/extract/demo": {
+      get: {
+        operationId: "extractPageMarkdownDemo",
+        security: [], // free endpoint — excluded from x402 registry probing
+        tags: ["Content Extraction"],
+        summary: "Free extraction demo (1/day per IP, shared quota)",
+        description: "Identical response shape to the paid endpoint (tier is \"free-demo\"). Quota is shared with /api/audit/demo — one free request per day per IP across both.",
+        parameters: [urlParam],
+        responses: {
+          200: { description: "Extraction complete." },
+          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
+          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
     "/v1/audits": {
       post: {
         operationId: "createDeepAudit",

@@ -9,6 +9,7 @@ import { hasFreeAudit, markFreeAudit, ipFromRequest } from "../../lib/demo-limit
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
 import { AGENT_READINESS_RESULT_SCHEMA } from "../../lib/agent-readiness/contract.js";
 import { getAgentReadinessPriceUsdc } from "../../lib/agent-readiness/product-pricing.js";
+import { extractPage } from "../../lib/extract.js";
 
 const AGENT_READINESS_PRICE = getAgentReadinessPriceUsdc();
 
@@ -61,6 +62,56 @@ const AGENT_READINESS_TOOL = {
   outputSchema: AGENT_READINESS_RESULT_SCHEMA,
   annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
 };
+
+const EXTRACT_PRICE = process.env.EXTRACT_PRICE_USDC ?? "0.005";
+
+const EXTRACT_TOOL = {
+  name: "extract_page_markdown",
+  description:
+    "FREE PREVIEW (1 request per day per IP, quota shared with audit_website_preview) of Santos Page-to-Markdown extraction. Fetches one public page and returns its main content as clean Markdown plus title, description, outbound links, and word count. Single page only — no crawling or JavaScript rendering. " +
+    `For unlimited extraction, use the machine-payable production endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract with {"url": "…"} — $${EXTRACT_PRICE} USDC per successful extraction on Base mainnet (eip155:8453) via x402 v2; no account or API key required.`,
+  inputSchema: {
+    type: "object",
+    properties: {
+      url: { type: "string", format: "uri", description: "A publicly reachable HTTP or HTTPS page." },
+    },
+    required: ["url"],
+    additionalProperties: false,
+  },
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+};
+
+async function callExtractTool(args, ip) {
+  if (!args || typeof args.url !== "string" || !args.url.trim()) {
+    return { isError: true, content: [{ type: "text", text: "INVALID_URL: a non-empty 'url' string argument is required." }] };
+  }
+  try {
+    validateTarget(args.url.trim());
+  } catch (e) {
+    const code = e instanceof AuditError ? e.code : "INVALID_URL";
+    return { isError: true, content: [{ type: "text", text: `${code}: ${e.message}` }] };
+  }
+  if (!(await hasFreeAudit(ip))) {
+    return {
+      isError: true,
+      content: [{
+        type: "text",
+        text: `RATE_LIMITED: the free preview is 1 request/day per IP (shared quota). For unlimited extraction use the x402 endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract ($${EXTRACT_PRICE} USDC on Base mainnet).`,
+      }],
+    };
+  }
+  try {
+    const result = await extractPage(args.url.trim());
+    await markFreeAudit(ip);
+    return {
+      content: [{ type: "text", text: result.markdown ?? "" }],
+      structuredContent: result,
+    };
+  } catch (e) {
+    const code = e instanceof AuditError ? e.code : "EXTRACT_FAILED";
+    return { isError: true, content: [{ type: "text", text: `${code}: ${e.message}` }] };
+  }
+}
 
 const rpcResult = (id, result) => NextResponse.json({ jsonrpc: "2.0", id, result });
 const rpcError = (id, code, message, status = 200) =>
@@ -154,16 +205,17 @@ export async function POST(req) {
         capabilities: { tools: {} },
         serverInfo: { name: "santos-website-intelligence", version: "2.3.1" },
         instructions:
-          `Use audit_website_preview for a free (1/day per IP) lightweight page audit. Agent Readiness is a paid $${AGENT_READINESS_PRICE} USDC capability; audit_agent_readiness validates the target and returns its canonical x402 HTTP handoff.`,
+          `Use audit_website_preview for a free (1/day per IP) lightweight page audit, or extract_page_markdown for a free page-to-Markdown extraction (shared quota; unlimited via x402 at POST /v1/extract, $${EXTRACT_PRICE} USDC). Agent Readiness is a paid $${AGENT_READINESS_PRICE} USDC capability; audit_agent_readiness validates the target and returns its canonical x402 HTTP handoff.`,
       });
     }
     case "ping":
       return rpcResult(id, {});
     case "tools/list":
-      return rpcResult(id, { tools: [PREVIEW_TOOL, AGENT_READINESS_TOOL] });
+      return rpcResult(id, { tools: [PREVIEW_TOOL, AGENT_READINESS_TOOL, EXTRACT_TOOL] });
     case "tools/call": {
       if (params?.name === PREVIEW_TOOL.name) return rpcResult(id, await callAuditTool(params?.arguments, ipFromRequest(req)));
       if (params?.name === AGENT_READINESS_TOOL.name) return rpcResult(id, await callAgentReadinessTool(params?.arguments));
+      if (params?.name === EXTRACT_TOOL.name) return rpcResult(id, await callExtractTool(params?.arguments, ipFromRequest(req)));
       return rpcError(id, -32602, `Unknown tool: ${params?.name}`);
     }
     default:
@@ -179,7 +231,7 @@ export async function GET(req) {
     service: "Santos Website Intelligence — Model Context Protocol (MCP) endpoint",
     transport: "MCP over Streamable HTTP. Send JSON-RPC 2.0 requests via POST to this URL.",
     methods: ["initialize", "tools/list", "tools/call", "ping"],
-    tools: ["audit_website_preview (free, 1/day per IP)", "audit_agent_readiness (paid via x402, returns the canonical HTTP handoff)"],
+    tools: ["audit_website_preview (free, 1/day per IP)", "audit_agent_readiness (paid via x402, returns the canonical HTTP handoff)", "extract_page_markdown (free preview, shared 1/day quota; unlimited via x402 POST /v1/extract)"],
     for_humans: `${PUBLIC_API_BASE_URL}/agent-readiness/buy — buy a $5 Agent Readiness Report by card, no account`,
     docs: {
       openapi: `${PUBLIC_API_BASE_URL}/openapi.json`,
