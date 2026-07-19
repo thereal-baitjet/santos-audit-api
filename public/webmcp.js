@@ -52,6 +52,25 @@
       execute: ({ url }) => json(`/agent-readiness/challenge?url=${encodeURIComponent(url)}`),
     },
     {
+      name: "extract_page_markdown",
+      title: "Extract a page as Markdown (free demo)",
+      description:
+        "Convert one public web page to clean Markdown with title, links, and metadata (free, 1 request per day per IP, quota shared with run_quick_audit). For unlimited machine access use POST https://api.santosautomation.com/v1/extract (x402, 0.005 USDC).",
+      inputSchema: {
+        type: "object",
+        properties: {
+          url: {
+            type: "string",
+            description: "Public web page URL to extract, e.g. https://example.com/article",
+          },
+        },
+        required: ["url"],
+        additionalProperties: false,
+      },
+      annotations: { readOnlyHint: true },
+      execute: ({ url }) => json(`/v1/extract/demo?url=${encodeURIComponent(url)}`),
+    },
+    {
       name: "get_service_capabilities",
       title: "Get Santos service capability manifest",
       description:
