@@ -8,7 +8,9 @@
     "start": "next start",
     "test": "node test.js",
     "test:agent-readiness": "node --test tests/agent-readiness.test.js",
-    "test:website-intelligence": "node --test tests/website-intelligence.test.js"
+    "test:website-intelligence": "node --test tests/website-intelligence.test.js",
+    "buy:deep": "node buy-deep.js",
+    "buy:deep:x4": "node buy-deep-x4.js"
   },
   "keywords": [
     "x402",
