@@ -59,7 +59,7 @@ export default function MarketingPage({ page, showAudit = false }) {
           {page.sections.map((section) => <div key={section.heading}><h2>{section.heading}</h2><p>{section.body}</p></div>)}
         </section>
 
-        {page.code && <section className="content-section"><h2>Interface example</h2><pre className="code-sample"><code>{page.code}</code></pre></section>}
+        {page.code && <section className="content-section"><h2>Interface example</h2><pre className="code-sample" tabIndex={0}><code>{page.code}</code></pre></section>}
 
         {page.faq?.length > 0 && <section className="content-section"><h2>Frequently asked questions</h2><div className="faq-list">{page.faq.map((item) => <details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div></section>}
 

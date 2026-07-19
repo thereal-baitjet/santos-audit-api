@@ -193,13 +193,13 @@ export default function AgentReadinessRun() {
                 <div className="ar-code-head"><span>JavaScript / TypeScript</span>
                   <button type="button" className="btn small" onClick={() => copy("js", code.js)}>{copied === "js" ? "Copied" : "Copy"}</button>
                 </div>
-                <pre><code>{code.js}</code></pre>
+                <pre tabIndex={0}><code>{code.js}</code></pre>
               </div>
               <div className="ar-code">
                 <div className="ar-code-head"><span>cURL</span>
                   <button type="button" className="btn small" onClick={() => copy("curl", code.curl)}>{copied === "curl" ? "Copied" : "Copy"}</button>
                 </div>
-                <pre><code>{code.curl}</code></pre>
+                <pre tabIndex={0}><code>{code.curl}</code></pre>
               </div>
               <p className="fine">Canonical endpoint: <code>{endpoint}</code></p>
             </div>

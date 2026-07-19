@@ -107,7 +107,7 @@ export default async function ReportPage({ params, searchParams }) {
         <section className="ar-section">
           <details>
             <summary>Full structured JSON</summary>
-            <pre className="code-sample"><code>{JSON.stringify(r, null, 2)}</code></pre>
+            <pre className="code-sample" tabIndex={0}><code>{JSON.stringify(r, null, 2)}</code></pre>
           </details>
           <p className="fine">Questions or a refund request? Email <a href="mailto:info@santosautomation.com">info@santosautomation.com</a>. This report is a passive public-surface assessment, not legal advice, an accessibility certification, or a guarantee of AI visibility.</p>
         </section>
