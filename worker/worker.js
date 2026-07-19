@@ -7,6 +7,7 @@ import { randomUUID } from "node:crypto";
 import { getStore, hasDatabase } from "../lib/deep/store.js";
 import { validateTarget, assertPublicHost } from "../lib/safe-fetch.js";
 import { runDeepAudit } from "./run-audit.js";
+import { runScreenshot } from "./run-screenshot.js";
 
 const WORKER_ID = `${hostname()}-${randomUUID().slice(0, 8)}`;
 const POLL_MS = Number(process.env.WORKER_POLL_MS ?? 3000);
@@ -52,7 +53,8 @@ async function processJob(job) {
     validateTarget(job.request.url);
     await assertPublicHost(new URL(job.request.url).hostname);
 
-    const { report, artifacts } = await withTimeout(runDeepAudit(job.request, heartbeat), JOB_TIMEOUT_MS);
+    const run = job.request.profile === "screenshot" ? runScreenshot : runDeepAudit;
+    const { report, artifacts } = await withTimeout(run(job.request, heartbeat), JOB_TIMEOUT_MS);
 
     await heartbeat("storing-artifacts", 95);
     const reportId = `rpt_${randomUUID().replaceAll("-", "").slice(0, 20)}`;

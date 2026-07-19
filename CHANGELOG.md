@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.6.0 — 2026-07-19 — Screenshot & PDF Render (the Fly browser, sold by the frame)
+
+### Added
+- **GET /v1/screenshot?url=** ($0.01 USDC via x402 v2): real-Chromium PNG
+  (default), JPEG, or PDF of one public page — device desktop|mobile,
+  full_page=true for whole-page capture. Synchronous over the browser job
+  queue: the request enqueues, the worker renders (SSRF-guarded, budgeted),
+  and the binary comes back directly with an X-Render-Job header. Settles
+  only when bytes are returned; 503/504/502 are free. Worker gains a
+  `screenshot` job profile (worker/run-screenshot.js); worker-capacity
+  logic shared with the deep tier via lib/deep/capacity.js.
+- Discovery surfaces updated per the suite template: OpenAPI, llms.txt,
+  capabilities manifest (`render.screenshot`), JSON-LD Offer, landing plan
+  card (six-card ladder), robots.txt Allow, Bazaar discovery extension.
+
 ## 2.5.0 — 2026-07-19 — Safe Fetch (suite product 2, the fetcher sold directly)
 
 ### Added

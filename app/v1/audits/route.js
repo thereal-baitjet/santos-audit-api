@@ -17,7 +17,7 @@ import { deepAuditGate, NO_STORE } from "../../../lib/deep/gate.js";
 import { PUBLIC_API_BASE_URL } from "../../../lib/base-url.js";
 import { notifyTransaction } from "../../../notify.js";
 import { x402EnvCheck } from "../../../lib/x402-env-check.js";
-import { flyWakeConfigured, wakeFlyWorker } from "../../../lib/deep/fly-wake.js";
+import { hasWorkerCapacity } from "../../../lib/deep/capacity.js";
 
 const PRICE = `$${process.env.DEEP_AUDIT_PRICE_USDC ?? "0.225"}`;
 const IDEM_SECRET = process.env.IDEMPOTENCY_HASH_SECRET ?? "dev-only-idem-secret";
@@ -51,14 +51,7 @@ async function handler(req) {
   // with neither 503s here, which does not settle (settlement only happens on
   // <400) — nobody is charged for a job nothing would process.
   try {
-    let capacity = await getStore().workerAlive();
-    if (!capacity && flyWakeConfigured()) {
-      capacity = await wakeFlyWorker().catch((e) => {
-        console.error("fly wake failed:", e.message);
-        return false;
-      });
-    }
-    if (!capacity) {
+    if (!(await hasWorkerCapacity())) {
       return NextResponse.json(
         {
           error: "No audit worker is online right now, so new Deep Page Audit jobs are not being accepted (you have not been charged). The Quick Audit at GET /api/audit and Agent Readiness at GET /api/agent-readiness remain available.",

@@ -354,6 +354,36 @@ const document = {
         },
       },
     },
+    "/v1/screenshot": {
+      get: {
+        operationId: "renderScreenshot",
+        tags: ["Screenshot & PDF Render"],
+        summary: "Render one page as PNG/JPEG/PDF in a real browser ($0.01 USDC via x402, synchronous)",
+        description:
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only when render bytes are returned — timeouts (504) and failures (502/503) are free. Renders in an isolated SSRF-guarded Chromium session with request/byte budgets, then returns the binary directly with an X-Render-Job header. Typical latency: seconds when a worker is warm; a cold worker wakes on demand and may 504 the first try — retry.",
+        parameters: [
+          urlParam,
+          { name: "format", in: "query", required: false, schema: { type: "string", enum: ["png", "jpeg", "pdf"], default: "png" } },
+          { name: "device", in: "query", required: false, schema: { type: "string", enum: ["desktop", "mobile"], default: "desktop" } },
+          { name: "full_page", in: "query", required: false, schema: { type: "boolean", default: false }, description: "Capture the entire page height instead of the viewport (ignored for pdf)." },
+        ],
+        responses: {
+          200: {
+            description: "Render bytes.",
+            content: {
+              "image/png": { schema: { type: "string", format: "binary" } },
+              "image/jpeg": { schema: { type: "string", format: "binary" } },
+              "application/pdf": { schema: { type: "string", format: "binary" } },
+            },
+          },
+          400: { description: "Invalid or blocked target/parameters (not charged).", content: { "application/json": { schema: errorSchema } } },
+          402: { description: "Payment required/invalid. Terms in the PAYMENT-REQUIRED header; body is an agent-readable hint." },
+          502: { description: "Render failed (not charged).", content: { "application/json": { schema: errorSchema } } },
+          503: { description: "No render worker available (not charged).", content: { "application/json": { schema: errorSchema } } },
+          504: { description: "Render did not finish in time (not charged) — retry.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
     "/v1/audits": {
       post: {
         operationId: "createDeepAudit",
