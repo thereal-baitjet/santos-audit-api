@@ -24,13 +24,14 @@ export default function BuyPage() {
     <PageShell>
       <article className="content-page ar-page">
         <header>
-          <p className="kicker">For humans · card payment</p>
+          <p className="kicker">For agents · optional human card purchase</p>
           <h1>Get your Agent Readiness Report</h1>
           <p className="lede">
-            One-time <strong>$5</strong> report on how ready your website is for the
-            agentic web — discoverability, understandability, callability, and trust,
-            with evidence and prioritized fixes. No account, no wallet, no subscription.
-            Pay by card and we email you a private link to your report.
+            The primary path for agents is <strong>{X402_PRICE} USDC</strong> per successful
+            audit via x402 on Base. This page is the optional one-time <strong>$5</strong>
+            card purchase for humans who want a report by email — discoverability,
+            understandability, callability, and trust, with evidence and prioritized fixes.
+            No account, no wallet, no subscription.
           </p>
         </header>
 
@@ -61,12 +62,12 @@ export default function BuyPage() {
             <div className="track">
               <h3>Humans</h3>
               <p className="track-price">$5 <span>one-time report</span></p>
-              <p>Pay by card, get an emailed report. No account, no crypto. This page.</p>
+              <p>Optional card purchase for a report by email. No account, no crypto. This page.</p>
             </div>
             <div className="track">
               <h3>Agents</h3>
-              <p className="track-price">{X402_PRICE} USDC <span>per call via x402</span></p>
-              <p>Machine-payable per audit on Base mainnet, no account or API key.
+              <p className="track-price">{X402_PRICE} USDC <span>per successful audit via x402</span></p>
+              <p>Primary machine-payable path on Base mainnet, no account or API key.
                 {" "}<a href="/agent-readiness/run">Use the x402 endpoint →</a></p>
             </div>
           </div>

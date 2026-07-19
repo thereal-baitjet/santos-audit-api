@@ -29,15 +29,16 @@ export default function AgentReadinessRunPage() {
           <h1>Run a Paid Agent Readiness Audit</h1>
           <p className="lede">
             Assess how well a public website or service can be discovered, understood,
-            invoked, and — where applicable — paid by AI agents. {PRICE} USDC per
-            successful audit, settled on Base mainnet via x402 v2. No account, no API key.
+            invoked, and — where applicable — paid by AI agents. The agent-first path is
+            {PRICE} USDC per successful audit, settled on Base mainnet via x402 v2.
+            Optional human card purchase is available for a one-time $5 report.
           </p>
         </header>
 
         <section className="ar-section" aria-labelledby="run-h">
           <h2 id="run-h" className="sr-only">Start the audit</h2>
           <p className="human-banner">
-            Not an agent with a USDC wallet? <a href="/agent-readiness/buy"><strong>Buy the report by card for $5 →</strong></a> — no account, emailed to you.
+            Prefer the optional human card purchase? <a href="/agent-readiness/buy"><strong>Buy the report by card for $5 →</strong></a> — no account, emailed to you. For agents, the primary path is <strong>{PRICE} USDC via x402</strong> per successful audit.
           </p>
           <AgentReadinessRun />
         </section>
