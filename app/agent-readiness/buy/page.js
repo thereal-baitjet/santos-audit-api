@@ -6,13 +6,13 @@ import { stripeConfigured } from "../../../lib/stripe/client.js";
 const X402_PRICE = getAgentReadinessPriceUsdc();
 
 export const metadata = {
-  title: "Buy an Agent Readiness Report ($19, card) | Santos Website Intelligence",
+  title: "Buy an Agent Readiness Report ($5, card) | Santos Website Intelligence",
   description:
-    "Get a one-time AI Agent Readiness Report for your website — $19 by card, no account, emailed to you. Measures how discoverable, understandable, callable, and trustworthy your site is to AI agents, with evidence and prioritized fixes.",
+    "Get a one-time AI Agent Readiness Report for your website — $5 by card, no account, emailed to you. Measures how discoverable, understandable, callable, and trustworthy your site is to AI agents, with evidence and prioritized fixes.",
   alternates: { canonical: "/agent-readiness/buy" },
   robots: { index: true, follow: true },
   openGraph: {
-    title: "Buy an Agent Readiness Report ($19)",
+    title: "Buy an Agent Readiness Report ($5)",
     description: "One-time card purchase, emailed to you. Is your site ready for AI agents?",
     url: "/agent-readiness/buy",
     type: "website",
@@ -27,7 +27,7 @@ export default function BuyPage() {
           <p className="kicker">For humans · card payment</p>
           <h1>Get your Agent Readiness Report</h1>
           <p className="lede">
-            One-time <strong>$19</strong> report on how ready your website is for the
+            One-time <strong>$5</strong> report on how ready your website is for the
             agentic web — discoverability, understandability, callability, and trust,
             with evidence and prioritized fixes. No account, no wallet, no subscription.
             Pay by card and we email you a private link to your report.
@@ -60,7 +60,7 @@ export default function BuyPage() {
           <div className="track-grid">
             <div className="track">
               <h3>Humans</h3>
-              <p className="track-price">$19 <span>one-time report</span></p>
+              <p className="track-price">$5 <span>one-time report</span></p>
               <p>Pay by card, get an emailed report. No account, no crypto. This page.</p>
             </div>
             <div className="track">

@@ -1,4 +1,4 @@
-// POST /api/checkout — create a Stripe Checkout Session for the $19 human
+// POST /api/checkout — create a Stripe Checkout Session for the $5 human
 // Agent Readiness Report. The price is server-side only; the client supplies
 // just the target URL and email, both validated here.
 import { NextResponse } from "next/server";

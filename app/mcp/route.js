@@ -180,7 +180,7 @@ export async function GET(req) {
     transport: "MCP over Streamable HTTP. Send JSON-RPC 2.0 requests via POST to this URL.",
     methods: ["initialize", "tools/list", "tools/call", "ping"],
     tools: ["audit_website_preview (free, 1/day per IP)", "audit_agent_readiness (paid via x402, returns the canonical HTTP handoff)"],
-    for_humans: `${PUBLIC_API_BASE_URL}/agent-readiness/buy — buy a $19 Agent Readiness Report by card, no account`,
+    for_humans: `${PUBLIC_API_BASE_URL}/agent-readiness/buy — buy a $5 Agent Readiness Report by card, no account`,
     docs: {
       openapi: `${PUBLIC_API_BASE_URL}/openapi.json`,
       llms_txt: `${PUBLIC_API_BASE_URL}/llms.txt`,
@@ -194,7 +194,7 @@ export async function GET(req) {
 <h1 style="color:#d4a24e">Santos MCP endpoint</h1>
 <p>This is a <strong>Model Context Protocol</strong> endpoint. Automated clients talk to it with JSON-RPC 2.0 over HTTP <strong>POST</strong> (Streamable HTTP transport) — there is nothing to see here in a browser.</p>
 <p>Tools: <code>audit_website_preview</code> (free, 1/day per IP) and <code>audit_agent_readiness</code> (paid via x402).</p>
-<p><strong>Just want a report?</strong> <a href="${PUBLIC_API_BASE_URL}/agent-readiness/buy" style="color:#d4a24e">Buy an Agent Readiness Report for $19 by card →</a></p>
+<p><strong>Just want a report?</strong> <a href="${PUBLIC_API_BASE_URL}/agent-readiness/buy" style="color:#d4a24e">Buy an Agent Readiness Report for $5 by card →</a></p>
 <p>Machine-readable: <a href="${PUBLIC_API_BASE_URL}/openapi.json" style="color:#d4a24e">OpenAPI</a> · <a href="${PUBLIC_API_BASE_URL}/llms.txt" style="color:#d4a24e">llms.txt</a> · <a href="${PUBLIC_API_BASE_URL}/capabilities.json" style="color:#d4a24e">capabilities.json</a></p>
 </body>`;
     return new NextResponse(html, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600", Allow: "GET, POST" } });

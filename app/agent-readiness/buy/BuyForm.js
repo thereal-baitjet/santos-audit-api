@@ -42,7 +42,7 @@ export default function BuyForm() {
       onSubmit={submit}
       noValidate
       toolname="buyAgentReadinessReportForm"
-      tooldescription="Buy a $19 human-readable Agent Readiness report for a website. Starts a hosted Stripe checkout; the report is emailed after payment. Requires explicit user confirmation — this initiates a purchase."
+      tooldescription="Buy a $5 human-readable Agent Readiness report for a website. Starts a hosted Stripe checkout; the report is emailed after payment. Requires explicit user confirmation — this initiates a purchase."
     >
       <label htmlFor={urlId}>Website URL to audit</label>
       <input id={urlId} name="url" type="url" inputMode="url" autoComplete="url" placeholder="https://example.com"
@@ -58,10 +58,10 @@ export default function BuyForm() {
 
 
       <button className="btn primary" type="submit" disabled={busy}>
-        {busy ? "Starting checkout…" : "Buy report — $19"}
+        {busy ? "Starting checkout…" : "Buy report — $5"}
       </button>
       {error && <p className="ar-error" id={errId} role="alert">{error}</p>}
-      <p className="fine">Secure card payment via Stripe. No account needed. One-time $19 USD — you'll get an emailed link to your report, usually within a few minutes.</p>
+      <p className="fine">Secure card payment via Stripe. No account needed. One-time $5 USD — you'll get an emailed link to your report, usually within a few minutes.</p>
     </form>
   );
 }

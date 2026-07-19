@@ -24,14 +24,14 @@ Every paid path requires a funded USDC wallet on Base. Humans (marketers, agenci
 
 Build a card-payment path that sells the **report**, not the API call:
 
-1. **Product**: "Agent Readiness Report" — one-off, **$19 USD** via Stripe Checkout (hosted page). No account creation. Buyer enters the target URL + their email, pays, and receives an email linking to their report.
+1. **Product**: "Agent Readiness Report" — one-off, **$5 USD** via Stripe Checkout (hosted page). No account creation. Buyer enters the target URL + their email, pays, and receives an email linking to their report.
 2. **Flow**:
    - New page `/agent-readiness/buy` (linked prominently from `/agent-readiness/run` and the landing pricing section): form with target URL + email → `POST /api/checkout` → create a Stripe Checkout Session (`mode: "payment"`, price data inline or a `STRIPE_PRICE_ID` env var, `metadata: { target_url }`, `customer_email`) → redirect to Stripe.
    - `POST /api/stripe/webhook`: verify signature with `STRIPE_WEBHOOK_SECRET` (use the raw request body), handle `checkout.session.completed` → enqueue the same agent-readiness job the x402 path uses (reuse the existing job/queue code paths — do NOT fork a parallel pipeline), tagging the job `payment_rail: "stripe"` with the session id.
    - On job completion, email the buyer a tokened report URL. Reuse the existing per-job bearer-token report-read mechanism from the deep tier. For email, use Resend (`RESEND_API_KEY`) with a plain, minimal template; sender `reports@santosautomation.com` if the domain is verified in Resend, otherwise fall back to `onboarding@resend.dev` and leave a TODO.
    - Success/cancel pages: `/agent-readiness/thanks` ("check your email, report usually ready in a few minutes") and cancel back to `/agent-readiness/buy`.
 3. **Idempotency + safety**: webhook must be idempotent per Checkout Session id (store processed session ids — a small Supabase table is fine; follow the existing least-privilege pattern, RLS on, service access via the `santos_worker`-style role conventions in `db/`). Never trust amounts from the client; the price lives server-side only. Refunds are manual via email (consistent with existing terms — update `/terms` copy to mention card purchases and refund-by-email).
-4. **Positioning copy**: on `/agent-readiness/buy` and the landing pricing section, present two tracks: "Agents: 0.025 USDC via x402, no account" and "Humans: $19 one-time report by card". Keep x402 untouched.
+4. **Positioning copy**: on `/agent-readiness/buy` and the landing pricing section, present two tracks: "Agents: 0.075 USDC via x402, no account" and "Humans: $5 one-time report by card". Keep x402 untouched.
 5. **Env vars** to add in Vercel (`santos-api`, thereal-baitjet account) and `.env.local.example`: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`. Do not commit secrets. Print the exact `stripe listen`/dashboard steps the operator must do manually at the end.
 6. Fire the existing Discord settlement webhook for Stripe purchases too, labeled as card revenue.
 

@@ -37,7 +37,7 @@ export default function AgentReadinessRunPage() {
         <section className="ar-section" aria-labelledby="run-h">
           <h2 id="run-h" className="sr-only">Start the audit</h2>
           <p className="human-banner">
-            Not an agent with a USDC wallet? <a href="/agent-readiness/buy"><strong>Buy the report by card for $19 →</strong></a> — no account, emailed to you.
+            Not an agent with a USDC wallet? <a href="/agent-readiness/buy"><strong>Buy the report by card for $5 →</strong></a> — no account, emailed to you.
           </p>
           <AgentReadinessRun />
         </section>
