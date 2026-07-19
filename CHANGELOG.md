@@ -7,7 +7,9 @@
   `"*"` route pattern, which `@x402/extensions` normalizes to `:var1`, so the
   402 discovery extension advertised a meaningless route to catalogs. The three
   paid routes now use `withX402FromHTTPServer` with an explicit verbless path
-  key (`/api/audit`, `/api/agent-readiness`, `/v1/audits`) — verbless because
+  key (`/api/audit`, `/api/agent-readiness`, `/v1/audits`); static keys emit no
+  `routeTemplate` at all and catalogs index the canonical path from
+  `resource.url` instead. Keys are verbless because
   Next.js serves HEAD through the GET handler and a verb-scoped key would let
   HEAD probes reach the handler unpaid. Payment terms, prices, and route
   configs are unchanged; the demo route stays unwrapped and free.

@@ -76,7 +76,7 @@ const readinessUnpaid = await fetch(`${BASE}/api/agent-readiness?url=${encodeURI
 const readinessPaymentHeader = readinessUnpaid.headers.get("payment-required");
 const readinessTerms = readinessPaymentHeader ? JSON.parse(Buffer.from(readinessPaymentHeader, "base64").toString("utf-8")) : {};
 check("Agent Readiness requires $0.025 USDC before work", readinessUnpaid.status === 402 && readinessTerms.x402Version === 2 && readinessTerms.accepts?.[0]?.amount === "25000", `status=${readinessUnpaid.status} amount=${readinessTerms.accepts?.[0]?.amount}`);
-check("Agent Readiness 402 routeTemplate is the real route path", readinessTerms.extensions?.bazaar?.routeTemplate === "/api/agent-readiness", `got ${readinessTerms.extensions?.bazaar?.routeTemplate}`);
+check("Agent Readiness 402 discovery names the canonical route", [undefined, "/api/agent-readiness"].includes(readinessTerms.extensions?.bazaar?.routeTemplate) && new URL(readinessTerms.resource?.url ?? "http://x/").pathname === "/api/agent-readiness", `template=${readinessTerms.extensions?.bazaar?.routeTemplate} url=${readinessTerms.resource?.url}`);
 
 const capabilities = await (await fetch(`${BASE}/capabilities.json`)).json();
 check("vendor capability manifest is explicit, versioned, and prices Agent Readiness", capabilities.standard === false && capabilities.manifest_version === "1.0.0" && capabilities.capabilities?.some((item) => item.id === "agent-readiness.quick" && item.price?.amount === "0.025" && item.billing_unit === "successful audit"));
@@ -134,7 +134,11 @@ const terms = prHeader ? JSON.parse(Buffer.from(prHeader, "base64").toString("ut
 const accept = terms.accepts?.[0];
 check(`402 terms: v2 + ${NET} + payTo + $0.005 (5000 atomic)`, terms.x402Version === 2 && accept?.network === NET && /^0x[0-9a-fA-F]{40}$/.test(accept?.payTo ?? "") && accept?.amount === "5000");
 check("402 carries bazaar discovery extension", !!terms.extensions?.bazaar?.info?.input && !!terms.extensions?.bazaar?.schema);
-check("402 bazaar routeTemplate is the real route path (not :var1)", terms.extensions?.bazaar?.routeTemplate === "/api/audit", `got ${terms.extensions?.bazaar?.routeTemplate}`);
+// Static route keys emit no routeTemplate (the field only appears for dynamic
+// patterns); catalogs then index the real path from resource.url. The bug was
+// the "*" pattern publishing routeTemplate ":var1".
+check("402 bazaar routeTemplate is not :var1 garbage", [undefined, "/api/audit"].includes(terms.extensions?.bazaar?.routeTemplate), `got ${terms.extensions?.bazaar?.routeTemplate}`);
+check("402 resource.url is the canonical route path", new URL(terms.resource?.url ?? "http://x/").pathname === "/api/audit", `got ${terms.resource?.url}`);
 // Next.js maps HEAD onto the GET handler — the paywall must still challenge it.
 const headProbe = await fetch(`${BASE}/api/audit?url=example.com`, { method: "HEAD" });
 check("HEAD on paid route is still paywalled (402)", headProbe.status === 402, `got ${headProbe.status}`);
