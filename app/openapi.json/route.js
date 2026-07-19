@@ -230,6 +230,60 @@ const document = {
         },
       },
     },
+    "/v1/fetch": {
+      get: {
+        operationId: "safeFetchUrl",
+        tags: ["Safe Fetch"],
+        summary: "Fetch one public URL through the hardened safe-fetcher ($0.002 USDC via x402, synchronous)",
+        description:
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful fetch. Returns the raw text body plus response metadata: final URL after redirects, HTTP status, selected response headers, byte count, and timing. SSRF-guarded (private/link-local/cloud-metadata addresses blocked including via redirects), 15s timeout, 5 redirects max, 5MB cap, ports 80/443 only. Text formats only: HTML, JSON, XML, feeds, plain text, JavaScript, SVG. A POST variant with a JSON {url} body is paywalled identically. Free demo: GET /v1/fetch/demo (1/day per IP, shared quota).",
+        parameters: [urlParam],
+        responses: {
+          200: {
+            description: "Fetch complete.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["schema_version", "url", "final_url", "http_status", "body", "body_bytes"],
+                  properties: {
+                    schema_version: { type: "string", const: "1.0.0" },
+                    url: { type: "string" },
+                    final_url: { type: "string", format: "uri" },
+                    http_status: { type: "integer" },
+                    content_type: { type: ["string", "null"] },
+                    headers: { type: "object", additionalProperties: { type: "string" } },
+                    body: { type: "string" },
+                    body_bytes: { type: "integer" },
+                    fetched_at: { type: "string", format: "date-time" },
+                    timing_ms: { type: "object", properties: { ttfb: { type: "integer" }, total: { type: "integer" } } },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Invalid or blocked target URL (not charged).", content: { "application/json": { schema: errorSchema } } },
+          402: { description: "Payment required/invalid. Terms in the PAYMENT-REQUIRED header; body is an agent-readable hint." },
+          502: { description: "Target site unreachable (not charged).", content: { "application/json": { schema: errorSchema } } },
+          504: { description: "Target site timed out (not charged).", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/v1/fetch/demo": {
+      get: {
+        operationId: "safeFetchUrlDemo",
+        security: [], // free endpoint — excluded from x402 registry probing
+        tags: ["Safe Fetch"],
+        summary: "Free safe-fetch demo (1/day per IP, shared quota)",
+        description: "Identical response shape to the paid endpoint (tier is \"free-demo\"). Quota is shared across all demo endpoints — one free request per day per IP total.",
+        parameters: [urlParam],
+        responses: {
+          200: { description: "Fetch complete." },
+          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
+          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
     "/v1/extract": {
       post: {
         operationId: "extractPageMarkdown",

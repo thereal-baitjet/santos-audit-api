@@ -53,7 +53,7 @@ export default function TermsPage() {
 
       <h2>Payments and retries</h2>
       <p>
-        Enforced prices and billing units appear in the live x402 challenge. Content Extraction,
+        Enforced prices and billing units appear in the live x402 challenge. Safe Fetch, Content Extraction,
         Quick Intelligence, and the $0.075 USDC Agent Readiness Audit settle only on a successful response.
         Deep Website Intelligence payment purchases one bounded compute reservation and settles when the
         job is accepted. Use an Idempotency-Key for Deep job retries. Never rely on a price

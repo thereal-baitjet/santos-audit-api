@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.5.0 — 2026-07-19 — Safe Fetch (suite product 2, the fetcher sold directly)
+
+### Added
+- **GET /v1/fetch?url=** ($0.002 USDC via x402 v2, POST {url} variant paywalled
+  identically): one public URL → raw text body + response metadata (final URL,
+  status, selected headers — never cookies — byte count, timing) through the
+  hardened safe-fetcher: SSRF guards incl. redirect re-validation, 15s timeout,
+  5 redirects, 5MB cap, ports 80/443, text formats only. Settles only on success.
+- **GET /v1/fetch/demo** — free 1/day/IP demo (quota shared across all demos).
+- Discovery surfaces updated per the suite template: OpenAPI, llms.txt,
+  capabilities manifest (`web.safe-fetch`), JSON-LD Offer, landing plan card,
+  robots.txt Allow, Bazaar discovery extension.
+
 ## 2.4.0 — 2026-07-19 — Page-to-Markdown extraction (suite product 1)
 
 ### Added
