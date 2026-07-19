@@ -121,6 +121,10 @@ audit or invoke any tool advertised by the audited target.
 - 15-second fetch timeout, 5 redirects max, 5 MB response cap, 2048-char URL cap,
   HTML/XHTML/plain-text content only.
 - Free demo and MCP preview tool: 1 audit per day per IP (shared quota).
+- robots.txt Disallow lines under /api/ and /v1/ target search-engine crawling of
+  unlisted internals only. The audit endpoints — /api/audit, /api/audit/demo,
+  /api/agent-readiness, /v1/audits, and /mcp — are explicitly Allowed and intended
+  for direct agent/tool invocation.
 
 ## Support
 

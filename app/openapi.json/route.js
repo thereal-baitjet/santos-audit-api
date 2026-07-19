@@ -143,7 +143,7 @@ const document = {
   openapi: "3.1.0",
   info: {
     title: "Santos Website Intelligence API",
-    version: "2.3.0",
+    version: "2.3.1",
     description:
       `AI Website Intelligence for determining whether public websites can be discovered, understood, trusted, and used by agents. Three paid capabilities use USDC on Base mainnet (eip155:8453) via x402 v2 with no account or traditional API key. QUICK INTELLIGENCE (GET /api/audit, $0.005, synchronous): lightweight single-page fetch-and-parse audit. AGENT READINESS (GET /api/agent-readiness, $${AGENT_READINESS_PRICE}, synchronous): bounded passive discovery and applicability-aware assessment of agent-facing interfaces. DEEP WEBSITE INTELLIGENCE (POST /v1/audits, $0.075, asynchronous): real Chromium via Playwright, Lighthouse, rendered axe-core, browser evidence, screenshots, and passive security checks. Quick and Agent Readiness payments settle only on a successful response; Deep payment purchases a bounded compute reservation and settles when the job is accepted.`,
     contact: { name: "Santos Automation", email: "info@santosautomation.com", url: "https://www.santosautomation.com" },

@@ -13,7 +13,7 @@ const manifest = await root.json();
 check("manifest returns 200", root.status === 200);
 check("manifest lists demo + paid endpoints", !!manifest.endpoints?.["GET /api/audit/demo?url="] && !!manifest.endpoints?.["GET /api/audit?url="]);
 check("manifest lists Agent Readiness", !!manifest.endpoints?.["GET /api/agent-readiness?url=&depth=quick"] && manifest.tiers?.["agent-readiness"]?.capability_id === "agent-readiness.quick");
-check("manifest uses Website Intelligence positioning", manifest.name === "Santos Website Intelligence API" && manifest.version === "2.3.0");
+check("manifest uses Website Intelligence positioning", manifest.name === "Santos Website Intelligence API" && manifest.version === "2.3.1");
 
 // 2) Free demo: 200 with a report, or 429 if this IP already used today's audit
 const demo = await fetch(`${BASE}/api/audit/demo?url=example.com`);
@@ -76,6 +76,7 @@ const readinessUnpaid = await fetch(`${BASE}/api/agent-readiness?url=${encodeURI
 const readinessPaymentHeader = readinessUnpaid.headers.get("payment-required");
 const readinessTerms = readinessPaymentHeader ? JSON.parse(Buffer.from(readinessPaymentHeader, "base64").toString("utf-8")) : {};
 check("Agent Readiness requires $0.025 USDC before work", readinessUnpaid.status === 402 && readinessTerms.x402Version === 2 && readinessTerms.accepts?.[0]?.amount === "25000", `status=${readinessUnpaid.status} amount=${readinessTerms.accepts?.[0]?.amount}`);
+check("Agent Readiness 402 routeTemplate is the real route path", readinessTerms.extensions?.bazaar?.routeTemplate === "/api/agent-readiness", `got ${readinessTerms.extensions?.bazaar?.routeTemplate}`);
 
 const capabilities = await (await fetch(`${BASE}/capabilities.json`)).json();
 check("vendor capability manifest is explicit, versioned, and prices Agent Readiness", capabilities.standard === false && capabilities.manifest_version === "1.0.0" && capabilities.capabilities?.some((item) => item.id === "agent-readiness.quick" && item.price?.amount === "0.025" && item.billing_unit === "successful audit"));
@@ -133,6 +134,10 @@ const terms = prHeader ? JSON.parse(Buffer.from(prHeader, "base64").toString("ut
 const accept = terms.accepts?.[0];
 check(`402 terms: v2 + ${NET} + payTo + $0.005 (5000 atomic)`, terms.x402Version === 2 && accept?.network === NET && /^0x[0-9a-fA-F]{40}$/.test(accept?.payTo ?? "") && accept?.amount === "5000");
 check("402 carries bazaar discovery extension", !!terms.extensions?.bazaar?.info?.input && !!terms.extensions?.bazaar?.schema);
+check("402 bazaar routeTemplate is the real route path (not :var1)", terms.extensions?.bazaar?.routeTemplate === "/api/audit", `got ${terms.extensions?.bazaar?.routeTemplate}`);
+// Next.js maps HEAD onto the GET handler — the paywall must still challenge it.
+const headProbe = await fetch(`${BASE}/api/audit?url=example.com`, { method: "HEAD" });
+check("HEAD on paid route is still paywalled (402)", headProbe.status === 402, `got ${headProbe.status}`);
 const unpaidBody = await unpaid.json().catch(() => ({}));
 check("402 body has agent-readable hint", unpaidBody.code === "PAYMENT_REQUIRED" && /PAYMENT-REQUIRED/.test(unpaidBody.hint ?? ""));
 

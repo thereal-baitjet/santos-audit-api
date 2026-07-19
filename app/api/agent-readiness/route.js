@@ -1,5 +1,5 @@
 import { after, NextResponse } from "next/server";
-import { withX402 } from "@x402/next";
+import { withX402FromHTTPServer, x402HTTPResourceServer } from "@x402/next";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { auditAgentReadiness } from "../../../lib/agent-readiness/analyze.js";
 import { AGENT_READINESS_RESULT_SCHEMA } from "../../../lib/agent-readiness/contract.js";
@@ -29,7 +29,7 @@ async function handler(req) {
   }
 }
 
-const paidHandler = withX402(handler, {
+const routeConfig = {
   accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
   description: "Run a bounded, passive Agent Readiness audit of public machine-facing interfaces. The auditor never authenticates to or pays the audited target, creates target accounts, submits forms, or invokes advertised business tools.",
   mimeType: "application/json",
@@ -41,7 +41,14 @@ const paidHandler = withX402(handler, {
     inputSchema: { properties: { url: { type: "string", description: "Public HTTP or HTTPS target URL." }, depth: { type: "string", enum: ["quick"] } }, required: ["url"] },
     output: { schema: AGENT_READINESS_RESULT_SCHEMA },
   }) },
-}, resourceServer);
+};
+
+// Verbless route key so Next's HEAD→GET mapping still hits the paywall (a
+// "GET /path" key would only match GET and let HEAD probes run unpaid).
+const httpServer = new x402HTTPResourceServer(resourceServer, {
+  "/api/agent-readiness": routeConfig,
+});
+const paidHandler = withX402FromHTTPServer(handler, httpServer);
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: { ...CORS, "Access-Control-Allow-Methods": "GET, OPTIONS", "Access-Control-Allow-Headers": "Content-Type, PAYMENT-SIGNATURE", "Access-Control-Expose-Headers": "PAYMENT-REQUIRED, PAYMENT-RESPONSE", "Access-Control-Max-Age": "86400" } });

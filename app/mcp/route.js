@@ -152,7 +152,7 @@ export async function POST(req) {
       return rpcResult(id, {
         protocolVersion: negotiated,
         capabilities: { tools: {} },
-        serverInfo: { name: "santos-website-intelligence", version: "2.3.0" },
+        serverInfo: { name: "santos-website-intelligence", version: "2.3.1" },
         instructions:
           `Use audit_website_preview for a free (1/day per IP) lightweight page audit. Agent Readiness is a paid $${AGENT_READINESS_PRICE} USDC capability; audit_agent_readiness validates the target and returns its canonical x402 HTTP handoff.`,
       });

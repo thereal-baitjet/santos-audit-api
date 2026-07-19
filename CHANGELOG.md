@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.3.1 — 2026-07-18 — Real Bazaar route templates, agent-friendly robots.txt
+
+### Fixed
+- **Bazaar discovery `routeTemplate` was `":var1"`.** `withX402` hardcodes a
+  `"*"` route pattern, which `@x402/extensions` normalizes to `:var1`, so the
+  402 discovery extension advertised a meaningless route to catalogs. The three
+  paid routes now use `withX402FromHTTPServer` with an explicit verbless path
+  key (`/api/audit`, `/api/agent-readiness`, `/v1/audits`) — verbless because
+  Next.js serves HEAD through the GET handler and a verb-scoped key would let
+  HEAD probes reach the handler unpaid. Payment terms, prices, and route
+  configs are unchanged; the demo route stays unwrapped and free.
+- **robots.txt no longer disallows the product endpoints.** The audit endpoints
+  (`/api/audit`, `/api/audit/demo`, `/api/agent-readiness`, `/v1/audits`,
+  `/mcp`) are now explicitly Allowed (RFC 9309 longest-match-wins beats the
+  `/api/` and `/v1/` Disallow prefixes), so robots-respecting agent HTTP tools
+  can call them; unlisted internals (Stripe checkout/webhook, analytics) stay
+  disallowed. `Host:` now emits a bare hostname, and `llms.txt` documents the
+  robots intent.
+
 ## 2.3.0 — 2026-07-18 — Human card purchases, nonce CSP, friendly /mcp
 
 ### Added

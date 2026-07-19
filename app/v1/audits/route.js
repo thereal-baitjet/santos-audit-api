@@ -6,7 +6,7 @@
 // service errors return >=400 and therefore do not settle.
 import { after, NextResponse } from "next/server";
 import { createHmac } from "node:crypto";
-import { withX402 } from "@x402/next";
+import { withX402FromHTTPServer, x402HTTPResourceServer } from "@x402/next";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
 import { validateTarget, AuditError } from "../../../lib/safe-fetch.js";
@@ -114,9 +114,7 @@ async function handler(req) {
   );
 }
 
-const paidHandler = withX402(
-  handler,
-  {
+const routeConfig = {
     accepts: { scheme: "exact", price: PRICE, network: NETWORK, payTo: SELLER },
     description:
       `Create one Deep Page Audit job (asynchronous, browser-rendered): real Chromium via Playwright, Lighthouse lab metrics, rendered axe-core accessibility checks, browser network/console evidence, screenshots, and passive security checks against a single public web page. Returns a job_id + access token; poll status_url and fetch report_url when completed (typically tens of seconds to a few minutes). ${PAYMENT_CONTRACT}`,
@@ -154,9 +152,14 @@ const paidHandler = withX402(
         },
       }),
     },
-  },
-  resourceServer
-);
+};
+
+// Verbless route key compiles with verb "*", so every method that reaches
+// this handler is paywalled (a "POST /path" key would only match POST).
+const httpServer = new x402HTTPResourceServer(resourceServer, {
+  "/v1/audits": routeConfig,
+});
+const paidHandler = withX402FromHTTPServer(handler, httpServer);
 
 export async function POST(req) {
   const gate = deepAuditGate();

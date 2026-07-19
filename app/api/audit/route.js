@@ -1,6 +1,6 @@
 import { after } from "next/server";
 import { NextResponse } from "next/server";
-import { withX402 } from "@x402/next";
+import { withX402FromHTTPServer, x402HTTPResourceServer } from "@x402/next";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { auditSite } from "../../../audit.js";
 import { notifyTransaction } from "../../../notify.js";
@@ -19,9 +19,7 @@ async function handler(req) {
   }
 }
 
-const paidHandler = withX402(
-  handler,
-  {
+const routeConfig = {
     accepts: {
       scheme: "exact",
       price: "$0.005",
@@ -62,9 +60,15 @@ const paidHandler = withX402(
         },
       }),
     },
-  },
-  resourceServer
-);
+};
+
+// Verbless route key: parseRoutePattern would scope a "VERB /path" key to that
+// verb only, and Next.js serves HEAD through the GET handler — a verb-scoped
+// route would let HEAD probes reach the audit unpaid.
+const httpServer = new x402HTTPResourceServer(resourceServer, {
+  "/api/audit": routeConfig,
+});
+const paidHandler = withX402FromHTTPServer(handler, httpServer);
 
 export async function OPTIONS() {
   return new NextResponse(null, {
