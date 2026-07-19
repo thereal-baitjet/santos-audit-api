@@ -8,7 +8,7 @@ function rateLimited() {
   const midnight = new Date();
   midnight.setUTCHours(24, 0, 0, 0);
   return NextResponse.json(
-    { error: "Free demo is 1 audit/day. Agents can pay per-call at GET /api/audit (x402, $0.005).", code: "RATE_LIMITED" },
+    { error: "Free demo is 1 audit/day. Agents can pay per-call at GET /api/audit (x402, $0.015).", code: "RATE_LIMITED" },
     {
       status: 429,
       headers: { ...CORS, "Retry-After": String(Math.ceil((midnight - Date.now()) / 1000)) },

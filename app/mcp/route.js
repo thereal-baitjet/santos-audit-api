@@ -30,7 +30,7 @@ const PREVIEW_TOOL = {
   name: "audit_website_preview",
   description:
     "FREE PREVIEW (1 audit per day per IP) of Santos Website Intelligence. Runs a fast Quick Intelligence Audit of one public page: fetch timing, page weight, SEO, basic HTML accessibility, security headers, Website Intelligence dimensions, pass/fail checks, and remediation guidance. It audits one page only—no crawling, JavaScript rendering, Core Web Vitals, WCAG certification, or vulnerability scanning. " +
-    `For unlimited audits, use the machine-payable production endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... — $0.005 USDC per successful audit on Base mainnet (eip155:8453) via x402 v2; no account or API key required.`,
+    `For unlimited audits, use the machine-payable production endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... — $0.015 USDC per successful audit on Base mainnet (eip155:8453) via x402 v2; no account or API key required.`,
   inputSchema: {
     type: "object",
     properties: {
@@ -81,7 +81,7 @@ async function callAuditTool(args, ip) {
       isError: true,
       content: [{
         type: "text",
-        text: `RATE_LIMITED: the free preview is 1 audit/day per IP. For unlimited audits use the x402 endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... ($0.005 USDC on Base mainnet).`,
+        text: `RATE_LIMITED: the free preview is 1 audit/day per IP. For unlimited audits use the x402 endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... ($0.015 USDC on Base mainnet).`,
       }],
     };
   }

@@ -20,9 +20,9 @@ export async function GET() {
       capability_manifest_url: `${PUBLIC_API_BASE_URL}/capabilities.json`,
       website: "https://www.santosautomation.com",
       pricing: {
-        amount: "0.005",
+        amount: "0.015",
         currency: "USDC",
-        atomic_amount: "5000",
+        atomic_amount: "15000",
         billing_unit: "successful audit",
       },
       payment: {
@@ -53,7 +53,7 @@ export async function GET() {
         quick: {
           title: "Quick Intelligence Audit",
           endpoint: "GET /api/audit?url=",
-          price_usdc: "0.005",
+          price_usdc: "0.015",
           mode: "synchronous",
           engine: "fetch + HTML parsing (no browser)",
         },
@@ -70,7 +70,7 @@ export async function GET() {
         "deep-page": {
           title: "Deep Website Intelligence Audit",
           endpoint: "POST /v1/audits",
-          price_usdc: process.env.DEEP_AUDIT_PRICE_USDC ?? "0.075",
+          price_usdc: process.env.DEEP_AUDIT_PRICE_USDC ?? "0.225",
           mode: "asynchronous job (poll status_url)",
           engine: "Chromium/Playwright + Lighthouse + rendered axe-core + network evidence + screenshots + passive security",
           payment_note: "Payment buys one bounded compute reservation; settles when the job is accepted, not on report completion. Use an Idempotency-Key header.",
@@ -78,9 +78,9 @@ export async function GET() {
         },
       },
       endpoints: {
-        "GET /api/audit?url=": "$0.005 USDC via x402 v2 — quick audit, synchronous",
+        "GET /api/audit?url=": "$0.015 USDC via x402 v2 — quick audit, synchronous",
         "GET /api/agent-readiness?url=&depth=quick": `$${readinessPrice} USDC via x402 v2 — Agent Readiness audit, synchronous`,
-        "POST /v1/audits": `$${process.env.DEEP_AUDIT_PRICE_USDC ?? "0.075"} USDC via x402 v2 — deep page audit job, asynchronous`,
+        "POST /v1/audits": `$${process.env.DEEP_AUDIT_PRICE_USDC ?? "0.225"} USDC via x402 v2 — deep page audit job, asynchronous`,
         "GET /api/audit/demo?url=": "free, 1/day per IP, human demo",
         "POST /mcp": "MCP server (Streamable HTTP) — free preview tool audit_website_preview",
       },

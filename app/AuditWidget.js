@@ -30,7 +30,7 @@ export default async function AuditWidget() {
         <button className="btn primary" type="submit" data-analytics-event="quick_audit_started">Run Quick Intelligence Audit</button>
       </form>
       <p className="audit-note" id="audit-note">
-        Agents: <code>GET /api/audit?url=…</code> · 0.005 USDC via x402 · no account or API key
+        Agents: <code>GET /api/audit?url=…</code> · 0.015 USDC via x402 · no account or API key
       </p>
       <p className="audit-status" aria-live="polite" data-audit-status />
       <div className="audit-result" data-audit-result hidden>

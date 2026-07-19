@@ -145,7 +145,7 @@ const document = {
     title: "Santos Website Intelligence API",
     version: "2.3.1",
     description:
-      `AI Website Intelligence for determining whether public websites can be discovered, understood, trusted, and used by agents. Three paid capabilities use USDC on Base mainnet (eip155:8453) via x402 v2 with no account or traditional API key. QUICK INTELLIGENCE (GET /api/audit, $0.005, synchronous): lightweight single-page fetch-and-parse audit. AGENT READINESS (GET /api/agent-readiness, $${AGENT_READINESS_PRICE}, synchronous): bounded passive discovery and applicability-aware assessment of agent-facing interfaces. DEEP WEBSITE INTELLIGENCE (POST /v1/audits, $0.075, asynchronous): real Chromium via Playwright, Lighthouse, rendered axe-core, browser evidence, screenshots, and passive security checks. Quick and Agent Readiness payments settle only on a successful response; Deep payment purchases a bounded compute reservation and settles when the job is accepted.`,
+      `AI Website Intelligence for determining whether public websites can be discovered, understood, trusted, and used by agents. Three paid capabilities use USDC on Base mainnet (eip155:8453) via x402 v2 with no account or traditional API key. QUICK INTELLIGENCE (GET /api/audit, $0.015, synchronous): lightweight single-page fetch-and-parse audit. AGENT READINESS (GET /api/agent-readiness, $${AGENT_READINESS_PRICE}, synchronous): bounded passive discovery and applicability-aware assessment of agent-facing interfaces. DEEP WEBSITE INTELLIGENCE (POST /v1/audits, $0.225, asynchronous): real Chromium via Playwright, Lighthouse, rendered axe-core, browser evidence, screenshots, and passive security checks. Quick and Agent Readiness payments settle only on a successful response; Deep payment purchases a bounded compute reservation and settles when the job is accepted.`,
     contact: { name: "Santos Automation", email: "info@santosautomation.com", url: "https://www.santosautomation.com" },
   },
   servers: [{ url: PUBLIC_API_BASE_URL }],
@@ -170,9 +170,9 @@ const document = {
       get: {
         operationId: "auditWebsite",
         tags: ["Quick Intelligence"],
-        summary: "Run a Quick Intelligence Audit ($0.005 USDC via x402)",
+        summary: "Run a Quick Intelligence Audit ($0.015 USDC via x402)",
         description:
-          "Requires x402 v2 payment. An unpaid request returns HTTP 402 with machine-readable terms in the base64 `PAYMENT-REQUIRED` response header (`accepts[0]`: $0.005 USDC as amount \"5000\", network eip155:8453, scheme `exact`), including an x402 Bazaar discovery extension with input/output JSON Schemas. Sign an EIP-3009 transferWithAuthorization for the quoted amount and retry with the `PAYMENT-SIGNATURE` request header. Any x402 v2 client (e.g. @x402/fetch) automates this. Payment settles only after a successful (2xx) response — failed audits cost nothing. Rejected payments and audit failures return structured errors.",
+          "Requires x402 v2 payment. An unpaid request returns HTTP 402 with machine-readable terms in the base64 `PAYMENT-REQUIRED` response header (`accepts[0]`: $0.015 USDC as amount \"15000\", network eip155:8453, scheme `exact`), including an x402 Bazaar discovery extension with input/output JSON Schemas. Sign an EIP-3009 transferWithAuthorization for the quoted amount and retry with the `PAYMENT-SIGNATURE` request header. Any x402 v2 client (e.g. @x402/fetch) automates this. Payment settles only after a successful (2xx) response — failed audits cost nothing. Rejected payments and audit failures return structured errors.",
         parameters: [urlParam],
         responses: {
           200: {
@@ -190,7 +190,7 @@ const document = {
             headers: {
               "PAYMENT-REQUIRED": {
                 schema: { type: "string" },
-                description: "Base64-encoded JSON: { x402Version: 2, resource, accepts: [{ scheme, network, amount, asset, payTo, maxTimeoutSeconds }], extensions }. amount \"5000\" = $0.005 USDC.",
+                description: "Base64-encoded JSON: { x402Version: 2, resource, accepts: [{ scheme, network, amount, asset, payTo, maxTimeoutSeconds }], extensions }. amount \"15000\" = $0.015 USDC.",
               },
             },
             content: {
@@ -233,7 +233,7 @@ const document = {
       post: {
         operationId: "createDeepAudit",
         tags: ["Deep Website Intelligence"],
-        summary: "Create a Deep Website Intelligence job ($0.075 USDC via x402, asynchronous)",
+        summary: "Create a Deep Website Intelligence job ($0.225 USDC via x402, asynchronous)",
         description:
           "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE). The payment purchases one bounded compute reservation — it settles when the job is ACCEPTED (201), not when the report completes. Runs a real Chromium browser (Playwright) against the page: Lighthouse (mobile lab metrics), rendered axe-core accessibility checks (WCAG 2.x A/AA tags), browser network/console evidence, screenshots, and passive security checks. Send an Idempotency-Key header so retries return the existing job (409 IDEMPOTENT_REPLAY, not charged) instead of purchasing a duplicate. Typical completion: tens of seconds to a few minutes; poll status_url.",
         parameters: [{

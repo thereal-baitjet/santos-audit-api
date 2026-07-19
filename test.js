@@ -75,11 +75,11 @@ check("Agent Readiness rejects private targets before work/payment", readinessBa
 const readinessUnpaid = await fetch(`${BASE}/api/agent-readiness?url=${encodeURIComponent("https://example.com")}&depth=quick`);
 const readinessPaymentHeader = readinessUnpaid.headers.get("payment-required");
 const readinessTerms = readinessPaymentHeader ? JSON.parse(Buffer.from(readinessPaymentHeader, "base64").toString("utf-8")) : {};
-check("Agent Readiness requires $0.025 USDC before work", readinessUnpaid.status === 402 && readinessTerms.x402Version === 2 && readinessTerms.accepts?.[0]?.amount === "25000", `status=${readinessUnpaid.status} amount=${readinessTerms.accepts?.[0]?.amount}`);
+check("Agent Readiness requires $0.075 USDC before work", readinessUnpaid.status === 402 && readinessTerms.x402Version === 2 && readinessTerms.accepts?.[0]?.amount === "75000", `status=${readinessUnpaid.status} amount=${readinessTerms.accepts?.[0]?.amount}`);
 check("Agent Readiness 402 discovery names the canonical route", [undefined, "/api/agent-readiness"].includes(readinessTerms.extensions?.bazaar?.routeTemplate) && new URL(readinessTerms.resource?.url ?? "http://x/").pathname === "/api/agent-readiness", `template=${readinessTerms.extensions?.bazaar?.routeTemplate} url=${readinessTerms.resource?.url}`);
 
 const capabilities = await (await fetch(`${BASE}/capabilities.json`)).json();
-check("vendor capability manifest is explicit, versioned, and prices Agent Readiness", capabilities.standard === false && capabilities.manifest_version === "1.0.0" && capabilities.capabilities?.some((item) => item.id === "agent-readiness.quick" && item.price?.amount === "0.025" && item.billing_unit === "successful audit"));
+check("vendor capability manifest is explicit, versioned, and prices Agent Readiness", capabilities.standard === false && capabilities.manifest_version === "1.0.0" && capabilities.capabilities?.some((item) => item.id === "agent-readiness.quick" && item.price?.amount === "0.075" && item.billing_unit === "successful audit"));
 
 // 3d) llms.txt
 const llms = await fetch(`${BASE}/llms.txt`);
@@ -99,11 +99,11 @@ const badOrigin = await rpc("tools/list", {}, 3, { Origin: "https://evil.example
 check("MCP rejects untrusted browser Origin", badOrigin.status === 403);
 const tools = await (await rpc("tools/list", {})).json();
 check("MCP lists audit_website_preview with strict schema", tools.result?.tools?.[0]?.name === "audit_website_preview" && tools.result?.tools?.[0]?.inputSchema?.required?.includes("url") && tools.result?.tools?.[0]?.inputSchema?.additionalProperties === false);
-check("MCP tool discloses paid x402 endpoint", /x402|\$0\.005/.test(tools.result?.tools?.[0]?.description ?? ""));
+check("MCP tool discloses paid x402 endpoint", /x402|\$0\.015/.test(tools.result?.tools?.[0]?.description ?? ""));
 const readinessTool = tools.result?.tools?.find((tool) => tool.name === "audit_agent_readiness");
-check("MCP lists strict, structured paid Agent Readiness tool", readinessTool?.inputSchema?.additionalProperties === false && readinessTool?.outputSchema?.properties?.schema_version?.const === "1.0.0" && readinessTool?.annotations?.readOnlyHint === true && /\$0\.025|paid capability/i.test(readinessTool?.description ?? ""));
+check("MCP lists strict, structured paid Agent Readiness tool", readinessTool?.inputSchema?.additionalProperties === false && readinessTool?.outputSchema?.properties?.schema_version?.const === "1.0.0" && readinessTool?.annotations?.readOnlyHint === true && /\$0\.075|paid capability/i.test(readinessTool?.description ?? ""));
 const readinessCall = await (await rpc("tools/call", { name: "audit_agent_readiness", arguments: { url: "https://example.com" } })).json();
-check("MCP Agent Readiness closes the free execution bypass", readinessCall.result?.isError === true && /PAYMENT_REQUIRED/.test(JSON.stringify(readinessCall.result)) && /0\.025/.test(JSON.stringify(readinessCall.result)));
+check("MCP Agent Readiness closes the free execution bypass", readinessCall.result?.isError === true && /PAYMENT_REQUIRED/.test(JSON.stringify(readinessCall.result)) && /0\.075/.test(JSON.stringify(readinessCall.result)));
 const badCall = await (await rpc("tools/call", { name: "audit_website_preview", arguments: { url: "http://127.0.0.1/" } })).json();
 check("MCP rejects private URL", badCall.result?.isError === true && /PRIVATE_ADDRESS_BLOCKED/.test(JSON.stringify(badCall.result)));
 
@@ -122,7 +122,7 @@ if (deepCreate.status === 503) {
 }
 check("openapi documents createDeepAudit", JSON.stringify(oaDoc).includes("createDeepAudit"));
 const manifest2 = await (await fetch(`${BASE}/api`)).json();
-check("manifest lists all paid tiers with prices", manifest2.tiers?.quick?.price_usdc === "0.005" && manifest2.tiers?.["agent-readiness"]?.price_usdc === "0.025" && !!manifest2.tiers?.["deep-page"]?.price_usdc);
+check("manifest lists all paid tiers with prices", manifest2.tiers?.quick?.price_usdc === "0.015" && manifest2.tiers?.["agent-readiness"].price_usdc === "0.075" && !!manifest2.tiers?.["deep-page"].price_usdc);
 
 // 4) Paid route without payment -> 402 with valid x402 v2 terms in PAYMENT-REQUIRED header
 const NET = process.env.EXPECT_NETWORK ?? "eip155:8453";
@@ -132,7 +132,7 @@ const prHeader = unpaid.headers.get("payment-required");
 check("402 carries PAYMENT-REQUIRED header", !!prHeader);
 const terms = prHeader ? JSON.parse(Buffer.from(prHeader, "base64").toString("utf-8")) : {};
 const accept = terms.accepts?.[0];
-check(`402 terms: v2 + ${NET} + payTo + $0.005 (5000 atomic)`, terms.x402Version === 2 && accept?.network === NET && /^0x[0-9a-fA-F]{40}$/.test(accept?.payTo ?? "") && accept?.amount === "5000");
+check(`402 terms: v2 + ${NET} + payTo + $0.015 (15000 atomic)`, terms.x402Version === 2 && accept?.network === NET && /^0x[0-9a-fA-F]{40}$/.test(accept?.payTo ?? "") && accept?.amount === "15000");
 check("402 carries bazaar discovery extension", !!terms.extensions?.bazaar?.info?.input && !!terms.extensions?.bazaar?.schema);
 // Static route keys emit no routeTemplate (the field only appears for dynamic
 // patterns); catalogs then index the real path from resource.url. The bug was

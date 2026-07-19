@@ -17,7 +17,7 @@ import { deepAuditGate, NO_STORE } from "../../../lib/deep/gate.js";
 import { PUBLIC_API_BASE_URL } from "../../../lib/base-url.js";
 import { notifyTransaction } from "../../../notify.js";
 
-const PRICE = `$${process.env.DEEP_AUDIT_PRICE_USDC ?? "0.075"}`;
+const PRICE = `$${process.env.DEEP_AUDIT_PRICE_USDC ?? "0.225"}`;
 const IDEM_SECRET = process.env.IDEMPOTENCY_HASH_SECRET ?? "dev-only-idem-secret";
 
 const jobLinks = (id) => ({
@@ -178,7 +178,7 @@ export async function POST(req) {
           payer: settlement.payer,
           transaction: settlement.transaction,
           network: settlement.network,
-          amount: process.env.DEEP_AUDIT_PRICE_USDC ?? "0.075",
+          amount: process.env.DEEP_AUDIT_PRICE_USDC ?? "0.225",
         })
       );
     } catch (e) {
