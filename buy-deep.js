@@ -1,4 +1,4 @@
-// Buy one Deep Page Audit ($0.075 USDC via x402 v2), poll to completion, print the report.
+// Buy one Deep Page Audit ($0.225 USDC via x402 v2), poll to completion, print the report.
 //   BUYER_PRIVATE_KEY=0x... node buy-deep.js https://example.com
 import { randomUUID } from "node:crypto";
 import { privateKeyToAccount } from "viem/accounts";

@@ -2,8 +2,8 @@
 
 > AI Website Intelligence for measuring whether a public website can be discovered,
 > understood, trusted, and used by AI agents. Machine-payable website and Agent
-> Readiness audits run on Base mainnet (eip155:8453) through x402 v2: $0.005 USDC
-> for Quick Audit, $0.025 for Agent Readiness, and $0.075 for a Deep Page compute
+> Readiness audits run on Base mainnet (eip155:8453) through x402 v2: $0.015 USDC
+> for Quick Audit, $0.075 for Agent Readiness, and $0.225 for a Deep Page compute
 > reservation. No user account and no traditional API key are required — an agent
 > pays inside the HTTP request itself.
 
@@ -19,10 +19,10 @@ Built and operated by Santos Automation. From discoverable to callable.
 
 ## API — audit modes
 
-- [Agent Readiness Audit](https://api.santosautomation.com/api/agent-readiness?url=https%3A%2F%2Fexample.com&depth=quick): $0.025 USDC per successful audit, synchronous, bounded passive public-interface assessment
-- [Quick Intelligence Audit](https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com): $0.005 USDC, synchronous (seconds), fetch-and-parse engine
+- [Agent Readiness Audit](https://api.santosautomation.com/api/agent-readiness?url=https%3A%2F%2Fexample.com&depth=quick): $0.075 USDC per successful audit, synchronous, bounded passive public-interface assessment
+- [Quick Intelligence Audit](https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com): $0.015 USDC, synchronous (seconds), fetch-and-parse engine
 - [Free demo audit](https://api.santosautomation.com/api/audit/demo?url=https%3A%2F%2Fexample.com): 1/day per IP, same report shape as the paid Quick Audit
-- [Deep Website Intelligence Audit](https://api.santosautomation.com/v1/audits): $0.075 USDC, asynchronous job — POST {"url": "https://example.com"}
+- [Deep Website Intelligence Audit](https://api.santosautomation.com/v1/audits): $0.225 USDC, asynchronous job — POST {"url": "https://example.com"}
 
 AGENT READINESS AUDIT details:
 - Capability id: `agent-readiness.quick`; result schema version: `1.0.0`.
@@ -33,7 +33,7 @@ AGENT READINESS AUDIT details:
 - Passive only: never authenticates to or pays the audited target, creates target
   accounts, submits forms, calls MCP business tools, or executes target-provided code.
 - Access: x402 v2 on Base mainnet; no account or API key. An unpaid request returns
-  `PAYMENT-REQUIRED` terms for 25000 atomic USDC units. Settlement occurs only after
+  `PAYMENT-REQUIRED` terms for 75000 atomic USDC units. Settlement occurs only after
   a successful audit response.
 
 DEEP WEBSITE INTELLIGENCE AUDIT details (real-browser engine: Chromium/Playwright +
@@ -66,9 +66,9 @@ public HTTP or HTTPS URL, the API returns JSON with:
 
 ## Agent Selection Guidance
 
-Choose QUICK AUDIT ($0.005, seconds) for fast structured triage: lead
+Choose QUICK AUDIT ($0.015, seconds) for fast structured triage: lead
 qualification, deploy sanity checks, monitoring sweeps. Choose DEEP PAGE AUDIT
-($0.075, asynchronous) when you need browser-rendered evidence: Lighthouse lab
+($0.225, asynchronous) when you need browser-rendered evidence: Lighthouse lab
 metrics (LCP/CLS/TBT), rendered axe-core accessibility findings with selectors,
 screenshots, network/console evidence, or a professional-grade report for a
 client. Both audit a single page — neither is a crawler. Use the free demo
@@ -89,14 +89,14 @@ audit or invoke any tool advertised by the audited target.
 - Protocol: x402 v2 (`PAYMENT-REQUIRED` response header carries base64 terms;
   pay by retrying with a `PAYMENT-SIGNATURE` request header; the settled response
   includes a base64 `PAYMENT-RESPONSE` receipt header).
-- Quick Audit price: $0.005 USDC per successful audit (5000 atomic units).
-- Agent Readiness price: $0.025 USDC per successful audit (25000 atomic units).
-- Deep Page Audit price: $0.075 USDC per bounded compute reservation (75000 atomic units).
+- Quick Audit price: $0.015 USDC per successful audit (15000 atomic units).
+- Agent Readiness price: $0.075 USDC per successful audit (75000 atomic units).
+- Deep Page Audit price: $0.225 USDC per bounded compute reservation (225000 atomic units).
 - Network: `eip155:8453` (Base mainnet). Asset: USDC at 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.
 - Pay to: 0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B.
-- Humans without a USDC wallet: a one-time $19 USD [Agent Readiness Report by card](https://www.santosautomation.com/agent-readiness/buy)
+- Humans without a USDC wallet: a one-time $5 USD [Agent Readiness Report by card](https://www.santosautomation.com/agent-readiness/buy)
   (Stripe Checkout) — no account, emailed as a private tokened link. This is a human
-  convenience; the machine-payable per-call price remains $0.025 USDC via x402.
+  convenience; the machine-payable per-call price remains $0.075 USDC via x402.
   Refunds by email to info@santosautomation.com.
 - Flow: request without payment returns HTTP 402; decode the `PAYMENT-REQUIRED`
   header for full terms (`accepts[0]`); sign an EIP-3009 transferWithAuthorization

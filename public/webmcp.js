@@ -17,7 +17,7 @@
       name: "run_quick_audit",
       title: "Run free Quick Intelligence Audit",
       description:
-        "Run a free website intelligence audit of a public URL (1 per day per IP). Returns the AI Website Intelligence score, per-dimension scores (performance, technical SEO, accessibility, security) and prioritized issues. For unlimited machine access use GET https://api.santosautomation.com/api/audit (x402, 0.005 USDC).",
+        "Run a free website intelligence audit of a public URL (1 per day per IP). Returns the AI Website Intelligence score, per-dimension scores (performance, technical SEO, accessibility, security) and prioritized issues. For unlimited machine access use GET https://api.santosautomation.com/api/audit (x402, 0.015 USDC).",
       inputSchema: {
         type: "object",
         properties: {

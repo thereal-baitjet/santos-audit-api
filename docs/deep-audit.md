@@ -3,7 +3,7 @@
 ## Architecture
 
 ```
-Agent ── x402 $0.075 ──> Vercel control plane (POST /v1/audits)
+Agent ── x402 $0.225 ──> Vercel control plane (POST /v1/audits)
                               │  validates target, idempotency, creates job row
                               ▼
                          Postgres (Supabase or any PG)

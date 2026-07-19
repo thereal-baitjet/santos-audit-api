@@ -15,7 +15,7 @@ This release is additive for existing Quick Audit clients.
 - MCP clients may continue using `audit_website_preview`; `audit_agent_readiness` is a
   new read-only tool. The server now negotiates MCP `2025-11-25` while retaining the
   two previously supported versions.
-- The dedicated endpoint is paid at `0.025` USDC per successful response through x402
+- The dedicated endpoint is paid at `0.075` USDC per successful response through x402
   v2. `AGENT_READINESS_PRICE_USDC` may override that default with another positive
   value of at most six decimal places; invalid values fail the build rather than
   advertising unenforced terms.

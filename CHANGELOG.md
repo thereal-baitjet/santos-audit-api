@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.3.2 — 2026-07-19 — Price consistency across discovery surfaces
+
+### Fixed
+- **Stale prices on public discovery surfaces.** The 3x price increase (Quick
+  $0.015, Agent Readiness $0.075, Deep $0.225) and the $5 human report price
+  were enforced in the paid routes but never propagated to `llms.txt` (which
+  still advertised $0.005/$0.025/$0.075, the old atomic-unit amounts, and the
+  $19 card price), the WebMCP tool description, the README, the Python/JS buyer
+  examples, and the registry submission copy. All documented prices now match
+  the enforced 402 terms — the exact documented-vs-enforced contradiction the
+  Agent Readiness audit itself flags on other sites.
+
 ## 2.3.1 — 2026-07-18 — Real Bazaar route templates, agent-friendly robots.txt
 
 ### Fixed

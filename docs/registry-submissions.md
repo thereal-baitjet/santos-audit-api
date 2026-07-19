@@ -8,9 +8,9 @@ none of them have been submitted yet.
 
 - **Name:** Santos Site Audit API
 - **Short description:** A machine-payable API that audits public websites for performance, SEO, accessibility, and security.
-- **Long description:** Santos Site Audit API gives AI agents and automated workflows a structured technical review of a public website. It returns category scores, detailed checks, detected issues, and actionable remediation recommendations. Production audits cost $0.005 USDC on Base through x402, with no user account or traditional API key required.
+- **Long description:** Santos Site Audit API gives AI agents and automated workflows a structured technical review of a public website. It returns category scores, detailed checks, detected issues, and actionable remediation recommendations. Production audits cost $0.015 USDC on Base through x402, with no user account or traditional API key required.
 - **Category:** Website analysis / developer tools
-- **Price:** $0.005 USDC per audit
+- **Price:** $0.015 USDC per audit
 - **Network:** Base mainnet (eip155:8453)
 - **Authentication:** x402 v2 payment authorization (`PAYMENT-SIGNATURE` request header / `PAYMENT-RESPONSE` receipt header)
 - **Canonical endpoint:** https://api.santosautomation.com/api/audit
@@ -47,7 +47,7 @@ current CDP Bazaar listing UI) for the resource URL.
 
 ## 4. GitHub repository settings **[manual]**
 
-- Description: `$0.005 x402 website audit API for AI agents, covering performance, SEO, accessibility, and security with no traditional API key.`
+- Description: `$0.015 x402 website audit API for AI agents, covering performance, SEO, accessibility, and security with no traditional API key.`
 - Topics: `x402`, `ai-agents`, `website-audit`, `seo-api`, `accessibility`, `web-security`, `openapi`, `mcp-server`, `base`, `usdc`
 - Note: the repo is currently **private**; listings that link to it should
   either omit the repo link or the repo should be made public first.
@@ -71,8 +71,8 @@ Production and Preview. All canonical URLs in this document are current.
 - **MCP tool:** `audit_agent_readiness`
 - **Result schema:** `AgentReadinessResult` 1.0.0
 - **Capability manifest:** https://api.santosautomation.com/capabilities.json
-- **Price:** $0.025 USDC per successful audit through x402 v2 on Base mainnet
-  (`amount: "25000"`, billing unit: successful response).
+- **Price:** $0.075 USDC per successful audit through x402 v2 on Base mainnet
+  (`amount: "75000"`, billing unit: successful response).
 
 The official MCP Registry submission remains a manual owner action. Do not claim
 publication until the listing is externally visible and domain ownership is verified.

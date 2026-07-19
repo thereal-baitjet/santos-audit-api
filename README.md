@@ -23,9 +23,9 @@ navigation uses the gold Santos eagle SVG emblem from `public/assets`.
 
 | Surface | URL |
 |---|---|
-| Quick Intelligence Audit ($0.005 USDC, synchronous) | `GET /api/audit?url=https://example.com` |
-| **Agent Readiness** ($0.025 USDC, bounded passive assessment) | `GET /api/agent-readiness?url=https://example.com&depth=quick` |
-| **Deep Website Intelligence Audit** ($0.075 USDC, async job) | `POST /v1/audits` `{"url": "https://example.com"}` |
+| Quick Intelligence Audit ($0.015 USDC, synchronous) | `GET /api/audit?url=https://example.com` |
+| **Agent Readiness** ($0.075 USDC, bounded passive assessment) | `GET /api/agent-readiness?url=https://example.com&depth=quick` |
+| **Deep Website Intelligence Audit** ($0.225 USDC, async job) | `POST /v1/audits` `{"url": "https://example.com"}` |
 | Free demo (1/day per IP) | `GET /api/audit/demo?url=https://example.com` |
 | OpenAPI 3.1 | [`/openapi.json`](https://api.santosautomation.com/openapi.json) |
 | llms.txt | [`/llms.txt`](https://api.santosautomation.com/llms.txt) |
@@ -64,7 +64,7 @@ scores, endpoint paths, capability ids, and payment behavior remain compatible.
 
 ```
 GET /api/audit?url=example.com
-← 402 · PAYMENT-REQUIRED: <base64 terms: $0.005 USDC · eip155:8453 · payTo · asset>
+← 402 · PAYMENT-REQUIRED: <base64 terms: $0.015 USDC · eip155:8453 · payTo · asset>
 → retry with PAYMENT-SIGNATURE: <base64 signed EIP-3009 authorization>
 ← 200 OK · audit JSON · PAYMENT-RESPONSE: <base64 on-chain receipt>
 ```
@@ -110,7 +110,7 @@ curl "https://api.santosautomation.com/api/audit/demo?url=example.com"
 Real Chromium via Playwright in an isolated Fly.io worker: Lighthouse lab
 metrics, rendered axe-core accessibility findings (with selectors), browser
 network/console evidence, screenshots, and passive security checks. Async:
-the $0.075 payment buys a **bounded compute reservation** (settles on job
+the $0.225 payment buys a **bounded compute reservation** (settles on job
 accept, not report completion). `POST /v1/audits` with an `Idempotency-Key`
 header → poll `status_url` with the returned one-time `access_token` → fetch
 `report_url` (versioned `schema_version: 3.0.0` JSON + signed artifact URLs).
@@ -129,7 +129,7 @@ target, submits forms, creates target accounts, invokes target tools, or execute
 Agent Readiness is also available as the opt-in `agent-readiness` module for
 `POST /v1/audits`, through the MCP `audit_agent_readiness` paid-HTTP handoff, and
 additively as a lower-coverage embedded preview inside the Quick Audit response.
-The standalone result costs **$0.025 USDC per successful response** through x402 v2;
+The standalone result costs **$0.075 USDC per successful response** through x402 v2;
 failed audits do not settle. The existing Quick Audit `overall_score` is unchanged.
 The standalone response also includes the additive Website Intelligence score and
 four-dimensional presentation, with `callable` marked not applicable when the
