@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../../../lib/agent-log.js";
 // POST /v1/extract/structured — page-to-JSON extraction against a caller-supplied
 // JSON Schema, x402-paid. Payment settles only when the extracted data validates
 // against that schema; a page that can't satisfy it, or a bad schema, costs nothing.
@@ -88,7 +89,7 @@ const httpServer = new x402HTTPResourceServer(resourceServer, {
 });
 const paidHandler = withX402FromHTTPServer(handler, httpServer);
 
-export async function POST(req) {
+async function handlePOST(req) {
   const res = await paidHandler(req);
   res.headers.set("Access-Control-Allow-Origin", "*");
   res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
@@ -125,3 +126,5 @@ export async function OPTIONS() {
     },
   });
 }
+
+export const POST = withAgentLog(handlePOST, "structured-extract");

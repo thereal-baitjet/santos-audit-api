@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../../../lib/agent-log.js";
 // GET /v1/extract/demo — one free extraction per day per IP (quota shared with
 // the quick-audit demo, so the free-tier surface stays one-scan-a-day total).
 import { NextResponse } from "next/server";
@@ -17,7 +18,7 @@ function rateLimited() {
   );
 }
 
-export async function GET(req) {
+async function handleGET(req) {
   const ip = ipFromRequest(req);
   const url = req.nextUrl.searchParams.get("url") ?? "";
 
@@ -50,3 +51,5 @@ export async function OPTIONS() {
     },
   });
 }
+
+export const GET = withAgentLog(handleGET, "extract-demo");

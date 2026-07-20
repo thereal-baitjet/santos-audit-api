@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../../lib/agent-log.js";
 // GET /v1/screenshot?url=&format=png|jpeg|pdf&device=&full_page= — x402-paid,
 // synchronous over the browser job queue: the request enqueues a screenshot
 // job, waits for the worker, and returns the binary directly. Payment settles
@@ -131,7 +132,7 @@ const httpServer = new x402HTTPResourceServer(resourceServer, {
 });
 const paidHandler = withX402FromHTTPServer(handler, httpServer);
 
-export async function GET(req) {
+async function handleGET(req) {
   const gate = deepAuditGate();
   if (gate) return gate;
   const res = await paidHandler(req);
@@ -169,3 +170,5 @@ export async function OPTIONS() {
     },
   });
 }
+
+export const GET = withAgentLog(handleGET, "screenshot");

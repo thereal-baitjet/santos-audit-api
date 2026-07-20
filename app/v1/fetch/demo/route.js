@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../../../lib/agent-log.js";
 // GET /v1/fetch/demo — one free safe fetch per day per IP (quota shared with
 // the other free demos, so the free-tier surface stays one request a day).
 import { NextResponse } from "next/server";
@@ -17,7 +18,7 @@ function rateLimited() {
   );
 }
 
-export async function GET(req) {
+async function handleGET(req) {
   const ip = ipFromRequest(req);
   const url = req.nextUrl.searchParams.get("url") ?? "";
 
@@ -50,3 +51,5 @@ export async function OPTIONS() {
     },
   });
 }
+
+export const GET = withAgentLog(handleGET, "safe-fetch-demo");

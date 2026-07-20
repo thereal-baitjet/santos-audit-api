@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../../lib/agent-log.js";
 // GET /v1/fetch?url= (also POST {"url"}) — Safe Fetch, x402-paid.
 // The hardened safe-fetcher sold directly: raw text body + response metadata.
 // Payment settles only on a successful fetch; failures are free.
@@ -101,11 +102,11 @@ async function paidWithReceipt(req) {
   return res;
 }
 
-export async function GET(req) {
+async function handleGET(req) {
   return paidWithReceipt(req);
 }
 
-export async function POST(req) {
+async function handlePOST(req) {
   return paidWithReceipt(req);
 }
 
@@ -121,3 +122,6 @@ export async function OPTIONS() {
     },
   });
 }
+
+export const GET = withAgentLog(handleGET, "safe-fetch");
+export const POST = withAgentLog(handlePOST, "safe-fetch");

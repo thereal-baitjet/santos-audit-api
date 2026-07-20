@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../../lib/agent-log.js";
 import { after, NextResponse } from "next/server";
 import { withX402FromHTTPServer, x402HTTPResourceServer } from "@x402/next";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
@@ -90,7 +91,7 @@ export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: { ...CORS, "Access-Control-Allow-Methods": "GET, OPTIONS", "Access-Control-Allow-Headers": "Content-Type, PAYMENT-SIGNATURE", "Access-Control-Expose-Headers": "PAYMENT-REQUIRED, PAYMENT-RESPONSE", "Access-Control-Max-Age": "86400" } });
 }
 
-export async function GET(req) {
+async function handleGET(req) {
   const response = await paidHandler(req);
   response.headers.set("Access-Control-Allow-Origin", "*");
   response.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
@@ -112,3 +113,5 @@ export async function GET(req) {
   }
   return response;
 }
+
+export const GET = withAgentLog(handleGET, "agent-readiness");

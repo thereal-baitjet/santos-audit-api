@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../lib/agent-log.js";
 // Minimal stateless MCP server (Streamable HTTP transport, JSON responses).
 // Exposes audit_website_preview — the FREE limited tier (1/day per IP, shared
 // with /api/audit/demo). Paid tools return canonical x402 HTTP handoffs so MCP
@@ -221,7 +222,7 @@ function callAgentReadinessTool(args) {
   }
 }
 
-export async function POST(req) {
+async function handlePOST(req) {
   // Streamable HTTP security: reject browser requests from unknown origins.
   const origin = req.headers.get("origin");
   if (origin && !ALLOWED_ORIGINS.has(origin)) {
@@ -278,7 +279,7 @@ export async function POST(req) {
 
 // A human clicking this link from the capabilities manifest gets a friendly
 // explainer instead of a bare 405. MCP clients use POST (unchanged).
-export async function GET(req) {
+async function handleGET(req) {
   const wantsHtml = (req.headers.get("accept") ?? "").includes("text/html");
   const explainer = {
     service: "Santos Website Intelligence — Model Context Protocol (MCP) endpoint",
@@ -309,3 +310,6 @@ export async function GET(req) {
 export async function DELETE() {
   return new NextResponse(null, { status: 405, headers: { Allow: "POST" } });
 }
+
+export const POST = withAgentLog(handlePOST, "mcp");
+export const GET = withAgentLog(handleGET, "mcp-explainer");

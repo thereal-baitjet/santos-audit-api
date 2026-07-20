@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../lib/agent-log.js";
 import { NextResponse } from "next/server";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
 import { AGENT_READINESS_RESULT_SCHEMA } from "../../lib/agent-readiness/contract.js";
@@ -571,8 +572,10 @@ const document = {
   tags: [{ name: "Quick Intelligence" }, { name: "Agent Readiness" }, { name: "Deep Website Intelligence" }],
 };
 
-export async function GET() {
+async function handleGET() {
   return NextResponse.json(document, {
     headers: { "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=3600", "X-Robots-Tag": "noindex" },
   });
 }
+
+export const GET = withAgentLog(handleGET, "openapi-spec");

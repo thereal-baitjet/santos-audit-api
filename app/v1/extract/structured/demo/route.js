@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../../../../lib/agent-log.js";
 // POST /v1/extract/structured/demo — one free structured extraction per day per
 // IP (quota shared with every other demo, so the free-tier surface stays one
 // scan/call a day total). POST-only, matching the paid route: a JSON Schema
@@ -20,7 +21,7 @@ function rateLimited() {
   );
 }
 
-export async function POST(req) {
+async function handlePOST(req) {
   const ip = ipFromRequest(req);
   const body = await req.json().catch(() => ({}));
   const url = typeof body.url === "string" ? body.url : "";
@@ -54,3 +55,5 @@ export async function OPTIONS() {
     },
   });
 }
+
+export const POST = withAgentLog(handlePOST, "structured-extract-demo");

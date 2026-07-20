@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../../../lib/agent-log.js";
 import { NextResponse } from "next/server";
 import { auditSite } from "../../../../audit.js";
 import { validateTarget } from "../../../../lib/safe-fetch.js";
@@ -16,7 +17,7 @@ function rateLimited() {
   );
 }
 
-export async function GET(req) {
+async function handleGET(req) {
   const ip = ipFromRequest(req);
   const url = req.nextUrl.searchParams.get("url") ?? "";
 
@@ -50,3 +51,5 @@ export async function OPTIONS() {
     },
   });
 }
+
+export const GET = withAgentLog(handleGET, "quick-audit-demo");

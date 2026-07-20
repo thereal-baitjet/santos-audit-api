@@ -1,9 +1,10 @@
+import { withAgentLog } from "../../lib/agent-log.js";
 import { NextResponse } from "next/server";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
 import { capabilityManifest } from "../../lib/capabilities.js";
 import { AGENT_READINESS_BILLING_UNIT, getAgentReadinessPriceUsdc } from "../../lib/agent-readiness/product-pricing.js";
 
-export async function GET() {
+async function handleGET() {
   const readinessPrice = getAgentReadinessPriceUsdc();
   return NextResponse.json(
     {
@@ -128,3 +129,5 @@ export async function GET() {
     { headers: { "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=3600" } }
   );
 }
+
+export const GET = withAgentLog(handleGET, "service-manifest");

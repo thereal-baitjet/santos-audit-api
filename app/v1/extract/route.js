@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../../lib/agent-log.js";
 // POST /v1/extract (also GET ?url=) — page-to-Markdown extraction, x402-paid.
 // Payment settles only on a successful response; failed extractions are free.
 import { after, NextResponse } from "next/server";
@@ -100,11 +101,11 @@ async function paidWithReceipt(req) {
   return res;
 }
 
-export async function POST(req) {
+async function handlePOST(req) {
   return paidWithReceipt(req);
 }
 
-export async function GET(req) {
+async function handleGET(req) {
   return paidWithReceipt(req);
 }
 
@@ -120,3 +121,6 @@ export async function OPTIONS() {
     },
   });
 }
+
+export const GET = withAgentLog(handleGET, "extract");
+export const POST = withAgentLog(handlePOST, "extract");

@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../../lib/agent-log.js";
 import { after } from "next/server";
 import { NextResponse } from "next/server";
 import { withX402FromHTTPServer, x402HTTPResourceServer } from "@x402/next";
@@ -83,7 +84,7 @@ export async function OPTIONS() {
   });
 }
 
-export async function GET(req) {
+async function handleGET(req) {
   const res = await paidHandler(req);
   // Browser agents must be able to read the challenge and receipt headers,
   // and payment exchanges must never be cached.
@@ -109,3 +110,5 @@ export async function GET(req) {
   }
   return res;
 }
+
+export const GET = withAgentLog(handleGET, "quick-audit");

@@ -1,3 +1,4 @@
+import { withAgentLog } from "../../../lib/agent-log.js";
 // POST /v1/audits — create a Deep Page Audit job.
 //
 // Payment contract (x402 v2, $DEEP_AUDIT_PRICE_USDC): the payment purchases a
@@ -186,7 +187,7 @@ const httpServer = new x402HTTPResourceServer(resourceServer, {
 });
 const paidHandler = withX402FromHTTPServer(handler, httpServer);
 
-export async function POST(req) {
+async function handlePOST(req) {
   const gate = deepAuditGate();
   if (gate) return gate;
   const missingEnv = x402EnvCheck();
@@ -232,3 +233,5 @@ export async function OPTIONS() {
     },
   });
 }
+
+export const POST = withAgentLog(handlePOST, "deep-audit");
