@@ -80,6 +80,33 @@ export default function AdminDashboard() {
     window.location.assign("/admin/login");
   }
 
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [pwMsg, setPwMsg] = useState(null); // { ok: boolean, text: string }
+  const [pwBusy, setPwBusy] = useState(false);
+
+  async function handleChangePassword(event) {
+    event.preventDefault();
+    setPwMsg(null);
+    if (pw.length < 10) {
+      setPwMsg({ ok: false, text: "Use at least 10 characters." });
+      return;
+    }
+    if (pw !== pw2) {
+      setPwMsg({ ok: false, text: "Passwords do not match." });
+      return;
+    }
+    setPwBusy(true);
+    const { error } = await supabaseRef.current.auth.updateUser({ password: pw });
+    setPwBusy(false);
+    if (error) setPwMsg({ ok: false, text: error.message });
+    else {
+      setPw("");
+      setPw2("");
+      setPwMsg({ ok: true, text: "Password updated. Use it on your next sign-in." });
+    }
+  }
+
   return (
     <div className="wrap admin-dash">
       <header className="admin-dash-head">
@@ -110,6 +137,38 @@ export default function AdminDashboard() {
           Could not load agent_logs: {loadError}
         </p>
       )}
+
+      <details className="admin-pass">
+        <summary>Change password</summary>
+        <form onSubmit={handleChangePassword} className="admin-pass-form">
+          <label htmlFor="new-pass">New password</label>
+          <input
+            id="new-pass"
+            type="password"
+            autoComplete="new-password"
+            minLength={10}
+            required
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+          />
+          <label htmlFor="new-pass-2">Repeat new password</label>
+          <input
+            id="new-pass-2"
+            type="password"
+            autoComplete="new-password"
+            minLength={10}
+            required
+            value={pw2}
+            onChange={(e) => setPw2(e.target.value)}
+          />
+          <button className="btn" type="submit" disabled={pwBusy}>
+            {pwBusy ? "Updating…" : "Update password"}
+          </button>
+          {pwMsg && (
+            <p className={pwMsg.ok ? "admin-pass-ok" : "admin-error"} role="alert">{pwMsg.text}</p>
+          )}
+        </form>
+      </details>
 
       <div className="table-wrap admin-table-wrap">
         <table className="admin-table">

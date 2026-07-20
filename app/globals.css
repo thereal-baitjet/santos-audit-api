@@ -458,6 +458,17 @@ tr:last-child th, tr:last-child td { border-bottom: 0; }
 .admin-empty { text-align: center; color: var(--muted); padding: 34px 16px; }
 .admin-row-fresh { animation: row-arrive 1.4s ease-out; }
 @keyframes row-arrive { from { background: rgba(212, 162, 78, .16); } to { background: transparent; } }
+.admin-pass { margin-top: 22px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0 20px; max-width: 460px; }
+.admin-pass summary { padding: 14px 0; cursor: pointer; font-weight: 650; font-size: 14px; }
+.admin-pass-form { display: grid; gap: 8px; padding: 4px 0 20px; }
+.admin-pass-form label { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.admin-pass-form input {
+  padding: 11px 14px; font-size: 15px; border-radius: 6px; min-height: 42px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--ink); font-family: var(--mono);
+}
+.admin-pass-form input:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.admin-pass-form .btn { margin-top: 12px; justify-self: start; }
+.admin-pass-ok { color: var(--good); font-size: 14px; margin-top: 8px; }
 
 /* ---- footer support block ---- */
 .footer-support { border-top: 1px solid var(--border); margin-top: 28px; padding-top: 24px; }
