@@ -400,6 +400,65 @@ tr:last-child th, tr:last-child td { border-bottom: 0; }
   .doc-endpoint { padding: 20px; }
 }
 
+/* ---- admin (login + traffic control) ---- */
+.admin-login-wrap {
+  min-height: 100vh; display: grid; place-items: center; padding: 24px;
+  background:
+    radial-gradient(900px 500px at 50% -10%, rgba(212, 162, 78, .07), transparent 60%),
+    var(--bg);
+}
+.admin-login-card {
+  width: 100%; max-width: 420px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px; padding: 40px 36px;
+}
+.admin-brand { margin-bottom: 26px; }
+.admin-login-card h1 { font-size: 28px; max-width: none; }
+.admin-login-sub { margin-top: 8px; color: var(--muted); font-size: 14.5px; }
+.admin-form { display: grid; gap: 8px; margin-top: 26px; }
+.admin-form label { font-size: 13px; color: var(--muted); margin-top: 8px; }
+.admin-form input {
+  padding: 13px 16px; font-size: 15px; border-radius: 6px; min-height: 46px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--ink); font-family: var(--mono);
+}
+.admin-form input:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.admin-form .btn { margin-top: 18px; }
+.admin-error { color: var(--bad); font-size: 14px; margin-top: 12px; }
+.admin-error code { font-family: var(--mono); font-size: 12.5px; }
+.admin-fine { margin-top: 26px; color: var(--muted); font: 12px/1.7 var(--mono); }
+.admin-dash { padding-bottom: 72px; }
+.admin-dash-head {
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 24px;
+  flex-wrap: wrap; padding: 40px 0 26px; border-bottom: 1px solid var(--border);
+}
+.admin-dash-head h1 { font-size: clamp(26px, 4vw, 38px); margin-top: 18px; }
+.admin-dash-sub { margin-top: 8px; color: var(--muted); font-size: 14px; }
+.admin-dash-sub code { font-family: var(--mono); color: var(--accent); font-size: 13px; }
+.admin-dash-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding-bottom: 6px; }
+.admin-user { color: var(--muted); font: 12.5px/1.4 var(--mono); }
+.live-badge {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
+  border: 1px solid var(--border); border-radius: 999px;
+  font: 11px/1.4 var(--mono); letter-spacing: .12em;
+}
+.live-badge--live { color: var(--good); border-color: rgba(95, 184, 122, .5); }
+.live-badge--connecting { color: var(--warn); }
+.live-badge--error { color: var(--bad); border-color: rgba(212, 105, 78, .5); }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: live-pulse 1.6s ease-in-out infinite; }
+@keyframes live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.admin-table-wrap { margin-top: 28px; }
+.admin-table { min-width: 860px; }
+.admin-table td, .admin-table th { padding: 11px 14px; font-size: 13.5px; }
+.admin-table .mono { font-family: var(--mono); font-size: 12.5px; }
+.admin-table .num.good { color: var(--good); }
+.admin-table .num.warn { color: var(--warn); }
+.admin-table .num.bad { color: var(--bad); }
+.admin-agent { color: var(--ink); font-weight: 600; }
+.admin-path { color: var(--accent); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-ua { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-empty { text-align: center; color: var(--muted); padding: 34px 16px; }
+.admin-row-fresh { animation: row-arrive 1.4s ease-out; }
+@keyframes row-arrive { from { background: rgba(212, 162, 78, .16); } to { background: transparent; } }
+
 /* ---- footer support block ---- */
 .footer-support { border-top: 1px solid var(--border); margin-top: 28px; padding-top: 24px; }
 .footer-support h2 { font-size: 18px; margin-bottom: 8px; }

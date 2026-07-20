@@ -13,7 +13,7 @@ export default function robots() {
         "/api/audit", "/api/audit/demo", "/api/agent-readiness",
         "/v1/audits", "/v1/extract", "/v1/extract/structured", "/v1/fetch", "/v1/screenshot", "/mcp",
       ],
-      disallow: ["/api/", "/v1/", "/_next/"],
+      disallow: ["/api/", "/v1/", "/_next/", "/admin/"],
     }],
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: new URL(SITE_URL).hostname,

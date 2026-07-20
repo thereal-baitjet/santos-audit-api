@@ -10,6 +10,7 @@
 // JSON/API routes keep their static headers from next.config.js; this only
 // runs on HTML pages (see matcher).
 import { NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 const API_ORIGIN = process.env.PUBLIC_API_BASE_URL ?? "https://api.santosautomation.com";
 
@@ -17,7 +18,15 @@ const API_ORIGIN = process.env.PUBLIC_API_BASE_URL ?? "https://api.santosautomat
 // (the POST that redirects) and connect/frame per Stripe's CSP guidance.
 const STRIPE_PATHS = ["/agent-readiness/buy"];
 
-export function proxy(request) {
+// Admin auth: /admin/dashboard requires a Supabase Auth session whose email is
+// on this allowlist. RLS on agent_logs enforces the same list independently,
+// so a stray signup through the public auth API still reads nothing.
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "baitjet@gmail.com,info@santosautomation.com")
+  .split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+
+export async function proxy(request) {
   // Apex canonicalization lives here (not as a Vercel domain-level redirect) so
   // /.well-known/* — excluded from this middleware's matcher — is served
   // directly on the apex. The MCP registry's domain verifier refuses redirects.
@@ -31,8 +40,13 @@ export function proxy(request) {
   const nonce = btoa(crypto.randomUUID());
   const path = request.nextUrl.pathname;
   const stripe = STRIPE_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
+  const admin = path === "/admin" || path.startsWith("/admin/");
 
-  const connectSrc = ["'self'", API_ORIGIN, ...(stripe ? ["https://api.stripe.com"] : [])].join(" ");
+  // Admin pages talk to Supabase (auth + realtime websocket).
+  const supabaseOrigins = admin && SUPABASE_URL
+    ? [SUPABASE_URL, SUPABASE_URL.replace(/^https:/, "wss:")]
+    : [];
+  const connectSrc = ["'self'", API_ORIGIN, ...supabaseOrigins, ...(stripe ? ["https://api.stripe.com"] : [])].join(" ");
   const formAction = ["'self'", ...(stripe ? ["https://checkout.stripe.com"] : [])].join(" ");
   const frameSrc = stripe ? "https://checkout.stripe.com https://js.stripe.com" : "'none'";
 
@@ -55,6 +69,42 @@ export function proxy(request) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
+
+  if (admin) {
+    // Without Supabase env the dashboard can't work at all — send everything
+    // to the login page, which renders a configuration hint.
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+      if (path !== "/admin/login") {
+        return NextResponse.redirect(new URL("/admin/login", request.url));
+      }
+      return response;
+    }
+
+    // Reads the session from cookies and, when the access token is stale,
+    // writes refreshed tokens onto this response's cookies.
+    const supabase = createServerClient(SUPABASE_URL, SUPABASE_KEY, {
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookies) =>
+          cookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options)),
+      },
+    });
+    const { data: { user } } = await supabase.auth.getUser();
+    const isAdmin = Boolean(user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase()));
+
+    if (!isAdmin && path !== "/admin/login") {
+      const redirect = NextResponse.redirect(new URL("/admin/login", request.url));
+      // Keep any refreshed auth cookies on the redirect.
+      response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
+      return redirect;
+    }
+    if (isAdmin && (path === "/admin/login" || path === "/admin")) {
+      const redirect = NextResponse.redirect(new URL("/admin/dashboard", request.url));
+      response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
+      return redirect;
+    }
+  }
+
   return response;
 }
 
