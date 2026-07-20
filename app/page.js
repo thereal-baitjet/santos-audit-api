@@ -70,7 +70,7 @@ export default function Home() {
           <div className="cta-row">
             <a className="btn primary" href="/agent-readiness/run">Run the Agent Readiness Audit</a>
             <a className="btn" href="#audit" data-analytics-event="free_audit_started">Run Free Quick Audit</a>
-            <a className="btn" href="/website-intelligence-api" data-analytics-event="openapi_downloaded">Explore API Documentation</a>
+            <a className="btn" href="/docs" data-analytics-event="openapi_downloaded">Explore API Documentation</a>
           </div>
           <p className="proof-line">Quick scans in seconds · Browser-rendered deep audits · MCP and OpenAPI discovery · Structured JSON · x402 pay per call</p>
         </div>

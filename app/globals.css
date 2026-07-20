@@ -367,6 +367,39 @@ tr:last-child th, tr:last-child td { border-bottom: 0; }
 .ar-code pre code { font-family: var(--mono); font-size: 12.5px; color: var(--ink); white-space: pre; }
 .btn.small { padding: 6px 12px; font-size: 13px; min-height: 34px; }
 
+/* ---- docs page ---- */
+.doc-toc { margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--border); }
+.doc-endpoint-list { display: grid; gap: 22px; margin-top: 34px; }
+.doc-endpoint {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 28px; scroll-margin-top: 24px;
+}
+.doc-endpoint-head h3 { font-size: 21px; font-weight: 700; }
+.doc-endpoint-route { margin-top: 8px; }
+.doc-endpoint-route code { font-family: var(--mono); font-size: 14px; color: var(--ink); margin-left: 6px; }
+.doc-endpoint-price { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--accent); margin-top: 10px; }
+.doc-endpoint-price span { font-size: 12.5px; color: var(--muted); font-weight: 400; }
+.doc-endpoint-summary { margin-top: 14px; color: var(--muted); font-size: 15px; max-width: 80ch; }
+.doc-params { display: grid; gap: 2px; margin: 18px 0; }
+.doc-params > div {
+  display: grid; grid-template-columns: 170px 1fr; gap: 12px;
+  padding: 9px 0; border-bottom: 1px solid var(--border);
+}
+.doc-params > div:last-child { border-bottom: 0; }
+.doc-params dt code { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+.doc-params dd { color: var(--muted); font-size: 13.5px; }
+.doc-endpoint .code-sample { margin-top: 6px; }
+.doc-demo-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+.doc-demo-note code { font-family: var(--mono); color: var(--accent); font-size: 12.5px; }
+.doc-surfaces { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.doc-limits { margin-top: 26px; max-width: 80ch; }
+@media (max-width: 900px) { .doc-surfaces { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) {
+  .doc-surfaces { grid-template-columns: 1fr; }
+  .doc-params > div { grid-template-columns: 1fr; gap: 2px; }
+  .doc-endpoint { padding: 20px; }
+}
+
 /* ---- footer support block ---- */
 .footer-support { border-top: 1px solid var(--border); margin-top: 28px; padding-top: 24px; }
 .footer-support h2 { font-size: 18px; margin-bottom: 8px; }

@@ -11,6 +11,7 @@ Built and operated by Santos Automation. From discoverable to callable.
 
 ## Machine surfaces
 
+- [API documentation](https://www.santosautomation.com/docs): complete human-readable reference — quickstart, x402 payment flow, all capabilities, MCP, errors, limits, and roadmap
 - [OpenAPI 3.1 specification](https://api.santosautomation.com/openapi.json): full request/response schemas for every endpoint
 - [Remote MCP server](https://api.santosautomation.com/mcp): Streamable HTTP; tools: audit_website_preview and audit_agent_readiness
 - [Service manifest](https://api.santosautomation.com/api): live service description and pricing
@@ -166,6 +167,14 @@ audit or invoke any tool advertised by the audited target.
   unlisted internals only. The audit endpoints — /api/audit, /api/audit/demo,
   /api/agent-readiness, /v1/audits, and /mcp — are explicitly Allowed and intended
   for direct agent/tool invocation.
+
+## Roadmap
+
+New capabilities are added as time allows, always under the same contract:
+read-only, one-shot, single-page, x402 pay-per-success — no subscriptions and
+no endpoints that send messages or act on a user's behalf. New endpoints appear
+first in the OpenAPI specification and this file, and are indexed automatically
+by x402 discovery catalogs. Capability requests: info@santosautomation.com.
 
 ## Support
 

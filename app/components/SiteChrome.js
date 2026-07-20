@@ -13,6 +13,7 @@ export function SiteNav() {
         <li><a href="/ai-website-intelligence">Platform</a></li>
         <li><a href="/agent-readiness-audit">Agent Readiness</a></li>
         <li><a href="/website-intelligence-api">API</a></li>
+        <li><a href="/docs">Docs</a></li>
         <li><a href="/methodology/agent-readiness">Methodology</a></li>
         <li><a href="/#pricing">Pricing</a></li>
       </ul>
@@ -29,6 +30,7 @@ export function SiteFooter() {
           <p className="sub">Evidence-based website intelligence for humans, developers, and AI agents.</p>
         </div>
         <div className="links" aria-label="Footer links">
+          <a href="/docs">API docs</a>
           <a href="/reports/sample-agent-readiness">Sample report</a>
           <a href="/learn/what-is-ai-website-intelligence">Learn</a>
           <a href="/openapi.json" data-analytics-event="openapi_downloaded">OpenAPI</a>

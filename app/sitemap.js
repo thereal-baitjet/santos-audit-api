@@ -5,6 +5,7 @@ export default function sitemap() {
   const paths = [
     "/",
     ...Object.values(PRODUCT_PAGES).map((page) => page.path),
+    "/docs",
     "/agent-readiness/run",
     "/methodology/agent-readiness",
     "/reports/sample-agent-readiness",
@@ -15,6 +16,6 @@ export default function sitemap() {
     url: `${SITE_URL}${path}`,
     lastModified: now,
     changeFrequency: path === "/" ? "weekly" : path.startsWith("/learn/") ? "monthly" : "weekly",
-    priority: path === "/" ? 1 : path === "/ai-website-intelligence" ? 0.9 : 0.7,
+    priority: path === "/" ? 1 : path === "/ai-website-intelligence" || path === "/docs" ? 0.9 : 0.7,
   }));
 }
