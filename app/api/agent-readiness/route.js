@@ -2,7 +2,6 @@ import { after, NextResponse } from "next/server";
 import { withX402FromHTTPServer, x402HTTPResourceServer } from "@x402/next";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { auditAgentReadiness } from "../../../lib/agent-readiness/analyze.js";
-import { AGENT_READINESS_RESULT_SCHEMA } from "../../../lib/agent-readiness/contract.js";
 import { validateTarget } from "../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
@@ -43,7 +42,40 @@ const routeConfig = {
   extensions: { ...declareDiscoveryExtension({
     input: { url: "https://example.com", depth: "quick" },
     inputSchema: { properties: { url: { type: "string", description: "Public HTTP or HTTPS target URL." }, depth: { type: "string", enum: ["quick"] } }, required: ["url"] },
-    output: { schema: AGENT_READINESS_RESULT_SCHEMA },
+    output: {
+      example: {
+        website_intelligence_score: 82,
+        website_intelligence: {
+          schema_version: "1.0.0",
+          score: 82,
+          dimensions: { discoverable: 91, understandable: 78, callable: 73, trustworthy: 86 },
+        },
+        schema_version: "1.0.0",
+        target: { requested_url: "https://example.com", canonical_origin: "https://example.com", final_url: "https://example.com/" },
+        profile: "api_provider",
+        readiness_level: { level: 3, name: "Tool-invokable" },
+        score: 79,
+        grade: "C",
+        confidence: 0.91,
+        tested_coverage_percent: 90,
+        applicability: { mcp_readiness: "tested", agent_commerce: "not_applicable" },
+        subscores: { discovery_and_documentation: 80, api_readiness: 75 },
+        interfaces: { openapi: { discovered: true, url: "https://example.com/openapi.json" } },
+        findings: [
+          {
+            id: "agent.openapi.discovery",
+            category: "api_readiness",
+            severity: "moderate",
+            confidence: "high",
+            status: "pass",
+            title: "OpenAPI document discovered and parsed",
+            recommendation: "No action needed.",
+          },
+        ],
+        recommended_actions: [{ id: "agent.capabilities.manifest", impact: "high", effort: "medium" }],
+        limitations: ["Passive checks only; no authenticated or transactional testing performed."],
+      },
+    },
   }) },
 };
 
