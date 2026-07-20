@@ -23,8 +23,10 @@ Built and operated by Santos Automation. From discoverable to callable.
 - [Quick Intelligence Audit](https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com): $0.015 USDC, synchronous (seconds), fetch-and-parse engine
 - [Safe Fetch](https://api.santosautomation.com/v1/fetch?url=https%3A%2F%2Fexample.com): $0.002 USDC, synchronous — raw text body via a hardened SSRF-guarded fetcher (GET ?url= or POST {"url"}); text formats only
 - [Page-to-Markdown Extraction](https://api.santosautomation.com/v1/extract): $0.005 USDC, synchronous — POST {"url": "https://example.com"} (or GET ?url=); clean Markdown, title, links, metadata
+- [Structured Extraction](https://api.santosautomation.com/v1/extract/structured): $0.08 USDC, synchronous — POST {"url": "https://example.com", "schema": {...}}; LLM-extracted JSON validated against your own JSON Schema
 - [Free demo audit](https://api.santosautomation.com/api/audit/demo?url=https%3A%2F%2Fexample.com): 1/day per IP, same report shape as the paid Quick Audit
 - [Free demo extraction](https://api.santosautomation.com/v1/extract/demo?url=https%3A%2F%2Fexample.com): 1/day per IP (quota shared with the demo audit), same shape as paid extraction
+- [Free demo structured extraction](https://api.santosautomation.com/v1/extract/structured/demo): POST only, 1/day per IP (shared quota), same shape as paid structured extraction
 - [Screenshot & PDF Render](https://api.santosautomation.com/v1/screenshot?url=https%3A%2F%2Fexample.com): $0.01 USDC, synchronous — real-Chromium PNG/JPEG/PDF bytes (format=, device=, full_page= params)
 - [Deep Website Intelligence Audit](https://api.santosautomation.com/v1/audits): $0.225 USDC, asynchronous job — POST {"url": "https://example.com"}
 
@@ -121,6 +123,7 @@ audit or invoke any tool advertised by the audited target.
   includes a base64 `PAYMENT-RESPONSE` receipt header).
 - Safe Fetch price: $0.002 USDC per successful fetch (2000 atomic units).
 - Page-to-Markdown Extraction price: $0.005 USDC per successful extraction (5000 atomic units).
+- Structured Extraction price: $0.08 USDC per successful schema-conforming extraction (80000 atomic units).
 - Quick Audit price: $0.015 USDC per successful audit (15000 atomic units).
 - Screenshot & PDF Render price: $0.01 USDC per successful render (10000 atomic units).
 - Agent Readiness price: $0.075 USDC per successful audit (75000 atomic units).
@@ -154,6 +157,11 @@ audit or invoke any tool advertised by the audited target.
 - 15-second fetch timeout, 5 redirects max, 5 MB response cap, 2048-char URL cap,
   HTML/XHTML/plain-text content only.
 - Free demo and MCP preview tool: 1 audit per day per IP (shared quota).
+- Structured Extraction truncates page content to 8000 characters and caps model
+  output at 1024 tokens before extraction runs, regardless of the requested schema
+  size — a very long page will be truncated before its later sections are seen.
+  The caller's JSON Schema must also be self-contained (no external $ref) and
+  under 4000 characters.
 - robots.txt Disallow lines under /api/ and /v1/ target search-engine crawling of
   unlisted internals only. The audit endpoints — /api/audit, /api/audit/demo,
   /api/agent-readiness, /v1/audits, and /mcp — are explicitly Allowed and intended

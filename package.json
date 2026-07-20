@@ -8,7 +8,8 @@
     "start": "next start -H 127.0.0.1 -p 3000",
     "test": "node test.js",
     "test:agent-readiness": "node --test tests/agent-readiness.test.js",
-    "test:website-intelligence": "node --test tests/website-intelligence.test.js"
+    "test:website-intelligence": "node --test tests/website-intelligence.test.js",
+    "test:extract-structured": "node --test tests/extract-structured.test.js"
   },
   "keywords": [
     "x402",
@@ -33,6 +34,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.1",
     "@coinbase/x402": "^2.1.0",
     "@mozilla/readability": "^0.6.0",
     "@supabase/ssr": "^0.12.3",

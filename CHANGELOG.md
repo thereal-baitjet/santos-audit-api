@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.7.0 — 2026-07-20 — Structured Extraction (the suite's first metered-LLM-cost product)
+
+### Added
+- **POST /v1/extract/structured** ($0.08 USDC via x402 v2, no GET variant): pass
+  a public page URL plus your own JSON Schema, get back JSON extracted by Claude
+  Sonnet 5 with forced tool-use and validated against your schema before it's
+  returned. Built on lib/extract.js (safe-fetch + Readability + Markdown) —
+  content truncated to 8000 characters and model output capped at 1024 tokens
+  before any Claude call, the primary defense against runaway upstream cost.
+  Caller schema must be self-contained (type: object, no $ref, under 4000
+  characters) or the request 400s before any fetch or model call. Settles only
+  when the extracted data validates against the caller's schema — an invalid
+  schema (400 INVALID_EXTRACTION_SCHEMA) or a non-conforming model output (422
+  STRUCTURED_OUTPUT_INVALID) never charges.
+- **POST /v1/extract/structured/demo** — free 1/day/IP demo (quota shared across
+  all demos), same POST-only shape as the paid route.
+- **extract_structured_data** MCP tool: free preview reusing the shared quota;
+  the exhausted-quota path points to the paid x402 endpoint.
+- New root dependency `@anthropic-ai/sdk` (^0.70.1) and `ANTHROPIC_API_KEY` for
+  the main Vercel app — separate from the Fly worker's own key/dependency used
+  by worker/ai-summary.js.
+- Discovery surfaces updated per the suite template: OpenAPI, llms.txt
+  (including a Limitations note on the content/output caps), capabilities
+  manifest (`content.extract-structured`), marketing highlights, robots.txt
+  Allow, Bazaar discovery extension.
+
 ## 2.6.0 — 2026-07-19 — Screenshot & PDF Render (the Fly browser, sold by the frame)
 
 ### Added

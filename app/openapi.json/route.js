@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
 import { AGENT_READINESS_RESULT_SCHEMA } from "../../lib/agent-readiness/contract.js";
 import { getAgentReadinessPriceUsdc, usdcAtomicAmount } from "../../lib/agent-readiness/product-pricing.js";
+import { STRUCTURED_EXTRACTION_SCHEMA_VERSION } from "../../lib/extract-structured.js";
 
 const AGENT_READINESS_PRICE = getAgentReadinessPriceUsdc();
+const STRUCTURED_EXTRACT_PRICE = process.env.STRUCTURED_EXTRACT_PRICE_USDC ?? "0.08";
 const AGENT_READINESS_ATOMIC_PRICE = usdcAtomicAmount(AGENT_READINESS_PRICE);
 
 const scoreSchema = { type: "integer", minimum: 0, maximum: 100 };
@@ -106,6 +108,7 @@ const errorSchema = {
       enum: [
         "INVALID_URL", "UNSUPPORTED_SCHEME", "PRIVATE_ADDRESS_BLOCKED",
         "RATE_LIMITED", "AUDIT_TIMEOUT", "TARGET_UNREACHABLE", "AUDIT_FAILED",
+        "INVALID_EXTRACTION_SCHEMA", "STRUCTURED_OUTPUT_INVALID",
       ],
     },
   },
@@ -350,6 +353,88 @@ const document = {
         responses: {
           200: { description: "Extraction complete." },
           400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
+          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/v1/extract/structured": {
+      post: {
+        operationId: "extractStructuredData",
+        tags: ["Structured Extraction"],
+        summary: `Extract structured JSON from one page against your JSON Schema ($${STRUCTURED_EXTRACT_PRICE} USDC via x402, synchronous)`,
+        description:
+          `Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only when the extracted data validates against your schema — a schema that can't be satisfied from the page costs nothing. Fetches one public page (SSRF-guarded, 15s timeout, 5MB cap), truncates readability-isolated Markdown to 8000 characters, then calls Claude with forced tool-use against your schema (max 1024 output tokens). The caller's schema must be a self-contained JSON Schema object (type: object, no $ref, under 4000 characters) or the request 400s before any fetch or model call. No GET variant — the schema doesn't fit cleanly in query params. Free demo: POST /v1/extract/structured/demo (1/day per IP, shared quota).`,
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["url", "schema"],
+                properties: {
+                  url: { type: "string", format: "uri", description: "Public HTTP/HTTPS page. Private-network/metadata targets rejected free of charge." },
+                  schema: { type: "object", description: "Self-contained JSON Schema (type: object, no $ref) describing the fields to extract. Max 4000 characters." },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Extraction complete; the extracted data conforms to the caller's schema.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["schema_version", "url", "final_url", "http_status", "data", "model", "fetched_at", "timing_ms"],
+                  properties: {
+                    schema_version: { type: "string", const: STRUCTURED_EXTRACTION_SCHEMA_VERSION },
+                    url: { type: "string" },
+                    final_url: { type: "string", format: "uri" },
+                    http_status: { type: "integer" },
+                    data: { type: "object", description: "Extracted fields, matching the caller's schema." },
+                    model: { type: "string" },
+                    fetched_at: { type: "string", format: "date-time" },
+                    timing_ms: { type: "object", properties: { fetch: { type: "integer" }, llm: { type: "integer" }, total: { type: "integer" } } },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Invalid or blocked target URL, or an invalid/oversized/uncompilable caller schema (not charged).", content: { "application/json": { schema: errorSchema } } },
+          402: { description: "Payment required/invalid. Terms in the PAYMENT-REQUIRED header; body is an agent-readable hint." },
+          422: { description: "Model output did not validate against the caller's schema (not charged).", content: { "application/json": { schema: errorSchema } } },
+          502: { description: "Target site unreachable (not charged).", content: { "application/json": { schema: errorSchema } } },
+          504: { description: "Target site timed out (not charged).", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/v1/extract/structured/demo": {
+      post: {
+        operationId: "extractStructuredDataDemo",
+        security: [], // free endpoint — excluded from x402 registry probing
+        tags: ["Structured Extraction"],
+        summary: "Free structured-extraction demo (1/day per IP, shared quota)",
+        description: "Identical response shape to the paid endpoint (tier is \"free-demo\"). Quota is shared across all demo endpoints — one free request per day per IP total.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["url", "schema"],
+                properties: {
+                  url: { type: "string", format: "uri" },
+                  schema: { type: "object" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Extraction complete." },
+          400: { description: "Invalid target URL or caller schema.", content: { "application/json": { schema: errorSchema } } },
+          422: { description: "Model output did not validate against the caller's schema.", content: { "application/json": { schema: errorSchema } } },
           429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
         },
       },
