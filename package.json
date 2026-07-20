@@ -60,5 +60,8 @@
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.7.10"
+  },
+  "overrides": {
+    "axios": "^1.18.1"
   }
 }
