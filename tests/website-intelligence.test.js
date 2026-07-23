@@ -60,8 +60,8 @@ test("all required product and learning pages have unique metadata", () => {
   assert.deepEqual(WEBSITE_INTELLIGENCE_DIMENSIONS.map((item) => item.name), ["Discoverable", "Understandable", "Callable", "Trustworthy"]);
 });
 
-test("sitemap contains canonical public pages only and robots preserves machine assets", () => {
-  const urls = sitemap().map((entry) => entry.url);
+test("sitemap contains canonical public pages only and robots preserves machine assets", async () => {
+  const urls = (await sitemap()).map((entry) => entry.url);
   assert.ok(urls.includes(`${SITE_URL}/ai-website-intelligence`));
   assert.ok(urls.includes(`${SITE_URL}/methodology/agent-readiness`));
   assert.ok(urls.includes(`${SITE_URL}/reports/sample-agent-readiness`));

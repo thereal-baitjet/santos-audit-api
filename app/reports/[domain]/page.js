@@ -39,6 +39,7 @@ export async function generateMetadata({ params }) {
   const { domain } = await params;
   const row = await getPublicReport(domain).catch(() => null);
   const path = `/reports/${domain}`;
+  const ogImage = { url: "/assets/santos-og.png", width: 1200, height: 630, alt: `Santos Agent-Readiness report for ${domain}` };
   if (!row) {
     return {
       title: `${domain} — not audited yet | Santos`,
@@ -48,11 +49,26 @@ export async function generateMetadata({ params }) {
   }
   const score = scoreOf(row.report, row.score);
   const date = dateOf(row.created_at);
+  const title = `${domain} — Agent-Readiness Score | Santos`;
+  const ogDescription = `Agent-readiness score ${score ?? "—"}/100 for ${domain}, verified by Santos Website Intelligence.`;
   return {
-    title: `${domain} — Agent-Readiness Score | Santos`,
+    title,
     description: `${domain} scores ${score ?? "—"}/100 on agent-readiness${date ? ` (audited ${date})` : ""}. Dimension scores, issues, fixes, and the embeddable Agent-Ready badge.`,
     alternates: { canonical: path },
-    openGraph: { title: `${domain} — Agent-Readiness Score | Santos`, description: `Agent-readiness score ${score ?? "—"}/100 for ${domain}, verified by Santos Website Intelligence.`, type: "article", url: path },
+    openGraph: {
+      title,
+      description: ogDescription,
+      type: "article",
+      url: path,
+      siteName: "Santos Website Intelligence",
+      images: [ogImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: ogDescription,
+      images: [ogImage.url],
+    },
   };
 }
 
