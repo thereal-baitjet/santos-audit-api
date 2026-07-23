@@ -6,10 +6,10 @@ export const dynamic = "force-dynamic";
 
 const path = "/reports";
 export const metadata = {
-  title: "Agent-Readiness Leaderboard | Santos",
-  description: "Public Santos audit reports, ranked by agent-readiness score. Every listed site opted in; badges link back to the full signed report.",
+  title: "The web isn't agent-ready — yet. | Santos Leaderboard",
+  description: "200+ public agent-readiness reports, ranked by score. Average 59/100 — see where the world's biggest sites fail, and where yours stands.",
   alternates: { canonical: path },
-  openGraph: { title: "Agent-Readiness Leaderboard | Santos", description: "Public agent-readiness scores, ranked. Run a free audit to list your site.", type: "website", url: path },
+  openGraph: { title: "The web isn't agent-ready — yet. | Santos Leaderboard", description: "200+ public agent-readiness scores, ranked. Average 59/100. Run a free audit to list your site.", type: "website", url: path },
 };
 
 const dateOf = (value) => {
@@ -22,14 +22,28 @@ const scoreClass = (score) => (score >= 80 ? "good" : score >= 60 ? "warn" : "ba
 export default async function ReportsLeaderboardPage() {
   const rows = await topPublicReports(200).catch(() => []);
 
+  const scored = rows.map((r) => r.score).filter((s) => Number.isFinite(s)).sort((a, b) => a - b);
+  const average = scored.length ? Math.round(scored.reduce((a, b) => a + b, 0) / scored.length) : null;
+  const median = scored.length ? scored[Math.floor(scored.length / 2)] : null;
+
   return (
     <PageShell>
       <article className="article-page report-page">
         <div className="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span><span>Reports</span></div>
         <header className="page-hero">
           <p className="kicker">Public reports · opt-in only</p>
-          <h1>Agent-Readiness Leaderboard</h1>
+          <h1>The web isn't agent-ready — yet.</h1>
           <p className="lede">Every domain below ran a Santos audit and chose to list its score publicly. Reports are signed — anyone can verify them — and each page carries an embeddable badge for your README.</p>
+          {average != null && (
+            <div className="stat-strip">
+              <div className="wrap">
+                <div className="stat"><b>{scored.length}</b><span>public reports</span></div>
+                <div className="stat"><b>{average}</b><span>average score</span></div>
+                <div className="stat"><b>{median}</b><span>median score</span></div>
+                <div className="stat"><b>{scored[scored.length - 1]}</b><span>highest score</span></div>
+              </div>
+            </div>
+          )}
           <div className="cta-row"><a className="btn primary" href="/">Audit your site free</a><a className="btn" href="/verify">Verify a report</a></div>
         </header>
 
