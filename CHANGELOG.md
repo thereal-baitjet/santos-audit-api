@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.8.1 — 2026-07-23 — Batch goes flat: 50 URLs for $0.50
+
+### Changed
+- **POST /api/audit/batch** is now a flat **$0.50 USDC for up to 50 URLs**
+  (was $0.10 for up to 10) — $0.01/URL at full capacity, ~33% under per-call.
+  Concurrency raised to 8 and the route budget to 300s to keep worst-case
+  batches inside the limit. Discovery surfaces updated to match.
+
 ## 2.8.0 — 2026-07-23 — Batch Quick Intelligence Audit (the volume rail)
 
 ### Added

@@ -12,7 +12,7 @@ export function GET() {
   return NextResponse.json(
     {
       product: "Santos Website Intelligence API",
-      api_version: "2.8.0",
+      api_version: "2.8.1",
       schema_versions: {
         agent_readiness: AGENT_READINESS_SCHEMA_VERSION,
         website_intelligence: WEBSITE_INTELLIGENCE_SCHEMA_VERSION,

@@ -1,7 +1,8 @@
 import { withAgentLog } from "../../../../lib/agent-log.js";
-// POST /api/audit/batch — up to 10 Quick Intelligence Audits for one x402
-// payment ($0.10 USDC, ~33% under 10 × $0.015). The volume rail for agents
-// auditing portfolios, prospect lists, or every page of a small site.
+// POST /api/audit/batch — up to 50 Quick Intelligence Audits for one flat x402
+// payment ($0.50 USDC, ~33% under 50 × $0.015 per-call at full capacity).
+// The volume rail for agents auditing portfolios, prospect lists, or every
+// page of a site.
 //
 // Settlement matches the suite's "failures are free" rule, adapted to batches:
 // payment settles only when at least one audit succeeds; a batch where every
@@ -17,13 +18,13 @@ import { resourceServer, SELLER, NETWORK } from "../../../../lib/x402-server.js"
 import { recordEvent } from "../../../../lib/analytics-store.js";
 import { notifyTransaction } from "../../../../notify.js";
 
-const PRICE = process.env.BATCH_AUDIT_PRICE_USDC ?? "0.10";
-const MAX_URLS = 10;
-const CONCURRENCY = 4;
+const PRICE = process.env.BATCH_AUDIT_PRICE_USDC ?? "0.50";
+const MAX_URLS = 50;
+const CONCURRENCY = 8;
 
 // Deep-audit jobs are async; this route is synchronous, so cap total wall time
 // (worst case ≈ MAX_URLS × 15s fetch timeout ÷ CONCURRENCY, plus overhead).
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 // Minimal promise pool: at most CONCURRENCY audits in flight, order preserved.
 async function mapPool(items, size, fn) {
@@ -60,7 +61,7 @@ async function handler(req) {
   const urls = body?.urls;
   if (!Array.isArray(urls) || urls.length === 0) {
     return NextResponse.json(
-      { error: "Body must be JSON with a non-empty urls array (max 10).", code: "INVALID_REQUEST" },
+      { error: "Body must be JSON with a non-empty urls array (max 50).", code: "INVALID_REQUEST" },
       { status: 400, headers: CORS }
     );
   }
@@ -92,7 +93,7 @@ async function handler(req) {
 const routeConfig = {
   accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
   description:
-    "Batch Quick Intelligence Audits: up to 10 public URLs in one payment. Each URL gets the full single-page audit (performance, SEO, accessibility markup, security headers, website-intelligence score). Per-URL failures are isolated and reported; payment settles only when at least one audit succeeds.",
+    "Batch Quick Intelligence Audits: up to 50 public URLs for one flat payment. Each URL gets the full single-page audit (performance, SEO, accessibility markup, security headers, website-intelligence score). Per-URL failures are isolated and reported; payment settles only when at least one audit succeeds.",
   mimeType: "application/json",
   serviceName: "Santos Batch Quick Intelligence Audit",
   tags: ["website-audit", "batch", "bulk", "seo", "accessibility", "security", "x402"],

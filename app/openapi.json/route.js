@@ -256,9 +256,9 @@ const document = {
       post: {
         operationId: "auditWebsiteBatch",
         tags: ["Quick Intelligence"],
-        summary: "Batch Quick Intelligence Audits ($0.10 USDC via x402, up to 10 URLs)",
+        summary: "Batch Quick Intelligence Audits ($0.50 USDC flat via x402, up to 50 URLs)",
         description:
-          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE). Audits up to 10 public URLs in one payment — the same report shape as GET /api/audit per URL, with a Website Intelligence score. Duplicates are removed; at most 4 targets are fetched concurrently. Per-URL failures are isolated and returned as error entries; payment settles only when at least one audit succeeds — a batch where every URL fails returns 502 and is never charged. Synchronous; worst-case latency is under a minute.",
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE). Audits up to 50 public URLs for one flat payment — the same report shape as GET /api/audit per URL, with a Website Intelligence score. Duplicates are removed; at most 8 targets are fetched concurrently. Per-URL failures are isolated and returned as error entries; payment settles only when at least one audit succeeds — a batch where every URL fails returns 502 and is never charged. Synchronous; typical batches finish in seconds, worst-case is a few minutes.",
         requestBody: {
           required: true,
           content: {
@@ -267,7 +267,7 @@ const document = {
                 type: "object",
                 required: ["urls"],
                 properties: {
-                  urls: { type: "array", minItems: 1, maxItems: 10, items: { type: "string", format: "uri" }, description: "Public HTTP or HTTPS URLs to audit." },
+                  urls: { type: "array", minItems: 1, maxItems: 50, items: { type: "string", format: "uri" }, description: "Public HTTP or HTTPS URLs to audit." },
                 },
               },
             },
@@ -302,8 +302,8 @@ const document = {
               },
             },
           },
-          400: { description: "Malformed body, empty urls array, or more than 10 URLs.", content: { "application/json": { schema: errorSchema } } },
-          402: { description: "Payment required. PAYMENT-REQUIRED contains x402 v2 terms for $0.10 USDC on eip155:8453." },
+          400: { description: "Malformed body, empty urls array, or more than 50 URLs.", content: { "application/json": { schema: errorSchema } } },
+          402: { description: "Payment required. PAYMENT-REQUIRED contains x402 v2 terms for $0.50 USDC on eip155:8453." },
           502: { description: "Every URL in the batch failed; no charge settled.", content: { "application/json": { schema: errorSchema } } },
         },
       },

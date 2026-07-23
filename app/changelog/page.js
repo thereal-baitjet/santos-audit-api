@@ -8,6 +8,13 @@ export const metadata = {
 
 const ENTRIES = [
   {
+    version: "2.8.1",
+    date: "2026-07-23",
+    items: [
+      "Batch Quick Intelligence Audit is now flat $0.50 USDC for up to 50 URLs (was $0.10 / 10 URLs) — $0.01 per URL at full capacity.",
+    ],
+  },
+  {
     version: "2.8.0",
     date: "2026-07-23",
     items: [
@@ -79,7 +86,7 @@ export default function ChangelogPage() {
       <h1>Changelog.</h1>
       <p>
         Product history for the Santos Website Intelligence API. Latest version:{" "}
-        <strong>2.8.0</strong>. Machine-readable version and contract data:{" "}
+        <strong>2.8.1</strong>. Machine-readable version and contract data:{" "}
         <a href="/version">/version</a>.
       </p>
 
