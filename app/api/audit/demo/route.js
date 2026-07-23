@@ -4,6 +4,7 @@ import { auditSite } from "../../../../audit.js";
 import { validateTarget } from "../../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../../lib/errors.js";
 import { hasFreeAudit, markFreeAudit, ipFromRequest } from "../../../../lib/demo-limit.js";
+import { signReport } from "../../../../lib/report-signing.js";
 
 function rateLimited() {
   const midnight = new Date();
@@ -40,7 +41,7 @@ async function handleGET(req) {
     const report = await auditSite(url);
     // Atomic claim AFTER success: failures stay free, races can't double-spend.
     if (!(await markFreeAudit(ip))) return rateLimited();
-    return NextResponse.json({ tier: "free-demo", ...report }, { headers: CORS });
+    return NextResponse.json(signReport({ tier: "free-demo", ...report }), { headers: CORS });
   } catch (e) {
     return auditErrorResponse(e);
   }

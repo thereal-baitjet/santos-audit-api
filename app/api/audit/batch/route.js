@@ -17,6 +17,7 @@ import { CORS } from "../../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../../lib/x402-server.js";
 import { recordEvent } from "../../../../lib/analytics-store.js";
 import { notifyTransaction } from "../../../../notify.js";
+import { signReport } from "../../../../lib/report-signing.js";
 
 const PRICE = process.env.BATCH_AUDIT_PRICE_USDC ?? "0.50";
 const MAX_URLS = 50;
@@ -48,7 +49,8 @@ async function auditOne(rawUrl) {
   }
   try {
     const report = await auditSite(url);
-    return { url, ok: true, report };
+    // Signed so each item is independently verifiable at POST /v1/verify.
+    return { url, ok: true, report: signReport(report) };
   } catch (e) {
     return { url, ok: false, error: { message: e.message, code: e.code ?? "AUDIT_FAILED" } };
   }

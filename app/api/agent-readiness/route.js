@@ -9,6 +9,8 @@ import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
 import { notifyTransaction } from "../../../notify.js";
 import { getAgentReadinessPriceUsdc } from "../../../lib/agent-readiness/product-pricing.js";
 import { websiteIntelligenceSummary } from "../../../lib/website-intelligence.js";
+import { signReport } from "../../../lib/report-signing.js";
+import { upsertPublicReport } from "../../../lib/public-reports.js";
 
 const PRICE = getAgentReadinessPriceUsdc();
 
@@ -16,6 +18,7 @@ async function handler(req) {
   try {
     const url = req.nextUrl.searchParams.get("url") ?? "";
     const depth = req.nextUrl.searchParams.get("depth") ?? "quick";
+    const isPublic = req.nextUrl.searchParams.get("public") === "1";
     // Target validation runs AFTER the paywall so unpaid discovery probes get
     // the 402 challenge; a paid-but-invalid request 400s here, which does not
     // settle (settlement only happens on <400).
@@ -23,11 +26,27 @@ async function handler(req) {
     if (depth !== "quick") return NextResponse.json({ error: "depth must be 'quick'", code: "INVALID_REQUEST" }, { status: 400, headers: CORS });
     const result = await auditAgentReadiness(url, { mode: "quick" });
     const websiteIntelligence = websiteIntelligenceSummary({ agentReadiness: result });
-    return NextResponse.json({
+    const report = {
       website_intelligence_score: websiteIntelligence.score,
       website_intelligence: websiteIntelligence,
       ...result,
-    }, { headers: CORS });
+    };
+    const signed = signReport(report);
+    // Opt-in public listing. Fail-soft: never breaks a paid response, and
+    // only the report JSON is stored — never the payer identity.
+    if (isPublic) {
+      try {
+        await upsertPublicReport({
+          url: result.target?.final_url ?? url,
+          score: websiteIntelligence.score ?? result.score ?? null,
+          report: signed,
+          source: "agent-readiness-paid",
+        });
+      } catch (e) {
+        console.warn("public report upsert failed:", e.message);
+      }
+    }
+    return NextResponse.json(signed, { headers: CORS });
   } catch (error) {
     return auditErrorResponse(error);
   }

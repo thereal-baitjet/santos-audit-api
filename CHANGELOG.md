@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.9.0 — 2026-07-23 — Verified free tier, public reports, badge, signed reports
+
+### Added
+- **Verified-email free audit**: the browser widget now requires a one-time
+  6-digit email confirmation; quota is 1 audit/day per verified email
+  (`GET /api/audit/free`). Machine demo endpoints stay IP-based for agents.
+- **Public reports + leaderboard**: opt-in public results at
+  `GET /reports/<domain>` and `GET /reports` (paid audits opt in with
+  `&public=1`).
+- **Agent-Ready badge**: `GET /v1/badge?url=…` — free SVG shield with score,
+  goes stale after 30 days.
+- **llms.txt generator**: `GET /v1/llms-txt/demo` + `/llms-txt-generator`
+  page, sharing the verified-email daily claim.
+- **Signed reports**: all audit responses carry an HMAC-SHA256 `signature`;
+  verify via `POST /v1/verify` or the `/verify` page.
+- **CI recipe**: `examples/agent-readiness-ci.yml` + `.sh`, documented at `/ci`.
+
 ## 2.8.1 — 2026-07-23 — Batch goes flat: 50 URLs for $0.50
 
 ### Changed

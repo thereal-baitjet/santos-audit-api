@@ -8,6 +8,18 @@ export const metadata = {
 
 const ENTRIES = [
   {
+    version: "2.9.0",
+    date: "2026-07-23",
+    items: [
+      "Verified-email free audits: GET /api/audit/free runs the full Quick Intelligence audit once per day per verified email (6-digit code flow at /api/leads/verify/*, token valid 30 days). The browser widget now captures email up front.",
+      "Public reports + leaderboard: opted-in audit scores are published at /reports/<domain> with a top-50 leaderboard at /reports.",
+      "Agent-Ready badge: GET /v1/badge?url=… returns a free SVG shield of a site's latest public score — embed it in any README.",
+      "llms.txt generator: GET /v1/llms-txt/demo drafts a standards-shaped llms.txt from a one-page sample (verified-email free tier, shared 1/day quota); tool page at /llms-txt-generator.",
+      "Signed reports + POST /v1/verify: audit reports now carry an HMAC-SHA256 signature; verify any report free at /v1/verify (30/hour) or the /verify page.",
+      "CI recipe: examples/agent-readiness-ci.yml and .sh gate pull requests on the Agent Readiness score (~$0.075 USDC/run via x402); guide at /ci.",
+    ],
+  },
+  {
     version: "2.8.1",
     date: "2026-07-23",
     items: [
@@ -86,7 +98,7 @@ export default function ChangelogPage() {
       <h1>Changelog.</h1>
       <p>
         Product history for the Santos Website Intelligence API. Latest version:{" "}
-        <strong>2.8.1</strong>. Machine-readable version and contract data:{" "}
+        <strong>2.9.0</strong>. Machine-readable version and contract data:{" "}
         <a href="/version">/version</a>.
       </p>
 

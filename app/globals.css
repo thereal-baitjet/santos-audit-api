@@ -525,3 +525,43 @@ header.hero {
 .dimension-card:hover, .feature-card:hover, .plan:hover {
   border-color: rgba(212, 162, 78, .4); transform: translateY(-2px);
 }
+
+/* --- Verified-email free audit (Phase A widget additions) --- */
+.audit-check { display: flex; align-items: center; gap: 8px; width: 100%; font-size: 13px; color: var(--muted); }
+.audit-check input { flex: none; width: auto; min-width: 0; padding: 0; border: 0; background: none; accent-color: var(--accent); }
+.locked-out { margin-top: 14px; padding: 14px 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+.locked-out p { margin: 0 0 8px; }
+.locked-out p:last-child { margin-bottom: 0; }
+.locked-out a { color: var(--accent); }
+.audit-status .audit-form { margin-top: 8px; }
+.audit-status .error { color: var(--bad); font-size: 14px; margin-top: 8px; }
+
+/* --- Public reports, leaderboard & report verification (Phase B/D) --- */
+.issue-list { margin: 18px 0 0; padding-left: 22px; display: grid; gap: 10px; }
+.issue-list li { color: var(--muted); font-size: 15px; line-height: 1.55; }
+
+.leaderboard-wrap { margin-top: 24px; overflow-x: auto; }
+.leaderboard-table { width: 100%; border-collapse: collapse; min-width: 520px; }
+.leaderboard-table th, .leaderboard-table td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 14.5px; }
+.leaderboard-table th { font: 11px/1.2 var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.leaderboard-table td a { color: var(--accent); font-weight: 600; }
+.leaderboard-table .rank { font-family: var(--mono); color: var(--muted); }
+.leaderboard-table .num { font-family: var(--mono); font-weight: 700; }
+
+.verify-form { display: grid; gap: 14px; margin-top: 24px; }
+.verify-form textarea {
+  width: 100%; padding: 14px 16px; border-radius: 8px; resize: vertical;
+  border: 1px solid var(--border); background: var(--bg); color: var(--ink);
+  font: 13px/1.6 var(--mono);
+}
+.verify-form textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.verify-form .btn { justify-self: start; }
+.verify-result { margin-top: 18px; padding: 16px 18px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); }
+.verify-result.verify-ok { border-color: rgba(95, 184, 122, .55); }
+.verify-result.verify-bad { border-color: rgba(212, 105, 78, .55); }
+.verify-verdict { margin: 0 0 6px; font-weight: 650; font-size: 15px; }
+.verify-ok .verify-verdict { color: var(--good); }
+.verify-bad .verify-verdict { color: var(--bad); }
+.verify-row { display: flex; gap: 10px; align-items: baseline; margin-top: 6px; font-size: 14px; }
+.verify-row span { color: var(--muted); flex: none; }
+.verify-row code { font-family: var(--mono); font-size: 13px; word-break: break-all; }

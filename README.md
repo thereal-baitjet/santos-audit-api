@@ -37,7 +37,7 @@ prioritized fixes. No account or traditional API key; paid resources use the
 
 [![Live site](https://img.shields.io/website?url=https%3A%2F%2Fwww.santosautomation.com&label=live%20site)](https://www.santosautomation.com/)
 [![Vercel production](https://img.shields.io/badge/production-Vercel-black?logo=vercel)](https://vercel.com/thereal-baitjets-projects/santos-api)
-[![API version](https://img.shields.io/badge/API-v2.8.1-d4a24e)](https://api.santosautomation.com/openapi.json)
+[![API version](https://img.shields.io/badge/API-v2.9.0-d4a24e)](https://api.santosautomation.com/openapi.json)
 [![x402](https://img.shields.io/badge/payments-x402%20v2%20%7C%20USDC%20on%20Base-2775ca)](https://x402.org/)
 [![OpenAPI](https://img.shields.io/badge/spec-OpenAPI%203.1-6ba539)](https://api.santosautomation.com/openapi.json)
 [![License](https://img.shields.io/badge/license-ISC-blue)](package.json)
@@ -156,6 +156,38 @@ Same report shape, no payment, 1/day per IP:
 ```
 curl "https://api.santosautomation.com/api/audit/demo?url=example.com"
 ```
+
+## Free tools, badge & CI
+
+**Verified-email free audit** — one full Quick Intelligence audit per day per
+verified email (6-digit code flow, token valid 30 days), HMAC-signed report:
+
+```
+POST /api/leads/verify/request  {"email": "you@example.com", "url": "example.com"}
+POST /api/leads/verify/confirm  {"email": "you@example.com", "code": "123456"}  → token
+GET  /api/audit/free?url=example.com&token=<token>
+```
+
+**Agent-Ready badge** — embed a live SVG shield of your public score:
+
+```markdown
+[![Agent-Ready badge](https://api.santosautomation.com/v1/badge?url=example.com)](https://www.santosautomation.com/reports/example.com)
+```
+
+**llms.txt generator** — draft a standards-shaped `llms.txt` from a one-page
+sample (verified-email free tier, quota shared with the free audit):
+`GET /v1/llms-txt/demo?url=example.com&token=<token>` or the tool page at
+[/llms-txt-generator](https://www.santosautomation.com/llms-txt-generator).
+
+**Report verification** — every report carries an HMAC-SHA256 signature. Verify
+one free with `POST /v1/verify` (30/hour) or at
+[/verify](https://www.santosautomation.com/verify).
+
+**CI gate** — fail a pull request when its preview deploy scores below your
+agent-readiness threshold (~$0.075 USDC per run via x402):
+[`examples/agent-readiness-ci.yml`](examples/agent-readiness-ci.yml) (GitHub
+Actions) and [`examples/agent-readiness-ci.sh`](examples/agent-readiness-ci.sh)
+(any CI). Guide: [/ci](https://www.santosautomation.com/ci).
 
 ## Deep Website Intelligence (browser-rendered tier)
 

@@ -1,0 +1,102 @@
+# Agent Readiness CI gate — fail a pull request when the preview deploy scores
+# below a threshold on the Santos Agent Readiness audit.
+#
+# HOW IT WORKS
+#   Each run pays for one Agent Readiness audit of your PR preview URL over the
+#   x402 protocol (machine-to-machine USDC payment, settled inside the HTTP
+#   request itself — no account, no API key). The response JSON carries a
+#   0–100 `score`; the job fails when the score is below $AGENT_READY_MIN.
+#
+# COST
+#   ~$0.075 USDC per run (price of one quick-depth Agent Readiness audit;
+#   payment settles only on a successful response, so a failed audit costs
+#   nothing). On a busy repo you may want to limit this to `pull_request`
+#   events on specific paths, or run it nightly instead of per-PR.
+#
+# REQUIRED SECRETS / VARIABLES
+#   secrets.X402_PRIVATE_KEY — an EVM private key (0x-prefixed, 32 bytes) for a
+#       wallet holding USDC on Base mainnet (eip155:8453). This is a SPENDING
+#       key: create a dedicated wallet, fund it with a few dollars of USDC on
+#       Base (e.g. buy/send USDC on Base via Coinbase, or bridge), and keep
+#       only what you expect to spend. NEVER reuse a treasury/personal key.
+#   vars.PREVIEW_URL — the publicly reachable URL of the deployed PR preview.
+#       The audit runs on Santos infrastructure, so the URL must be reachable
+#       from the public internet: localhost, private IPs, and
+#       authentication-protected previews CANNOT be audited. For Vercel,
+#       map the deployment URL (e.g. from the `vercel` CLI or a
+#       deployment_status event) into this variable, or hardcode a staging URL.
+#   vars.AGENT_READY_MIN (optional) — minimum passing score, default 70.
+#
+# Any x402 v2 client works for the payment step — this workflow uses the
+# official @x402/fetch + @x402/evm TypeScript client inline, but you can swap
+# in the Python client or a raw PAYMENT-SIGNATURE flow (see
+# examples/agent-readiness-ci.sh and https://www.santosautomation.com/docs).
+
+name: Agent Readiness
+
+on:
+  pull_request:
+
+jobs:
+  agent-readiness:
+    runs-on: ubuntu-latest
+    env:
+      PREVIEW_URL: ${{ vars.PREVIEW_URL }}
+      AGENT_READY_MIN: ${{ vars.AGENT_READY_MIN || '70' }}
+      X402_PRIVATE_KEY: ${{ secrets.X402_PRIVATE_KEY }}
+    steps:
+      - name: Check configuration
+        run: |
+          if [ -z "$PREVIEW_URL" ]; then
+            echo "::error::Set the PREVIEW_URL repo variable to your public preview URL."
+            exit 1
+          fi
+          if [ -z "$X402_PRIVATE_KEY" ]; then
+            echo "::error::Set the X402_PRIVATE_KEY secret (EVM key with USDC on Base)."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install the x402 client
+        run: npm install --no-save @x402/fetch @x402/evm viem
+
+      - name: Pay for the audit and enforce the score threshold
+        run: |
+          cat > agent-readiness-check.mjs <<'EOF'
+          import { privateKeyToAccount } from "viem/accounts";
+          import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
+          import { ExactEvmScheme } from "@x402/evm";
+
+          const account = privateKeyToAccount(process.env.X402_PRIVATE_KEY);
+          const fetchWithPay = wrapFetchWithPaymentFromConfig(fetch, {
+            schemes: [{ network: "eip155:8453", client: new ExactEvmScheme(account) }],
+          });
+
+          const target = process.env.PREVIEW_URL;
+          const min = Number(process.env.AGENT_READY_MIN || "70");
+          const endpoint =
+            "https://api.santosautomation.com/api/agent-readiness?url=" +
+            encodeURIComponent(target) + "&depth=quick";
+
+          // Unpaid, this endpoint returns 402 PAYMENT-REQUIRED; fetchWithPay
+          // signs the quoted ~$0.075 USDC terms and retries automatically.
+          const res = await fetchWithPay(endpoint);
+          if (!res.ok) {
+            console.error(`Audit failed: HTTP ${res.status}`, await res.text());
+            process.exit(1);
+          }
+          const report = await res.json();
+          console.log(`Agent Readiness: score ${report.score}/100, grade ${report.grade}, level ${report.readiness_level?.name}`);
+          for (const action of (report.recommended_actions ?? []).slice(0, 5)) {
+            console.log(`  fix: ${typeof action === "string" ? action : action.action ?? JSON.stringify(action)}`);
+          }
+          if (typeof report.score !== "number" || report.score < min) {
+            console.error(`::error::Score ${report.score} is below the required minimum of ${min}.`);
+            process.exit(1);
+          }
+          console.log(`Score ${report.score} >= ${min} — gate passed.`);
+          EOF
+          node agent-readiness-check.mjs

@@ -1,6 +1,6 @@
 {
   "name": "santos-audit-api",
-  "version": "2.3.1",
+  "version": "2.9.0",
   "description": "AI Website Intelligence and Agent Readiness API with Quick and browser-rendered audits, structured evidence, and x402 USDC payment on Base.",
   "scripts": {
     "dev": "next dev -H 127.0.0.1 -p 3000",

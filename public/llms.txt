@@ -33,6 +33,13 @@ Built and operated by Santos Automation. From discoverable to callable.
 - [Screenshot & PDF Render](https://api.santosautomation.com/v1/screenshot?url=https%3A%2F%2Fexample.com): $0.01 USDC, synchronous — real-Chromium PNG/JPEG/PDF bytes (format=, device=, full_page= params)
 - [Deep Website Intelligence Audit](https://api.santosautomation.com/v1/audits): $0.225 USDC, asynchronous job — POST {"url": "https://example.com"}
 
+## Free tools (no payment)
+
+- [Free verified-email audit](https://api.santosautomation.com/api/audit/free?url=https%3A%2F%2Fexample.com): 1/day per verified email (token from POST /api/leads/verify/request → confirm), same report shape as the paid Quick Audit, HMAC-signed; quota shared with the llms.txt generator
+- [Agent-Ready badge](https://api.santosautomation.com/v1/badge?url=https%3A%2F%2Fexample.com): free SVG shield of a site's latest public score — no quota; embed `[![badge](https://api.santosautomation.com/v1/badge?url=example.com)](https://www.santosautomation.com/reports/example.com)`
+- [Report signature verification](https://api.santosautomation.com/v1/verify): free — POST a full report JSON, get {valid, url, score, signed_at}; 30/hour per IP
+- [llms.txt generator](https://api.santosautomation.com/v1/llms-txt/demo?url=https%3A%2F%2Fexample.com): 1/day per verified email (shared quota) — drafts a standards-shaped llms.txt from a one-page sample
+
 AGENT READINESS AUDIT details:
 - Capability id: `agent-readiness.quick`; result schema version: `1.0.0`.
 - Classifies the target before scoring. Ordinary websites are not penalized for

@@ -6,6 +6,7 @@ import { auditErrorResponse, CORS } from "../../../../lib/errors.js";
 import { hasFreeAudit, markFreeAudit, ipFromRequest } from "../../../../lib/demo-limit.js";
 import { getAgentReadinessPriceUsdc } from "../../../../lib/agent-readiness/product-pricing.js";
 import { websiteIntelligenceSummary } from "../../../../lib/website-intelligence.js";
+import { signReport } from "../../../../lib/report-signing.js";
 
 const PRICE = getAgentReadinessPriceUsdc();
 
@@ -45,12 +46,12 @@ async function handleGET(req) {
     // Atomic claim AFTER success: failures stay free, races can't double-spend.
     if (!(await markFreeAudit(ip))) return rateLimited();
     const websiteIntelligence = websiteIntelligenceSummary({ agentReadiness: result });
-    return NextResponse.json({
+    return NextResponse.json(signReport({
       tier: "free-demo",
       website_intelligence_score: websiteIntelligence.score,
       website_intelligence: websiteIntelligence,
       ...result,
-    }, { headers: CORS });
+    }), { headers: CORS });
   } catch (e) {
     return auditErrorResponse(e);
   }

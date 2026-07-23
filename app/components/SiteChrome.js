@@ -31,6 +31,10 @@ export function SiteFooter() {
         </div>
         <div className="links" aria-label="Footer links">
           <a href="/docs">API docs</a>
+          <a href="/reports">Leaderboard</a>
+          <a href="/llms-txt-generator">llms.txt generator</a>
+          <a href="/verify">Verify a report</a>
+          <a href="/ci">CI recipe</a>
           <a href="/reports/sample-agent-readiness">Sample report</a>
           <a href="/learn/what-is-ai-website-intelligence">Learn</a>
           <a href="/openapi.json" data-analytics-event="openapi_downloaded">OpenAPI</a>

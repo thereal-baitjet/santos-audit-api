@@ -8,12 +8,30 @@ import { notifyTransaction } from "../../../notify.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
 import { recordEvent } from "../../../lib/analytics-store.js";
+import { signReport } from "../../../lib/report-signing.js";
+import { upsertPublicReport } from "../../../lib/public-reports.js";
 
 async function handler(req) {
   const url = req.nextUrl.searchParams.get("url") ?? "";
+  const isPublic = req.nextUrl.searchParams.get("public") === "1";
   try {
     const report = await auditSite(url);
-    return NextResponse.json({ tier: "paid", ...report }, { headers: CORS });
+    const signed = signReport({ tier: "paid", ...report });
+    // Opt-in public listing. Fail-soft: a listing failure never breaks a
+    // paid response, and only the report JSON is stored — never the payer.
+    if (isPublic) {
+      try {
+        await upsertPublicReport({
+          url: report.url,
+          score: report.website_intelligence_score ?? report.overall_score ?? null,
+          report: signed,
+          source: "quick-paid",
+        });
+      } catch (e) {
+        console.warn("public report upsert failed:", e.message);
+      }
+    }
+    return NextResponse.json(signed, { headers: CORS });
   } catch (e) {
     // withX402 only settles payment for responses under 400, so a failed
     // audit here costs the agent nothing.

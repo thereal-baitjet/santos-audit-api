@@ -15,46 +15,29 @@
     return node;
   };
 
-  // Demo quota exhausted (429): show the reason, then offer to email tomorrow's
-  // free audit instead — the human conversion path for an agent-only paywall.
-  function renderLeadCapture(widget, target, message) {
+  // Daily quota exhausted (429): explain the verified-email limit and point at
+  // the paid paths — email is already captured up front, so there is no
+  // lead-capture fallback anymore.
+  function renderLockedOut(widget, message) {
     const status = widget.querySelector("[data-audit-status]");
     status.className = "audit-status error";
     status.textContent = message;
-    let box = widget.querySelector("[data-lead-capture]");
+    let box = widget.querySelector("[data-locked-out]");
     if (!box) {
-      box = element("div", "lead-capture");
-      box.setAttribute("data-lead-capture", "");
+      box = element("div", "locked-out");
+      box.setAttribute("data-locked-out", "");
       status.after(box);
     }
     box.replaceChildren();
-    box.append(element("p", "", "Want tomorrow's free audit emailed to you? Leave your email:"));
-    const leadForm = element("form", "audit-form");
-    const input = element("input");
-    input.type = "email";
-    input.name = "email";
-    input.placeholder = "you@example.com";
-    input.required = true;
-    const submit = element("button", "btn primary", "Email me the audit");
-    submit.type = "submit";
-    leadForm.append(input, submit);
-    box.append(leadForm);
-    leadForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      submit.disabled = true;
-      try {
-        const res = await fetch("/api/leads", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ email: input.value.trim(), url: target, source: "audit-widget" }),
-        });
-        if (!res.ok) throw new Error();
-        box.replaceChildren(element("p", "clean", "Thanks — we'll email you a link when your free quota resets."));
-      } catch {
-        submit.disabled = false;
-        box.append(element("p", "audit-status error", "Could not save that right now. Please try again tomorrow."));
-      }
-    });
+    box.append(element("p", "", "Locked out until midnight UTC — one free audit per day per verified email."));
+    const links = element("p", "locked-out-links");
+    const card = element("a", "", "$5 Agent Readiness Report by card");
+    card.href = "/agent-readiness/buy";
+    const api = element("a", "", "Paid API (x402, $0.015/audit)");
+    api.href = "/openapi.json";
+    links.append(card, document.createTextNode(" · "), api);
+    box.append(links);
+    announce("free_audit_locked_out");
   }
 
   function scoreCard(label, score, primary = false) {
@@ -103,6 +86,9 @@
     widget.querySelector("[data-audit-result]").hidden = false;
   }
 
+  const runAudit = (target, token, isPublic) =>
+    fetch(`/api/audit/free?url=${encodeURIComponent(target)}&token=${encodeURIComponent(token)}&public=${isPublic ? "1" : "0"}`);
+
   document.querySelectorAll("[data-audit-widget]").forEach((widget) => {
     if (widget.dataset.ready === "true") return;
     widget.dataset.ready = "true";
@@ -112,33 +98,60 @@
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const target = new FormData(form).get("url")?.trim();
-      if (!target) return;
+      const data = new FormData(form);
+      const target = data.get("url")?.trim();
+      const email = data.get("email")?.trim().toLowerCase();
+      const isPublic = data.get("public") != null;
+      if (!target || !email) return;
       // free_audit_started fires from the button's data-analytics-event click.
       button.disabled = true;
       status.className = "audit-status spinner";
       status.textContent = `Auditing ${target} …`;
       widget.querySelector("[data-audit-result]").hidden = true;
+      widget.querySelector("[data-locked-out]")?.remove();
       try {
-        const response = await fetch(`/api/audit/demo?url=${encodeURIComponent(target)}`);
-        const data = await response.json();
-        if (response.status === 429) {
-          renderLeadCapture(widget, target, data.error ?? "Free demo limit reached for today.");
+        // A stored token only counts when it was issued to this email.
+        let token = window.SantosVerify?.getToken();
+        if (token && window.SantosVerify.getEmail() !== email) token = null;
+
+        if (token) {
+          const first = await runAudit(target, token, isPublic);
+          if (first.status !== 401) {
+            await handle(first);
+            return;
+          }
+          // 401: token expired or never verified — fall through to verification.
+        }
+
+        token = await window.SantosVerify.ensureVerified({ email, url: target, statusNode: status });
+        if (!token) {
           announce("free_audit_failed");
           return;
         }
-        if (!response.ok) throw new Error(data.error ?? "Audit failed");
-        widget.querySelector("[data-lead-capture]")?.remove();
-        render(widget, data);
-        status.textContent = "Audit complete.";
-        status.className = "audit-status clean";
-        announce("free_audit_completed");
+        status.className = "audit-status spinner";
+        status.textContent = `Auditing ${target} …`;
+        await handle(await runAudit(target, token, isPublic));
       } catch (error) {
         status.textContent = error.message || "Could not reach the audit API. Try again in a moment.";
         status.className = "audit-status error";
         announce("free_audit_failed");
       } finally {
         button.disabled = false;
+      }
+
+      async function handle(response) {
+        const body = await response.json();
+        if (response.status === 429) {
+          renderLockedOut(widget, body.error ?? "Free audit limit reached for today.");
+          announce("free_audit_failed");
+          return;
+        }
+        if (!response.ok) throw new Error(body.error ?? "Audit failed");
+        widget.querySelector("[data-locked-out]")?.remove();
+        render(widget, body);
+        status.textContent = "Audit complete. Full summary emailed to you.";
+        status.className = "audit-status clean";
+        announce("free_audit_completed");
       }
     });
   });

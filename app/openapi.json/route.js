@@ -50,7 +50,7 @@ const auditReportSchema = {
   required: ["tier", "url", "fetched_at", "http_status", "timing_ms", "overall_score", "scores", "checks", "issues"],
   properties: {
     schema_version: { type: "string", enum: ["2.1.0"] },
-    tier: { type: "string", enum: ["paid", "free-demo"] },
+    tier: { type: "string", enum: ["paid", "free-demo", "free-verified"] },
     url: { type: "string", format: "uri", description: "The final URL audited, after redirects." },
     fetched_at: { type: "string", format: "date-time" },
     http_status: { type: "integer", description: "HTTP status returned by the audited site." },
@@ -108,7 +108,7 @@ const errorSchema = {
       description: "Stable machine-readable error code.",
       enum: [
         "INVALID_URL", "UNSUPPORTED_SCHEME", "PRIVATE_ADDRESS_BLOCKED",
-        "RATE_LIMITED", "AUDIT_TIMEOUT", "TARGET_UNREACHABLE", "AUDIT_FAILED",
+        "RATE_LIMITED", "EMAIL_NOT_VERIFIED", "AUDIT_TIMEOUT", "TARGET_UNREACHABLE", "AUDIT_FAILED",
         "INVALID_EXTRACTION_SCHEMA", "STRUCTURED_OUTPUT_INVALID",
       ],
     },
@@ -147,7 +147,7 @@ const document = {
   openapi: "3.1.0",
   info: {
     title: "Santos Website Intelligence API",
-    version: "2.3.1",
+    version: "2.9.0",
     description:
       `AI Website Intelligence for determining whether public websites can be discovered, understood, trusted, and used by agents. Three paid capabilities use USDC on Base mainnet (eip155:8453) via x402 v2 with no account or traditional API key. QUICK INTELLIGENCE (GET /api/audit, $0.015, synchronous): lightweight single-page fetch-and-parse audit. AGENT READINESS (GET /api/agent-readiness, $${AGENT_READINESS_PRICE}, synchronous): bounded passive discovery and applicability-aware assessment of agent-facing interfaces. DEEP WEBSITE INTELLIGENCE (POST /v1/audits, $0.225, asynchronous): real Chromium via Playwright, Lighthouse, rendered axe-core, browser evidence, screenshots, and passive security checks. Quick and Agent Readiness payments settle only on a successful response; Deep payment purchases a bounded compute reservation and settles when the job is accepted.`,
     contact: { name: "Santos Automation", email: "info@santosautomation.com", url: "https://www.santosautomation.com" },
@@ -246,6 +246,29 @@ const document = {
         responses: {
           200: { description: "Audit complete.", content: { "application/json": { schema: auditReportSchema } } },
           400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
+          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
+          502: { description: "Target site unreachable.", content: { "application/json": { schema: errorSchema } } },
+          504: { description: "Target site timed out.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/api/audit/free": {
+      get: {
+        operationId: "auditWebsiteFreeVerified",
+        security: [], // free endpoint — excluded from x402 registry probing
+        tags: ["Quick Intelligence"],
+        summary: "Free Quick Intelligence audit (1/day per verified email)",
+        description:
+          "Same report shape as the paid endpoint (tier is \"free-verified\"), plus an HMAC-SHA256 signature over the report. Requires a verified-email token: POST /api/leads/verify/request {email, url} → 6-digit code by email → POST /api/leads/verify/confirm {email, code} → token valid 30 days. One free audit per day per verified email, shared with the llms.txt generator; 429 with code RATE_LIMITED after that. Pass public=1 to list the score on the public leaderboard.",
+        parameters: [
+          urlParam,
+          { name: "token", in: "query", required: true, schema: { type: "string" }, description: "Verified-email token from the /api/leads/verify/* flow." },
+          { name: "public", in: "query", required: false, schema: { type: "string", enum: ["0", "1"], default: "0" }, description: "Set to 1 to publish the score to /reports." },
+        ],
+        responses: {
+          200: { description: "Audit complete.", content: { "application/json": { schema: auditReportSchema } } },
+          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
+          401: { description: "Missing, expired, or unverified email token (code EMAIL_NOT_VERIFIED).", content: { "application/json": { schema: errorSchema } } },
           429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
           502: { description: "Target site unreachable.", content: { "application/json": { schema: errorSchema } } },
           504: { description: "Target site timed out.", content: { "application/json": { schema: errorSchema } } },
@@ -544,6 +567,98 @@ const document = {
         },
       },
     },
+    "/v1/badge": {
+      get: {
+        operationId: "getAgentReadyBadge",
+        security: [], // free endpoint — excluded from x402 registry probing
+        tags: ["Free Tools"],
+        summary: "Agent-Ready badge (free SVG, no quota)",
+        description:
+          "Returns an SVG shield with the site's latest public Agent Readiness score and verification date — gold/green by grade, gray 'unverified' when no public report exists, and a re-verify state when the latest report is over 30 days old. Free, no quota (it is an image); Cache-Control: public, max-age=3600. Embed: [![Agent-Ready badge](https://api.santosautomation.com/v1/badge?url=example.com)](https://www.santosautomation.com/reports/example.com).",
+        parameters: [urlParam],
+        responses: {
+          200: { description: "SVG badge image.", content: { "image/svg+xml": { schema: { type: "string" } } } },
+          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/v1/verify": {
+      post: {
+        operationId: "verifyReportSignature",
+        security: [], // free endpoint — excluded from x402 registry probing
+        tags: ["Free Tools"],
+        summary: "Verify a signed audit report (free, 30/hour per IP)",
+        description:
+          "Verifies the HMAC-SHA256 signature on a Santos audit report. POST the full report JSON exactly as returned by any audit endpoint (including its signature_alg, signed_at, and signature fields). Returns whether the signature is valid for the unmodified report. Rate-limited to 30 verifications per hour per IP.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { type: "object", description: "The full report JSON, including signature fields." },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Verification result.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["valid"],
+                  properties: {
+                    valid: { type: "boolean" },
+                    url: { type: "string" },
+                    score: { type: ["integer", "null"] },
+                    signed_at: { type: "string", format: "date-time" },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Malformed body or missing signature fields.", content: { "application/json": { schema: errorSchema } } },
+          429: { description: "Hourly verification limit reached.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/v1/llms-txt/demo": {
+      get: {
+        operationId: "generateLlmsTxtDemo",
+        security: [], // free endpoint — excluded from x402 registry probing
+        tags: ["Free Tools"],
+        summary: "Free llms.txt draft generator (1/day per verified email)",
+        description:
+          "Samples one public page (title, meta description, h1/h2 outline, up to 20 same-origin internal links) and returns a draft llms.txt following the llmstxt.org convention. Requires a verified-email token (same /api/leads/verify/* flow as GET /api/audit/free); one call per day per verified email, shared across the verified free tools. The draft is a starting point — review before publishing.",
+        parameters: [
+          urlParam,
+          { name: "token", in: "query", required: true, schema: { type: "string" }, description: "Verified-email token from the /api/leads/verify/* flow." },
+        ],
+        responses: {
+          200: {
+            description: "Draft generated.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["tier", "url", "llms_txt", "notes"],
+                  properties: {
+                    tier: { type: "string", enum: ["free-verified"] },
+                    url: { type: "string", format: "uri" },
+                    llms_txt: { type: "string", description: "Draft llms.txt markdown (llmstxt.org convention)." },
+                    notes: { type: "array", items: { type: "string" }, description: "Caveats, e.g. \"Draft — review before publishing\", \"1 page sampled\"." },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
+          401: { description: "Missing, expired, or unverified email token (code EMAIL_NOT_VERIFIED).", content: { "application/json": { schema: errorSchema } } },
+          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
+          502: { description: "Target site unreachable.", content: { "application/json": { schema: errorSchema } } },
+          504: { description: "Target site timed out.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
     "/v1/audits": {
       post: {
         operationId: "createDeepAudit",
@@ -643,7 +758,7 @@ const document = {
     },
   },
   components: { schemas: { AgentReadinessResult: AGENT_READINESS_RESULT_SCHEMA, WebsiteIntelligence: websiteIntelligenceSchema } },
-  tags: [{ name: "Quick Intelligence" }, { name: "Agent Readiness" }, { name: "Deep Website Intelligence" }],
+  tags: [{ name: "Quick Intelligence" }, { name: "Agent Readiness" }, { name: "Deep Website Intelligence" }, { name: "Free Tools" }],
 };
 
 async function handleGET() {

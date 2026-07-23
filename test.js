@@ -13,7 +13,7 @@ const manifest = await root.json();
 check("manifest returns 200", root.status === 200);
 check("manifest lists demo + paid endpoints", !!manifest.endpoints?.["GET /api/audit/demo?url="] && !!manifest.endpoints?.["GET /api/audit?url="]);
 check("manifest lists Agent Readiness", !!manifest.endpoints?.["GET /api/agent-readiness?url=&depth=quick"] && manifest.tiers?.["agent-readiness"]?.capability_id === "agent-readiness.quick");
-check("manifest uses Website Intelligence positioning", manifest.name === "Santos Website Intelligence API" && manifest.version === "2.3.1");
+check("manifest uses Website Intelligence positioning", manifest.name === "Santos Website Intelligence API" && manifest.version === "2.9.0");
 
 // 2) Free demo: 200 with a report, or 429 if this IP already used today's audit
 const demo = await fetch(`${BASE}/api/audit/demo?url=example.com`);
