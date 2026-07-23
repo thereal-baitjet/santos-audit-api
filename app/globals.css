@@ -481,3 +481,47 @@ tr:last-child th, tr:last-child td { border-bottom: 0; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }
+
+/* ---- homepage redesign (presentation-only overrides) ---- */
+header.hero {
+  flex-direction: column; text-align: center; position: relative; overflow: hidden;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(212, 162, 78, .13), transparent 70%);
+}
+.hero-copy { margin: 0 auto; position: relative; z-index: 1; }
+.hero-eagle {
+  position: absolute; inset: 0; margin: auto; z-index: 0;
+  width: min(520px, 80vw); opacity: 0.07; pointer-events: none; filter: none;
+}
+.hero h1 { max-width: 20ch; margin-inline: auto; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p.lede { margin-inline: auto; }
+.hero .cta-row { justify-content: center; }
+.hero .kicker {
+  display: inline-block; padding: 5px 14px; border-radius: 999px;
+  border: 1px solid rgba(212, 162, 78, .35); background: rgba(212, 162, 78, .14);
+}
+
+.stat-strip { border-bottom: 1px solid var(--border); background: var(--surface); }
+.stat-strip .wrap {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 24px 48px;
+  padding-block: 22px;
+}
+.stat { text-align: center; }
+.stat b { display: block; font-family: var(--mono); font-size: 26px; color: var(--accent); }
+.stat span { font-size: 13px; color: var(--muted); }
+
+.plan--batch {
+  border-color: var(--accent); position: relative;
+  background: linear-gradient(180deg, rgba(212, 162, 78, .08), var(--surface) 55%);
+}
+.plan--batch::before {
+  content: "volume"; position: absolute; top: -11px; right: 20px;
+  background: var(--accent); color: var(--accent-ink); font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 4px; font-weight: 700;
+}
+
+.dimension-card, .feature-card, .plan { transition: border-color .15s, transform .15s; }
+.dimension-card:hover, .feature-card:hover, .plan:hover {
+  border-color: rgba(212, 162, 78, .4); transform: translateY(-2px);
+}
