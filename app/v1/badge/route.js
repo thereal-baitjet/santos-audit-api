@@ -9,6 +9,7 @@ import { withAgentLog } from "../../../lib/agent-log.js";
 import { NextResponse } from "next/server";
 import { CORS } from "../../../lib/errors.js";
 import { getPublicReport } from "../../../lib/public-reports.js";
+import { EAGLE_PATH } from "../../../lib/eagle-path.js";
 
 const GOLD = "#d4a24e";
 const INK = "#14110b";
@@ -30,15 +31,15 @@ function scoreOf(row) {
   return Number.isFinite(score) ? score : null;
 }
 
-// Shield glyph, ~12×14 inside a translate().
-const SHIELD_PATH = "M6 0 L12 2.2 V6.2 C12 10 9.5 12.6 6 13.8 C2.5 12.6 0 10 0 6.2 V2.2 Z";
+// Santos eagle emblem, ~20×20 inside a translate() (source viewBox 1254²).
+const EAGLE_SCALE = 20 / 1254;
 
 function badgeSvg({ label, score, color, showShield }) {
   const labelX = showShield ? 30 : 12;
   const scoreW = score == null ? 0 : 26;
   const width = Math.ceil(labelX + label.length * CHAR_W + (score == null ? 12 : scoreW + 10));
   const shield = showShield
-    ? `<path d="${SHIELD_PATH}" transform="translate(9 7)" fill="${color}"/>`
+    ? `<path d="${EAGLE_PATH}" transform="translate(5 4) scale(${EAGLE_SCALE})" fill="${color}"/>`
     : "";
   const scoreText =
     score == null

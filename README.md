@@ -38,6 +38,7 @@ prioritized fixes. No account or traditional API key; paid resources use the
 [![Live site](https://img.shields.io/website?url=https%3A%2F%2Fwww.santosautomation.com&label=live%20site)](https://www.santosautomation.com/)
 [![Vercel production](https://img.shields.io/badge/production-Vercel-black?logo=vercel)](https://vercel.com/thereal-baitjets-projects/santos-api)
 [![API version](https://img.shields.io/badge/API-v2.9.0-d4a24e)](https://api.santosautomation.com/openapi.json)
+[![Agent-Ready badge](https://api.santosautomation.com/v1/badge?url=santosautomation.com)](https://www.santosautomation.com/reports/santosautomation.com)
 [![x402](https://img.shields.io/badge/payments-x402%20v2%20%7C%20USDC%20on%20Base-2775ca)](https://x402.org/)
 [![OpenAPI](https://img.shields.io/badge/spec-OpenAPI%203.1-6ba539)](https://api.santosautomation.com/openapi.json)
 [![License](https://img.shields.io/badge/license-ISC-blue)](package.json)
