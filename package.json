@@ -31,7 +31,7 @@
     "type": "git",
     "url": "git+https://github.com/thereal-baitjet/santos-audit-api.git"
   },
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",
