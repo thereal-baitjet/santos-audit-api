@@ -8,6 +8,13 @@ export const metadata = {
 
 const ENTRIES = [
   {
+    version: "2.8.0",
+    date: "2026-07-23",
+    items: [
+      "Batch Quick Intelligence Audit (POST /api/audit/batch, $0.10 USDC): up to 10 URLs in one payment, per-URL failure isolation; settles only when at least one audit succeeds.",
+    ],
+  },
+  {
     version: "2.7.1",
     date: "2026-07-22",
     items: [
@@ -72,7 +79,7 @@ export default function ChangelogPage() {
       <h1>Changelog.</h1>
       <p>
         Product history for the Santos Website Intelligence API. Latest version:{" "}
-        <strong>2.7.1</strong>. Machine-readable version and contract data:{" "}
+        <strong>2.8.0</strong>. Machine-readable version and contract data:{" "}
         <a href="/version">/version</a>.
       </p>
 

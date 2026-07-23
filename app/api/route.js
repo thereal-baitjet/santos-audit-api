@@ -114,6 +114,7 @@ async function handleGET() {
       },
       endpoints: {
         "GET /api/audit?url=": "$0.015 USDC via x402 v2 — quick audit, synchronous",
+        "POST /api/audit/batch": `$${process.env.BATCH_AUDIT_PRICE_USDC ?? "0.10"} USDC via x402 v2 — batch quick audit, up to 10 URLs, synchronous`,
         "GET /api/agent-readiness?url=&depth=quick": `$${readinessPrice} USDC via x402 v2 — Agent Readiness audit, synchronous`,
         "GET /v1/fetch?url=": `$${process.env.SAFE_FETCH_PRICE_USDC ?? "0.002"} USDC via x402 v2 — SSRF-guarded raw fetch, synchronous`,
         "POST /v1/extract": `$${process.env.EXTRACT_PRICE_USDC ?? "0.005"} USDC via x402 v2 — page-to-Markdown extraction, synchronous`,

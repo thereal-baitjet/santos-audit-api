@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.8.0 — 2026-07-23 — Batch Quick Intelligence Audit (the volume rail)
+
+### Added
+- **POST /api/audit/batch** ($0.10 USDC via x402 v2): up to 10 public URLs
+  audited in one payment (~33% under 10 × $0.015 per-call). Duplicates removed,
+  4-way bounded concurrency, per-URL failure isolation (one bad target returns
+  an error entry, not a failed batch). Settlement follows the suite rule
+  adapted to batches: payment settles only when at least one audit succeeds —
+  an all-failure batch returns 502 and is never charged. Synchronous, 60s cap.
+  Discovery surfaces updated per the suite template: OpenAPI, llms.txt,
+  capabilities manifest (`site-audit.quick-batch`), /api service manifest,
+  Bazaar discovery extension.
+
 ## 2.7.1 — 2026-07-22 — Conversion funnel + trust surfaces
 
 ### Added

@@ -252,6 +252,62 @@ const document = {
         },
       },
     },
+    "/api/audit/batch": {
+      post: {
+        operationId: "auditWebsiteBatch",
+        tags: ["Quick Intelligence"],
+        summary: "Batch Quick Intelligence Audits ($0.10 USDC via x402, up to 10 URLs)",
+        description:
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE). Audits up to 10 public URLs in one payment — the same report shape as GET /api/audit per URL, with a Website Intelligence score. Duplicates are removed; at most 4 targets are fetched concurrently. Per-URL failures are isolated and returned as error entries; payment settles only when at least one audit succeeds — a batch where every URL fails returns 502 and is never charged. Synchronous; worst-case latency is under a minute.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["urls"],
+                properties: {
+                  urls: { type: "array", minItems: 1, maxItems: 10, items: { type: "string", format: "uri" }, description: "Public HTTP or HTTPS URLs to audit." },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Batch complete; payment settled. The PAYMENT-RESPONSE header carries a base64 on-chain receipt.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    tier: { type: "string", enum: ["paid"] },
+                    batch_size: { type: "integer" },
+                    succeeded: { type: "integer" },
+                    failed: { type: "integer" },
+                    results: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          url: { type: "string" },
+                          ok: { type: "boolean" },
+                          report: auditReportSchema,
+                          error: errorSchema,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Malformed body, empty urls array, or more than 10 URLs.", content: { "application/json": { schema: errorSchema } } },
+          402: { description: "Payment required. PAYMENT-REQUIRED contains x402 v2 terms for $0.10 USDC on eip155:8453." },
+          502: { description: "Every URL in the batch failed; no charge settled.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
     "/v1/fetch": {
       get: {
         operationId: "safeFetchUrl",

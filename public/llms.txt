@@ -22,6 +22,7 @@ Built and operated by Santos Automation. From discoverable to callable.
 
 - [Agent Readiness Audit](https://api.santosautomation.com/api/agent-readiness?url=https%3A%2F%2Fexample.com&depth=quick): $0.075 USDC per successful audit, synchronous, bounded passive public-interface assessment
 - [Quick Intelligence Audit](https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com): $0.015 USDC, synchronous (seconds), fetch-and-parse engine
+- [Batch Quick Intelligence Audit](https://api.santosautomation.com/api/audit/batch): $0.10 USDC per batch, synchronous — POST {"urls": ["https://example.com", ...]} with up to 10 URLs (~33% under per-call); settles only when at least one audit succeeds
 - [Safe Fetch](https://api.santosautomation.com/v1/fetch?url=https%3A%2F%2Fexample.com): $0.002 USDC, synchronous — raw text body via a hardened SSRF-guarded fetcher (GET ?url= or POST {"url"}); text formats only
 - [Page-to-Markdown Extraction](https://api.santosautomation.com/v1/extract): $0.005 USDC, synchronous — POST {"url": "https://example.com"} (or GET ?url=); clean Markdown, title, links, metadata
 - [Structured Extraction](https://api.santosautomation.com/v1/extract/structured): $0.08 USDC, synchronous — POST {"url": "https://example.com", "schema": {...}}; LLM-extracted JSON validated against your own JSON Schema
