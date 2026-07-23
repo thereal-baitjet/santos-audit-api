@@ -20,7 +20,7 @@ const dateOf = (value) => {
 const scoreClass = (score) => (score >= 80 ? "good" : score >= 60 ? "warn" : "bad");
 
 export default async function ReportsLeaderboardPage() {
-  const rows = await topPublicReports(50).catch(() => []);
+  const rows = await topPublicReports(200).catch(() => []);
 
   return (
     <PageShell>
