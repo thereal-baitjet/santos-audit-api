@@ -10,6 +10,7 @@ import { peekKey, claimKey, hashIdentity, secondsUntilUtcMidnight } from "../../
 import { verifyToken } from "../../../../lib/leads/verify.js";
 import { signReport } from "../../../../lib/report-signing.js";
 import { sendFreeReportEmail } from "../../../../lib/email/resend.js";
+import { notifyOpsAlert } from "../../../../notify.js";
 import { upsertPublicReport, domainFromUrl } from "../../../../lib/public-reports.js";
 
 function rateLimited() {
@@ -91,7 +92,8 @@ async function handleGET(req) {
       }
     }
 
-    // Instant report email, post-response and fail-soft.
+    // Instant report email, post-response and fail-soft — but loud to ops:
+    // a delivery failure pages Discord so it can't silently strand users.
     after(async () => {
       try {
         const sent = await sendFreeReportEmail({
@@ -101,7 +103,10 @@ async function handleGET(req) {
           topIssues: report.issues,
           publicReportUrl,
         });
-        if (!sent.ok) console.warn("free report email not sent:", sent.reason);
+        if (!sent.ok) {
+          console.warn("free report email not sent:", sent.reason);
+          await notifyOpsAlert({ title: "Free report email not sent", detail: sent.reason ?? "unknown" });
+        }
       } catch (e) {
         console.warn("free report email failed:", e.message);
       }

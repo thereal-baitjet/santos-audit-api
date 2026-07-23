@@ -1,11 +1,14 @@
 // POST /api/leads/verify/request — email a 6-digit verification code for the
-// verified-email free tier. Always answers { ok:true } (never reveals whether
-// an address exists or a rate limit was hit); in non-production without a
-// Resend key it also returns dev_code for local testing.
-import { NextResponse } from "next/server";
+// verified-email free tier. Answers { ok:true } on success (never reveals
+// whether an address exists or a rate limit was hit), 503
+// EMAIL_DELIVERY_FAILED (+ a Discord ops alert) when the email genuinely
+// could not be sent; in non-production without a Resend key it also returns
+// dev_code for local testing.
+import { NextResponse, after } from "next/server";
 import { validateTarget, AuditError } from "../../../../../lib/safe-fetch.js";
 import { requestCode } from "../../../../../lib/leads/verify.js";
 import { ipFromRequest } from "../../../../../lib/demo-limit.js";
+import { notifyOpsAlert } from "../../../../../notify.js";
 
 const NO_STORE = { "Cache-Control": "no-store" };
 // Deliberately conservative: enough to catch typos, not a deliverability check.
@@ -40,6 +43,12 @@ export async function POST(req) {
 
   try {
     const result = await requestCode({ email, targetUrl, source, ip: ipFromRequest(req) });
+    if (!result.ok) {
+      // Delivery is genuinely broken (missing key, Resend error): tell the
+      // user honestly and page ops — a silent ok here costs a funnel user.
+      after(() => notifyOpsAlert({ title: "Verification email delivery failed", detail: `${result.code}: ${result.reason ?? "unknown"}` }));
+      return NextResponse.json({ error: "We could not send the verification email right now. Please try again later.", code: "EMAIL_DELIVERY_FAILED" }, { status: 503, headers: NO_STORE });
+    }
     const payload = { ok: true };
     if (result.dev_code) payload.dev_code = result.dev_code;
     return NextResponse.json(payload, { headers: NO_STORE });
