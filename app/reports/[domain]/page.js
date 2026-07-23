@@ -10,6 +10,7 @@ const SOURCE_LABELS = {
   "free-verified": "Free verified audit",
   "quick-paid": "Quick Intelligence Audit",
   "agent-readiness-paid": "Agent Readiness Audit",
+  seed: "Santos discovery index",
 };
 
 const badgeSnippet = (domain) =>
