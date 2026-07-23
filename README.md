@@ -1,6 +1,10 @@
 # Santos Website Intelligence API
 
 <p align="center">
+  <img src="public/assets/santos-eagle.svg" width="140" alt="Santos gold eagle emblem" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/AI-Website%20Intelligence-7c3aed?style=for-the-badge&logo=robot" alt="AI Website Intelligence" />
   <img src="https://img.shields.io/badge/Agent-Readiness-2563eb?style=for-the-badge&logo=lightning" alt="Agent Readiness" />
   <img src="https://img.shields.io/badge/x402-USDC%20on%20Base-0ea5e9?style=for-the-badge&logo=bitcoin" alt="x402 on Base" />
@@ -26,13 +30,14 @@ prioritized fixes. No account or traditional API key; paid resources use the
 ### Highlights
 
 - 🔍 Quick audits for website intelligence and agent-readiness signals
+- 📦 **Batch audits** — up to 50 sites in one flat $0.50 payment
 - 🧠 Browser-rendered Deep audits with Chromium, Lighthouse, and axe-core
 - 💳 x402-based payments with USDC on Base
 - 📡 OpenAPI, MCP, llms.txt, and capability manifest support
 
 [![Live site](https://img.shields.io/website?url=https%3A%2F%2Fwww.santosautomation.com&label=live%20site)](https://www.santosautomation.com/)
 [![Vercel production](https://img.shields.io/badge/production-Vercel-black?logo=vercel)](https://vercel.com/thereal-baitjets-projects/santos-api)
-[![API version](https://img.shields.io/badge/API-v2.3.0-d4a24e)](https://api.santosautomation.com/openapi.json)
+[![API version](https://img.shields.io/badge/API-v2.8.1-d4a24e)](https://api.santosautomation.com/openapi.json)
 [![x402](https://img.shields.io/badge/payments-x402%20v2%20%7C%20USDC%20on%20Base-2775ca)](https://x402.org/)
 [![OpenAPI](https://img.shields.io/badge/spec-OpenAPI%203.1-6ba539)](https://api.santosautomation.com/openapi.json)
 [![License](https://img.shields.io/badge/license-ISC-blue)](package.json)
@@ -46,19 +51,22 @@ navigation uses the gold Santos eagle SVG emblem from `public/assets`.
 | Surface | URL |
 |---|---|
 | Quick Intelligence Audit ($0.015 USDC, synchronous) | `GET /api/audit?url=https://example.com` |
+| **Batch Quick Audit ($0.50 USDC flat, up to 50 URLs)** | `POST /api/audit/batch` `{"urls": [...]}` |
 | **Agent Readiness** ($0.075 USDC, bounded passive assessment) | `GET /api/agent-readiness?url=https://example.com&depth=quick` |
 | Safe Fetch ($0.002 USDC, synchronous) | `GET /v1/fetch?url=https://example.com` |
 | Content Extraction ($0.005 USDC, synchronous) | `POST /v1/extract` `{"url": "https://example.com"}` |
 | Structured Extraction ($0.08 USDC, synchronous) | `POST /v1/extract/structured` `{"url": "...", "schema": {...}}` |
 | Screenshot & PDF Render ($0.01 USDC, synchronous) | `GET /v1/screenshot?url=https://example.com` |
 | **Deep Website Intelligence Audit** ($0.225 USDC, async job) | `POST /v1/audits` `{"url": "https://example.com"}` |
-| Free demo (1/day per IP, shared quota across all demos) | `GET /api/audit/demo?url=https://example.com` |
+| Free demos (1/day per IP, shared quota across all demos) | `GET /api/audit/demo?url=...` · `GET /api/agent-readiness/demo?url=...` |
 | OpenAPI 3.1 | [`/openapi.json`](https://api.santosautomation.com/openapi.json) |
 | llms.txt | [`/llms.txt`](https://api.santosautomation.com/llms.txt) |
 | MCP server (tools: `audit_website_preview`, `audit_agent_readiness`, `extract_page_markdown`, `extract_structured_data`) | `POST /mcp` |
 | Service manifest | [`/api`](https://api.santosautomation.com/api) |
 | Capability manifest | [`/capabilities.json`](https://api.santosautomation.com/capabilities.json) |
 | Well-known capability manifest | [`/.well-known/agent-capabilities.json`](https://www.santosautomation.com/.well-known/agent-capabilities.json) |
+| Machine-readable version & contracts | [`/version`](https://www.santosautomation.com/version) |
+| Status & changelog | [`/status`](https://www.santosautomation.com/status) · [`/changelog`](https://www.santosautomation.com/changelog) |
 | Sitemap / crawler rules | [`/sitemap.xml`](https://www.santosautomation.com/sitemap.xml) · [`/robots.txt`](https://www.santosautomation.com/robots.txt) |
 
 ## Website Intelligence model
@@ -119,9 +127,27 @@ const res = await fetchWithPay(
 const report = await res.json(); // { overall_score, scores, checks, issues, ... }
 ```
 
-Working scripts: [`buy-audit.js`](buy-audit.js) (local dev) and
-[`buy-live.js`](buy-live.js) (production). Python example:
-[`examples/audit_client.py`](examples/audit_client.py).
+Working scripts: [`buy-audit.js`](buy-audit.js) (local dev),
+[`buy-live.js`](buy-live.js) (production), and [`buy-batch.js`](buy-batch.js)
+(batch). Python example: [`examples/audit_client.py`](examples/audit_client.py).
+
+## Batch audits (the volume rail)
+
+One flat **$0.50 USDC** payment audits **up to 50 URLs** — $0.01/URL at full
+capacity, ~33% under per-call pricing. Synchronous, deduped, 8-way bounded
+concurrency, per-URL failure isolation (one bad target returns an error entry,
+not a failed batch). Settles only when **at least one** audit succeeds — an
+all-failure batch is free.
+
+```
+POST /api/audit/batch
+{ "urls": ["https://example.com", "https://example.org", ...] }
+← 402 · PAYMENT-REQUIRED: $0.50 USDC terms
+→ retry with PAYMENT-SIGNATURE
+← 200 · { batch_size, succeeded, failed, results: [{url, ok, report|error}] }
+```
+
+Working buyer example: [`buy-batch.js`](buy-batch.js).
 
 ### Free demo first
 
