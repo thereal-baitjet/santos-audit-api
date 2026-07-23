@@ -67,7 +67,11 @@ test("sitemap contains canonical public pages only and robots preserves machine 
   assert.ok(urls.includes(`${SITE_URL}/reports/sample-agent-readiness`));
   assert.ok(Object.keys(LEARN_ARTICLES).every((slug) => urls.includes(`${SITE_URL}/learn/${slug}`)));
   assert.ok(urls.every((url) => !url.includes("/api/") && !url.includes("?")));
-  assert.ok(robots().rules[0].allow.includes("/.well-known/agent-capabilities.json"));
+  // robots.txt is open-by-default (Allow: /): discovery files are reachable
+  // as long as no Disallow rule covers them.
+  const disallows = [robots().rules[0].disallow ?? []].flat();
+  const discovery = ["/.well-known/agent-capabilities.json", "/llms.txt", "/openapi.json", "/sitemap.xml"];
+  assert.ok(discovery.every((path) => !disallows.some((rule) => path.startsWith(rule))));
 });
 
 test("well-known manifest presents compatible ids with complete discovery metadata", () => {
