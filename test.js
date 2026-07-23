@@ -69,9 +69,12 @@ check("openapi 3.1 with auditWebsite operation", oaDoc.openapi === "3.1.0" && oa
 check("openapi documents Agent Readiness contract", oaDoc.paths?.["/api/agent-readiness"]?.get?.operationId === "auditAgentReadiness" && oaDoc.components?.schemas?.AgentReadinessResult?.properties?.schema_version?.const === "1.0.0");
 check("openapi documents additive Website Intelligence", oaDoc.info?.title === "Santos Website Intelligence API" && oaDoc.components?.schemas?.WebsiteIntelligence?.properties?.dimensions?.properties?.callable);
 
+// Target validation runs AFTER the paywall by design (see the route's
+// comment): unpaid probes — private target or not — must get the 402
+// challenge. PRIVATE_ADDRESS_BLOCKED (400) is only observable on a paid
+// request, which the settlement section covers when BUYER_PRIVATE_KEY is set.
 const readinessBad = await fetch(`${BASE}/api/agent-readiness?url=${encodeURIComponent("http://127.0.0.1/")}`);
-const readinessBadBody = await readinessBad.json().catch(() => ({}));
-check("Agent Readiness rejects private targets before work/payment", readinessBad.status === 400 && readinessBadBody.code === "PRIVATE_ADDRESS_BLOCKED");
+check("Agent Readiness paywalls private targets before validation (402)", readinessBad.status === 402 && !!readinessBad.headers.get("payment-required"));
 const readinessUnpaid = await fetch(`${BASE}/api/agent-readiness?url=${encodeURIComponent("https://example.com")}&depth=quick`);
 const readinessPaymentHeader = readinessUnpaid.headers.get("payment-required");
 const readinessTerms = readinessPaymentHeader ? JSON.parse(Buffer.from(readinessPaymentHeader, "base64").toString("utf-8")) : {};
