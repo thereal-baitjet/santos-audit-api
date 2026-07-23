@@ -1,0 +1,2 @@
+-- Workers advertise which job profiles they run. The Mac worker is restricted
+-- to 'screenshot' (B

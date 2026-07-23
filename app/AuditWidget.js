@@ -27,7 +27,7 @@ export default async function AuditWidget() {
           toolparamdescription="Public website URL to audit, e.g. https://example.com or example.com"
           required
         />
-        <button className="btn primary" type="submit" data-analytics-event="quick_audit_started">Run Quick Intelligence Audit</button>
+        <button className="btn primary" type="submit" data-analytics-event="free_audit_started">Run Quick Intelligence Audit</button>
       </form>
       <p className="audit-note" id="audit-note">
         Agents: <code>GET /api/audit?url=…</code> · 0.015 USDC via x402 · no account or API key

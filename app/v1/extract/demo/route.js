@@ -12,9 +12,15 @@ const PRICE = process.env.EXTRACT_PRICE_USDC ?? "0.005";
 function rateLimited() {
   const midnight = new Date();
   midnight.setUTCHours(24, 0, 0, 0);
+  const retryAfter = Math.ceil((midnight - Date.now()) / 1000);
   return NextResponse.json(
-    { error: `Free demo is 1 request/day (shared with /api/audit/demo). Agents can pay per-call at POST /v1/extract (x402, $${PRICE}).`, code: "RATE_LIMITED" },
-    { status: 429, headers: { ...CORS, "Retry-After": String(Math.ceil((midnight - Date.now()) / 1000)) } }
+    {
+      error: `Free demo is 1 request/day (shared across all demo endpoints). Agents can pay per-call at POST /v1/extract (x402, $${PRICE}).`,
+      code: "RATE_LIMITED",
+      for_humans: "No USDC wallet? Buy the one-time $5 Agent Readiness Report by card at /agent-readiness/buy — no account needed.",
+      retry_after: retryAfter,
+    },
+    { status: 429, headers: { ...CORS, "Retry-After": String(retryAfter) } }
   );
 }
 

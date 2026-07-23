@@ -170,6 +170,24 @@ const document = {
         },
       },
     },
+    "/api/agent-readiness/demo": {
+      get: {
+        operationId: "auditAgentReadinessDemo",
+        security: [], // free endpoint — excluded from x402 registry probing
+        tags: ["Agent Readiness"],
+        summary: "Free Agent Readiness demo (1/day per IP, shared quota)",
+        description:
+          "Same quick-pass assessment and response shape as the paid endpoint (tier is \"free-demo\"), with the additive Website Intelligence presentation fields. Quota is shared across all demo endpoints — one free request per day per IP total; 429 with code RATE_LIMITED after that.",
+        parameters: [urlParam],
+        responses: {
+          200: { description: "Assessment complete.", content: { "application/json": { schema: { $ref: "#/components/schemas/AgentReadinessResult" } } } },
+          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
+          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
+          502: { description: "Target or required public interface was unreachable.", content: { "application/json": { schema: errorSchema } } },
+          504: { description: "Bounded audit timed out.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
     "/api/audit": {
       get: {
         operationId: "auditWebsite",

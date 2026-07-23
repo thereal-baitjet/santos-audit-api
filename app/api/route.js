@@ -121,6 +121,7 @@ async function handleGET() {
         "GET /v1/screenshot?url=": `$${process.env.SCREENSHOT_PRICE_USDC ?? "0.01"} USDC via x402 v2 — screenshot/PDF render, synchronous`,
         "POST /v1/audits": `$${process.env.DEEP_AUDIT_PRICE_USDC ?? "0.225"} USDC via x402 v2 — deep page audit job, asynchronous`,
         "GET /api/audit/demo?url=": "free, 1/day per IP, human demo",
+        "GET /api/agent-readiness/demo?url=": "free, 1/day per IP (shared quota), Agent Readiness demo",
         "POST /mcp": "MCP server (Streamable HTTP) — free preview tool audit_website_preview",
       },
       capability_manifest: capabilityManifest(),

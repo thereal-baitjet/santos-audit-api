@@ -16,5 +16,5 @@ export default async function ProductPage({ params }) {
   const { slug } = await params;
   const page = PRODUCT_PAGES[slug];
   if (!page) notFound();
-  return <MarketingPage page={page} showAudit={slug === "agent-readiness-audit"} />;
+  return <MarketingPage page={page} />;
 }

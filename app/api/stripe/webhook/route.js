@@ -15,6 +15,7 @@ import { websiteIntelligenceSummary } from "../../../../lib/website-intelligence
 import { newReportId, accessTokenFor } from "../../../../lib/deep/ids.js";
 import { sendReportEmail } from "../../../../lib/email/resend.js";
 import { notifyTransaction } from "../../../../notify.js";
+import { recordEvent } from "../../../../lib/analytics-store.js";
 
 const NO_STORE = { "Cache-Control": "no-store" };
 
@@ -69,6 +70,8 @@ export async function POST(req) {
       // Idempotency gate: only the first delivery of this session id enqueues work.
       const isFirst = await claimSession({ sessionId: session.id, targetUrl, email });
       if (isFirst) {
+        // Funnel bottom for the card path (fails open, never blocks fulfilment).
+        await recordEvent({ event: "payment_completed", props: { rail: "stripe", amount_usd: HUMAN_REPORT_PRICE_USD } });
         after(() => fulfil({ sessionId: session.id, targetUrl, email }));
       }
     } else {

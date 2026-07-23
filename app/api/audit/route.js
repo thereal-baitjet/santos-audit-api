@@ -7,6 +7,7 @@ import { auditSite } from "../../../audit.js";
 import { notifyTransaction } from "../../../notify.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { recordEvent } from "../../../lib/analytics-store.js";
 
 async function handler(req) {
   const url = req.nextUrl.searchParams.get("url") ?? "";
@@ -95,6 +96,8 @@ async function handleGET(req) {
   if (receipt && res.status < 400) {
     try {
       const settlement = JSON.parse(Buffer.from(receipt, "base64").toString("utf-8"));
+      // Funnel bottom for the x402 path (fails open, never blocks the response).
+      after(() => recordEvent({ event: "payment_completed", props: { rail: "x402", amount_usd: 0.015 } }));
       after(() =>
         notifyTransaction({
           url: req.nextUrl.searchParams.get("url") ?? "",

@@ -10,7 +10,7 @@ You are working in `~/santos-audit-api`, the repo behind www.santosautomation.co
 
 - Three x402 v2 paid tiers on Base mainnet (eip155:8453), USDC, no accounts/API keys:
   - Quick Intelligence: `GET /api/audit?url=…` — $0.005, sync (`app/api/audit/route.js`)
-  - Agent Readiness: $0.025/success, human-facing run page at `/agent-readiness/run` (`app/agent-readiness/`, `lib/agent-readiness/`)
+  - Agent Readiness: $0.075/success, human-facing run page at `/agent-readiness/run` (`app/agent-readiness/`, `lib/agent-readiness/`)
   - Deep Intelligence: `POST /v1/audits` — $0.075 reservation, async job via Supabase queue + Fly worker; deep report reads use a per-job bearer token (`app/v1/`, `lib/deep/`)
 - Free daily demo: landing `#audit` widget → `/api/audit/demo` (1 scan/day/IP, `lib/demo-limit.js`, widget at `public/audit-widget.js`)
 - x402 handling: `lib/x402-server.js`. Payments settle via Coinbase CDP facilitator (`CDP_API_KEY_ID`/`SECRET` in Vercel env). Discord webhook fires on settlements (`DISCORD_WEBHOOK_URL`).
@@ -18,7 +18,7 @@ You are working in `~/santos-audit-api`, the repo behind www.santosautomation.co
 
 ## The problem to solve
 
-Every paid path requires a funded USDC wallet on Base. Humans (marketers, agencies, founders — the natural buyers of an "is my site AI-ready?" report) cannot pay. Stripe's ~$0.30 + 2.9% fee floor makes per-call card pricing impossible at $0.025, so the human product must be **value-priced and bundled**, not a card-mirror of x402 pricing.
+Every paid path requires a funded USDC wallet on Base. Humans (marketers, agencies, founders — the natural buyers of an "is my site AI-ready?" report) cannot pay. Stripe's ~$0.30 + 2.9% fee floor makes per-call card pricing impossible at $0.075, so the human product must be **value-priced and bundled**, not a card-mirror of x402 pricing.
 
 ## Task 1 — Stripe-paid Agent Readiness Report for humans (main deliverable)
 

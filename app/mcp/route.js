@@ -51,7 +51,7 @@ const PREVIEW_TOOL = {
 
 const AGENT_READINESS_TOOL = {
   name: "audit_agent_readiness",
-  description: `PAID CAPABILITY ($${AGENT_READINESS_PRICE} USDC per successful audit via x402 v2). Passively assesses how well a public website or service can be discovered, understood, invoked, and—where explicitly applicable—paid by agents. This MCP call validates the target and returns the canonical x402 HTTP handoff; payment and the versioned result are exchanged at GET ${PUBLIC_API_BASE_URL}/api/agent-readiness?url=...&depth=quick. No account or API key is required.`,
+  description: `PAID CAPABILITY ($${AGENT_READINESS_PRICE} USDC per successful audit via x402 v2; free 1/day per IP preview at GET ${PUBLIC_API_BASE_URL}/api/agent-readiness/demo?url=...). Passively assesses how well a public website or service can be discovered, understood, invoked, and—where explicitly applicable—paid by agents. This MCP call validates the target and returns the canonical x402 HTTP handoff; payment and the versioned result are exchanged at GET ${PUBLIC_API_BASE_URL}/api/agent-readiness?url=...&depth=quick. No account or API key is required.`,
   inputSchema: {
     type: "object",
     properties: {
@@ -209,11 +209,12 @@ function callAgentReadinessTool(args) {
   try {
     const target = validateTarget(args.url.trim()).href;
     const endpoint = `${PUBLIC_API_BASE_URL}/api/agent-readiness?url=${encodeURIComponent(target)}&depth=quick`;
+    const demoEndpoint = `${PUBLIC_API_BASE_URL}/api/agent-readiness/demo?url=${encodeURIComponent(target)}`;
     return {
       isError: true,
       content: [{
         type: "text",
-        text: `PAYMENT_REQUIRED: Agent Readiness costs $${AGENT_READINESS_PRICE} USDC per successful audit on Base mainnet via x402 v2. Request ${endpoint} without a signature to receive PAYMENT-REQUIRED terms, then sign and retry with PAYMENT-SIGNATURE.`,
+        text: `PAYMENT_REQUIRED: Agent Readiness costs $${AGENT_READINESS_PRICE} USDC per successful audit on Base mainnet via x402 v2. Request ${endpoint} without a signature to receive PAYMENT-REQUIRED terms, then sign and retry with PAYMENT-SIGNATURE. Free preview: GET ${demoEndpoint} (1/day per IP, shared quota, same result shape).`,
       }],
     };
   } catch (error) {
