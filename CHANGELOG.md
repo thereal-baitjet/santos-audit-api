@@ -1,5 +1,38 @@
 # Changelog
 
+## 2.7.1 — 2026-07-22 — Conversion funnel + trust surfaces
+
+### Added
+- **GET /api/agent-readiness/demo** — free 1/day/IP demo of the flagship Agent
+  Readiness audit (shared quota with all demos), same quick-pass result shape
+  as the paid endpoint. Documented in OpenAPI, llms.txt, the /api service
+  manifest, and the MCP `audit_agent_readiness` handoff.
+- **POST /api/leads** — email capture for humans who exhaust the free demo
+  quota (`demo_leads` table, migration 008_demo_leads). Capture only; nothing
+  is emailed yet.
+- **Trust surfaces:** `/status` (components + operational expectations, not a
+  live SLA monitor), `/changelog` (public product history), `/version`
+  (machine-readable JSON: API version, schema versions, contract URLs).
+  Linked from the site footer and sitemap.
+- First-party analytics now persist to Postgres (`analytics_events`, migration
+  008_analytics_events) via lib/analytics-store.js; `payment_completed` is
+  recorded for both Stripe card purchases and settled x402 payments.
+
+### Changed
+- All demo 429 responses now include `for_humans` (card checkout pointer) and
+  `retry_after`. The browser widget renders an inline email-capture form on
+  429 instead of a dead-end error.
+- Demo widget embedded on all six marketing pages (was one).
+- robots.txt simplified to open-by-default (`Allow: /`, disallowing only
+  `/_next/` and `/admin/`) for clean agent discovery.
+
+### Fixed
+- Human card checkout now charges the advertised $5 (the Stripe constant was
+  $19 while all copy said $5).
+- Widget analytics events renamed to the whitelist (`free_audit_*`) and now
+  reach the beacon; removed a duplicate click binding that double-counted
+  CTA clicks.
+
 ## 2.7.0 — 2026-07-20 — Structured Extraction (the suite's first metered-LLM-cost product)
 
 ### Added

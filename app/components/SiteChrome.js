@@ -35,6 +35,8 @@ export function SiteFooter() {
           <a href="/learn/what-is-ai-website-intelligence">Learn</a>
           <a href="/openapi.json" data-analytics-event="openapi_downloaded">OpenAPI</a>
           <a href="/llms.txt">llms.txt</a>
+          <a href="/status">Status</a>
+          <a href="/changelog">Changelog</a>
           <a href="/terms">Terms &amp; privacy</a>
         </div>
       </div>
