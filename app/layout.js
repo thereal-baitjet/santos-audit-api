@@ -1,5 +1,6 @@
 import "./globals.css";
 import { headers } from "next/headers";
+import { CookieConsent } from "./components/CookieConsent.js";
 
 export const metadata = {
   metadataBase: new URL("https://www.santosautomation.com"),
@@ -94,6 +95,7 @@ export default async function RootLayout({ children }) {
         />
         <script src="/webmcp.js" defer nonce={nonce} />
         {children}
+        <CookieConsent />
       </body>
     </html>
   );

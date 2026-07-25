@@ -565,3 +565,27 @@ header.hero {
 .verify-row { display: flex; gap: 10px; align-items: baseline; margin-top: 6px; font-size: 14px; }
 .verify-row span { color: var(--muted); flex: none; }
 .verify-row code { font-family: var(--mono); font-size: 13px; word-break: break-all; }
+
+/* ---- cookie consent banner ---- */
+.cookie-banner {
+  position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+  width: min(680px, calc(100% - 32px)); z-index: 60;
+  display: flex; align-items: center; gap: 18px;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; box-shadow: 0 8px 30px rgba(0, 0, 0, .45);
+}
+.cookie-banner p { font-size: 13.5px; color: var(--muted); line-height: 1.55; }
+.cookie-banner p a { text-decoration: underline; text-underline-offset: 2px; }
+.cookie-banner .cookie-actions { display: flex; gap: 10px; flex: none; }
+.cookie-banner .cookie-actions .btn { white-space: nowrap; }
+@media (max-width: 560px) {
+  .cookie-banner { flex-direction: column; align-items: stretch; gap: 12px; }
+  .cookie-banner .cookie-actions { justify-content: flex-end; }
+}
+
+/* Footer "Cookie settings" button styled as a link */
+.links button[data-cookie-settings] {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--accent); font: inherit;
+}
+.links button[data-cookie-settings]:hover { text-decoration: underline; }

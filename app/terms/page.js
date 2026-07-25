@@ -42,6 +42,31 @@ export default function TermsPage() {
         <li>Query strings, fragments, credentials, and sensitive headers are redacted from audit evidence where applicable.</li>
       </ul>
 
+      <h2 id="cookies">Cookies and on-site analytics</h2>
+      <ul>
+        <li>
+          <code>santos_consent</code> — a first-party, strictly necessary cookie that
+          remembers your cookie choice for one year. It stores only the word
+          "all" or "essential"; it is not an identifier and is never sent to third parties.
+        </li>
+        <li>
+          If you accept, we collect privacy-safe, first-party funnel analytics: an event
+          name and a timestamp only — no URLs, query strings, report contents, IP-based
+          fingerprinting, or cross-site tracking. If you decline (or do nothing), no
+          analytics events are sent at all.
+        </li>
+        <li>
+          Admin sign-in (<a href="/admin/login">/admin</a>) sets Supabase session cookies;
+          these are strictly necessary for that authenticated area and are not used on
+          public pages. Stripe may set its own cookies during card checkout, governed by
+          Stripe's privacy policy.
+        </li>
+        <li>
+          You can change or withdraw your choice any time via "Cookie settings" in the
+          footer, or by deleting the cookie in your browser.
+        </li>
+      </ul>
+
       <h2>Retention</h2>
       <p>
         Synchronous audit responses are generated for the requesting client and are not

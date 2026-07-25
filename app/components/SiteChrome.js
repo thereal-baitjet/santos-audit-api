@@ -42,6 +42,7 @@ export function SiteFooter() {
           <a href="/status">Status</a>
           <a href="/changelog">Changelog</a>
           <a href="/terms">Terms &amp; privacy</a>
+          <button type="button" data-cookie-settings>Cookie settings</button>
         </div>
       </div>
 
