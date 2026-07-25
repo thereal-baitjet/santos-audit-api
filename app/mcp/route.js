@@ -33,7 +33,7 @@ const PREVIEW_TOOL = {
   name: "audit_website_preview",
   description:
     "FREE PREVIEW (1 audit per day per IP) of Santos Website Intelligence. Runs a fast Quick Intelligence Audit of one public page: fetch timing, page weight, SEO, basic HTML accessibility, security headers, Website Intelligence dimensions, pass/fail checks, and remediation guidance. It audits one page only—no crawling, JavaScript rendering, Core Web Vitals, WCAG certification, or vulnerability scanning. " +
-    `For unlimited audits, use the machine-payable production endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... — $0.015 USDC per successful audit on Base mainnet (eip155:8453) via x402 v2; no account or API key required.`,
+    `For unlimited audits, use the machine-payable production endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... — $0.015 USDC per successful audit on Base mainnet (eip155:8453) via x402 v2 (or USD-equivalent XRP on XRPL when enabled); no account or API key required.`,
   inputSchema: {
     type: "object",
     properties: {
@@ -71,7 +71,7 @@ const EXTRACT_TOOL = {
   name: "extract_page_markdown",
   description:
     "FREE PREVIEW (1 request per day per IP, quota shared with audit_website_preview) of Santos Page-to-Markdown extraction. Fetches one public page and returns its main content as clean Markdown plus title, description, outbound links, and word count. Single page only — no crawling or JavaScript rendering. " +
-    `For unlimited extraction, use the machine-payable production endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract with {"url": "…"} — $${EXTRACT_PRICE} USDC per successful extraction on Base mainnet (eip155:8453) via x402 v2; no account or API key required.`,
+    `For unlimited extraction, use the machine-payable production endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract with {"url": "…"} — $${EXTRACT_PRICE} USDC per successful extraction on Base mainnet (eip155:8453) via x402 v2 (or USD-equivalent XRP on XRPL when enabled); no account or API key required.`,
   inputSchema: {
     type: "object",
     properties: {
@@ -89,7 +89,7 @@ const STRUCTURED_EXTRACT_TOOL = {
   name: "extract_structured_data",
   description:
     "FREE PREVIEW (1 request per day per IP, quota shared with audit_website_preview and extract_page_markdown) of Santos Structured Extraction. Fetches one public page and returns JSON fields extracted by an LLM against your own JSON Schema, validated against that schema before being returned. Single page only — no crawling or JavaScript rendering; page content is truncated to 8000 characters before extraction. " +
-    `For unlimited extraction, use the machine-payable production endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract/structured with {"url": "…", "schema": {...}} — $${STRUCTURED_EXTRACT_PRICE} USDC per successful schema-conforming extraction on Base mainnet (eip155:8453) via x402 v2; no account or API key required.`,
+    `For unlimited extraction, use the machine-payable production endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract/structured with {"url": "…", "schema": {...}} — $${STRUCTURED_EXTRACT_PRICE} USDC per successful schema-conforming extraction on Base mainnet (eip155:8453) via x402 v2 (or USD-equivalent XRP on XRPL when enabled); no account or API key required.`,
   inputSchema: {
     type: "object",
     properties: {

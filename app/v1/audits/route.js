@@ -9,7 +9,7 @@ import { after, NextResponse } from "next/server";
 import { createHmac } from "node:crypto";
 import { withX402FromHTTPServer, x402HTTPResourceServer } from "@x402/next";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
-import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { resourceServer, NETWORK, acceptsFor } from "../../../lib/x402-server.js";
 import { validateTarget, AuditError } from "../../../lib/safe-fetch.js";
 import { validateCreateRequest, normalizeCreateRequest, PAYMENT_CONTRACT, MODULES, DEVICES } from "../../../lib/deep/schemas.js";
 import { getStore } from "../../../lib/deep/store.js";
@@ -141,7 +141,7 @@ async function handler(req) {
 }
 
 const routeConfig = {
-    accepts: { scheme: "exact", price: PRICE, network: NETWORK, payTo: SELLER },
+    accepts: acceptsFor(PRICE),
     description:
       `Create one Deep Page Audit job with browser-rendered checks and a bounded compute reservation. ${PAYMENT_CONTRACT}`,
     mimeType: "application/json",
@@ -152,7 +152,7 @@ const routeConfig = {
       body: {
         error: "Payment required",
         code: "PAYMENT_REQUIRED",
-        hint: `x402 v2: decode the base64 PAYMENT-REQUIRED response header for full terms (${PRICE} USDC on ${NETWORK}), sign, and retry with a PAYMENT-SIGNATURE header. Payment reserves one bounded audit job; settlement happens when the job is accepted, not on report completion. Docs: /llms.txt and /openapi.json.`,
+        hint: `x402 v2: decode the base64 PAYMENT-REQUIRED response header for full terms (${PRICE} — USDC on ${NETWORK}, or XRP on XRPL when enabled), sign, and retry with a PAYMENT-SIGNATURE header. Payment reserves one bounded audit job; settlement happens when the job is accepted, not on report completion. Docs: /llms.txt and /openapi.json.`,
       },
     }),
     extensions: {

@@ -7,7 +7,7 @@ import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { extractPage, EXTRACT_SCHEMA_VERSION } from "../../../lib/extract.js";
 import { validateTarget } from "../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
-import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { resourceServer, acceptsFor } from "../../../lib/x402-server.js";
 import { notifyTransaction } from "../../../notify.js";
 
 const PRICE = process.env.EXTRACT_PRICE_USDC ?? "0.005";
@@ -32,7 +32,7 @@ async function handler(req) {
 }
 
 const routeConfig = {
-  accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
+  accepts: acceptsFor(`$${PRICE}`),
   description:
     "Extract one public web page as clean Markdown: main content isolated readability-style, plus title, description, canonical URL, outbound links, and word count. Read-only single-page fetch — no crawling, no JavaScript rendering.",
   mimeType: "application/json",
@@ -43,7 +43,7 @@ const routeConfig = {
     body: {
       error: "Payment required",
       code: "PAYMENT_REQUIRED",
-      hint: `x402 v2: decode the base64 PAYMENT-REQUIRED response header for the $${PRICE} USDC terms, sign, and retry with a PAYMENT-SIGNATURE header. Payment settles only on a successful extraction. Free demo: GET /v1/extract/demo?url=… (1/day per IP). Docs: /llms.txt and /openapi.json.`,
+      hint: `x402 v2: decode the base64 PAYMENT-REQUIRED response header for the $${PRICE} terms (USDC on Base, or XRP on XRPL when enabled), sign, and retry with a PAYMENT-SIGNATURE header. Payment settles only on a successful extraction. Free demo: GET /v1/extract/demo?url=… (1/day per IP). Docs: /llms.txt and /openapi.json.`,
     },
   }),
   extensions: {

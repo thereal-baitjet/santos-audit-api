@@ -14,7 +14,7 @@ import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { auditSite } from "../../../../audit.js";
 import { validateTarget, AuditError } from "../../../../lib/safe-fetch.js";
 import { CORS } from "../../../../lib/errors.js";
-import { resourceServer, SELLER, NETWORK } from "../../../../lib/x402-server.js";
+import { resourceServer, acceptsFor } from "../../../../lib/x402-server.js";
 import { recordEvent } from "../../../../lib/analytics-store.js";
 import { notifyTransaction } from "../../../../notify.js";
 import { signReport } from "../../../../lib/report-signing.js";
@@ -93,7 +93,7 @@ async function handler(req) {
 }
 
 const routeConfig = {
-  accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
+  accepts: acceptsFor(`$${PRICE}`),
   description:
     "Batch Quick Intelligence Audits: up to 50 public URLs for one flat payment. Each URL gets the full single-page audit (performance, SEO, accessibility markup, security headers, website-intelligence score). Per-URL failures are isolated and reported; payment settles only when at least one audit succeeds.",
   mimeType: "application/json",
@@ -104,7 +104,7 @@ const routeConfig = {
     body: {
       error: "Payment required",
       code: "PAYMENT_REQUIRED",
-      hint: `x402 v2: decode the base64 PAYMENT-REQUIRED response header for the $${PRICE} USDC terms (up to ${MAX_URLS} URLs per batch), sign, and retry with a PAYMENT-SIGNATURE header. Settles only when at least one audit succeeds. Docs: /llms.txt and /openapi.json.`,
+      hint: `x402 v2: decode the base64 PAYMENT-REQUIRED response header for the $${PRICE} terms (USDC on Base, or XRP on XRPL when enabled; up to ${MAX_URLS} URLs per batch), sign, and retry with a PAYMENT-SIGNATURE header. Settles only when at least one audit succeeds. Docs: /llms.txt and /openapi.json.`,
     },
   }),
   extensions: {

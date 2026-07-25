@@ -305,6 +305,7 @@ const report = await res.json(); // paid, settled, done`}</code></pre>
               <tr><th scope="row">Asset</th><td>USDC · <code>0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913</code></td></tr>
               <tr><th scope="row">Pay to</th><td><code>0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B</code></td></tr>
               <tr><th scope="row">Scheme</th><td><code>exact</code> — the 402 quotes the exact atomic USDC amount</td></tr>
+              <tr><th scope="row">Alt rail</th><td>When enabled, the 402 also offers XRP on XRPL mainnet (<code>xrpl:0</code>, <code>exact</code>, amount in drops) — USD-equivalent, converted at the live XRP/USD rate</td></tr>
               <tr><th scope="row">Human option</th><td>No wallet? A one-time <a href="/agent-readiness/buy">$5 Agent Readiness Report by card</a> (Stripe), emailed as a private link</td></tr>
             </tbody>
           </table>

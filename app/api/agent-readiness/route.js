@@ -5,7 +5,7 @@ import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { auditAgentReadiness } from "../../../lib/agent-readiness/analyze.js";
 import { validateTarget } from "../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
-import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { resourceServer, acceptsFor } from "../../../lib/x402-server.js";
 import { notifyTransaction } from "../../../notify.js";
 import { getAgentReadinessPriceUsdc } from "../../../lib/agent-readiness/product-pricing.js";
 import { websiteIntelligenceSummary } from "../../../lib/website-intelligence.js";
@@ -53,10 +53,10 @@ async function handler(req) {
 }
 
 const routeConfig = {
-  accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
+  accepts: acceptsFor(`$${PRICE}`),
   description: "Run a bounded, passive Agent Readiness audit of public machine-facing interfaces. The auditor never authenticates to or pays the audited target, creates target accounts, submits forms, or invokes advertised business tools.",
   mimeType: "application/json",
-  unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "Payment required", code: "PAYMENT_REQUIRED", hint: `x402 v2: decode PAYMENT-REQUIRED for the $${PRICE} USDC terms, sign, and retry with PAYMENT-SIGNATURE. Payment settles only after a successful audit response.` } }),
+  unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "Payment required", code: "PAYMENT_REQUIRED", hint: `x402 v2: decode PAYMENT-REQUIRED for the $${PRICE} terms (USDC on Base, or XRP on XRPL when enabled), sign, and retry with PAYMENT-SIGNATURE. Payment settles only after a successful audit response.` } }),
   serviceName: "Santos Agent Readiness Audit",
   tags: ["agent-readiness", "openapi", "mcp", "llms-txt", "x402"],
   extensions: { ...declareDiscoveryExtension({

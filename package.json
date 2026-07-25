@@ -8,6 +8,7 @@
     "start": "next start -H 127.0.0.1 -p 3000",
     "test": "node test.js",
     "test:agent-readiness": "node --test tests/agent-readiness.test.js",
+    "test:x402-xrpl": "node --test tests/x402-xrpl.test.js",
     "test:website-intelligence": "node --test tests/website-intelligence.test.js",
     "test:extract-structured": "node --test tests/extract-structured.test.js"
   },

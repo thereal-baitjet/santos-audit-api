@@ -32,8 +32,13 @@ export async function notifyTransaction({ url, payer, transaction, network, amou
   url = redactUrl(url); // never forward customer query strings/tokens to Discord
 
   const isCard = rail === "stripe";
+  const isXrpl = typeof network === "string" && network.startsWith("xrpl:");
   const isMainnet = network === "base" || network === "eip155:8453";
-  const explorer = isMainnet ? "https://basescan.org/tx/" : "https://sepolia.basescan.org/tx/";
+  const explorer = isXrpl
+    ? "https://livenet.xrpl.org/transactions/"
+    : isMainnet
+      ? "https://basescan.org/tx/"
+      : "https://sepolia.basescan.org/tx/";
 
   const embed = isCard
     ? {
@@ -47,7 +52,9 @@ export async function notifyTransaction({ url, payer, transaction, network, amou
         timestamp: new Date().toISOString(),
       }
     : {
-        title: `💰 Audit API — $${amount} USDC received`,
+        title: isXrpl
+          ? `💰 Audit API — $${amount} equivalent in XRP received`
+          : `💰 Audit API — $${amount} USDC received`,
         url: transaction ? `${explorer}${transaction}` : undefined,
         color: 13935182, // brass, matches the site accent
         fields: [

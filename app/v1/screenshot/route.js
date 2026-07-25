@@ -9,7 +9,7 @@ import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { validateTarget } from "../../../lib/safe-fetch.js";
 import { normalizeScreenshotRequest } from "../../../lib/screenshot.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
-import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { resourceServer, NETWORK, acceptsFor } from "../../../lib/x402-server.js";
 import { getStore } from "../../../lib/deep/store.js";
 import { hasWorkerCapacity } from "../../../lib/deep/capacity.js";
 import { deepAuditGate, NO_STORE } from "../../../lib/deep/gate.js";
@@ -95,7 +95,7 @@ async function handler(req) {
 }
 
 const routeConfig = {
-  accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
+  accepts: acceptsFor(`$${PRICE}`),
   description:
     "Render one public page in a real isolated Chromium browser and get the image or PDF bytes back synchronously: format png (default), jpeg, or pdf (print-rendered A4); device desktop 1366x900 (default) or mobile 390x844 at 3x; full_page=true for whole-page height. JavaScript executes, so SPAs, client-rendered charts, and post-load layout are captured as a real visitor sees them — useful for deploy verification, visual monitoring, link previews, PDF archival, and vision-model input. Every render is a fresh anonymous visitor (no cookies, no login-protected content), SSRF-guarded with request and byte budgets. Payment settles only when bytes are returned — timeouts and failures are free.",
   mimeType: "image/png",
@@ -106,7 +106,7 @@ const routeConfig = {
     body: {
       error: "Payment required",
       code: "PAYMENT_REQUIRED",
-      hint: `x402 v2: decode the base64 PAYMENT-REQUIRED response header for the $${PRICE} USDC terms, sign, and retry with a PAYMENT-SIGNATURE header. Payment settles only when render bytes are returned. Docs: /llms.txt and /openapi.json.`,
+      hint: `x402 v2: decode the base64 PAYMENT-REQUIRED response header for the $${PRICE} terms (USDC on Base, or XRP on XRPL when enabled), sign, and retry with a PAYMENT-SIGNATURE header. Payment settles only when render bytes are returned. Docs: /llms.txt and /openapi.json.`,
     },
   }),
   extensions: {

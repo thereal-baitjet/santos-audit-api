@@ -110,6 +110,19 @@ longer accepted).
 Payment settles **only after a successful response** — a bad URL or unreachable
 target costs the agent nothing.
 
+### Paying with XRP (XRPL, optional second rail)
+
+When the operator sets `XRPL_PAY_TO`, every 402 challenge carries a **second
+`accepts` entry**: `scheme: "exact"`, `network: "xrpl:0"` (XRPL mainnet),
+`asset: "XRP"`, with `amount` in drops (1 XRP = 1,000,000 drops) and `payTo`
+set to the operator's classic XRPL address. The drop amount is computed from
+the **same USD price at the live XRP/USD rate** (Coinbase/CoinGecko spot, 60s
+cache) when the challenge is issued, so both rails always charge the same
+dollar amount. Verification and settlement go through t54's public XRPL x402
+facilitator using a payer-signed XRPL `Payment` transaction; the
+[`x402-xrpl`](https://www.npmjs.com/package/x402-xrpl) buyer SDK automates the
+client side. USDC on Base remains `accepts[0]` and is always available.
+
 ### JavaScript / TypeScript
 
 ```js
@@ -260,7 +273,9 @@ Errors are `{ "error": "<human message>", "code": "<STABLE_CODE>" }` with codes
 Next.js App Router on Vercel. Payments: `@x402/next` v2 (`withX402` wrapper) +
 `@x402/core`/`@x402/evm` with `@coinbase/x402` (Coinbase CDP facilitator — the
 piece that actually settles USDC on Base mainnet) and the `@x402/extensions`
-Bazaar discovery extension. Audit engine: `fetch` + `cheerio`, no headless browser.
+Bazaar discovery extension. Optional second rail: XRP on XRPL mainnet via a
+custom exact-scheme server (`lib/x402-xrpl.js`) and t54's public XRPL
+facilitator, priced USD-equivalent at the live XRP/USD rate. Audit engine: `fetch` + `cheerio`, no headless browser.
 SSRF-guarded: private/reserved/metadata IPs blocked with per-redirect-hop
 revalidation, 15s timeout, 5 redirects, 5 MB cap (`lib/safe-fetch.js`).
 
@@ -287,7 +302,10 @@ npm run build
 See [`.env.example`](.env.example). Required in production: `CDP_API_KEY_ID`,
 `CDP_API_KEY_SECRET` (facilitator auth). Optional: `DISCORD_WEBHOOK_URL`
 (payment notifications), `PUBLIC_API_BASE_URL` (canonical hostname in docs
-output), audit tuning knobs.
+output), audit tuning knobs. XRP rail (all optional): `XRPL_PAY_TO` (XRPL
+receive address — enables the rail), `XRPL_FACILITATOR_URL` (defaults to t54's
+public facilitator), `XRP_USD_PRICE` (static fallback rate if price oracles
+are down).
 
 ### Deploy
 

@@ -8,7 +8,7 @@ import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { extractStructured, STRUCTURED_EXTRACTION_SCHEMA_VERSION, MODEL } from "../../../../lib/extract-structured.js";
 import { validateTarget } from "../../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../../lib/errors.js";
-import { resourceServer, SELLER, NETWORK } from "../../../../lib/x402-server.js";
+import { resourceServer, acceptsFor } from "../../../../lib/x402-server.js";
 import { notifyTransaction } from "../../../../notify.js";
 
 export const maxDuration = 30;
@@ -34,7 +34,7 @@ async function handler(req) {
 }
 
 const routeConfig = {
-  accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
+  accepts: acceptsFor(`$${PRICE}`),
   description:
     "Extract structured JSON from one public web page against a caller-supplied JSON Schema. Fetches and cleans the page (SSRF-guarded, readability-isolated Markdown, truncated to 8000 characters), then calls Claude with forced tool-use to populate exactly the fields the schema asks for — never fabricating values not present on the page. The extracted data is validated against the caller's own schema before it is returned.",
   mimeType: "application/json",
@@ -45,7 +45,7 @@ const routeConfig = {
     body: {
       error: "Payment required",
       code: "PAYMENT_REQUIRED",
-      hint: `x402 v2: decode PAYMENT-REQUIRED for the $${PRICE} USDC terms, sign, and retry with PAYMENT-SIGNATURE. Payment settles only when the extracted data validates against your schema; a schema that can't be satisfied from the page costs nothing.`,
+      hint: `x402 v2: decode PAYMENT-REQUIRED for the $${PRICE} terms (USDC on Base, or XRP on XRPL when enabled), sign, and retry with PAYMENT-SIGNATURE. Payment settles only when the extracted data validates against your schema; a schema that can't be satisfied from the page costs nothing.`,
     },
   }),
   extensions: {

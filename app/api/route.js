@@ -2,6 +2,7 @@ import { withAgentLog } from "../../lib/agent-log.js";
 import { NextResponse } from "next/server";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
 import { capabilityManifest } from "../../lib/capabilities.js";
+import { xrplEnabled } from "../../lib/x402-xrpl.js";
 import { AGENT_READINESS_BILLING_UNIT, getAgentReadinessPriceUsdc } from "../../lib/agent-readiness/product-pricing.js";
 
 async function handleGET() {
@@ -33,6 +34,14 @@ async function handleGET() {
         challenge_header: "PAYMENT-REQUIRED",
         authorization_header: "PAYMENT-SIGNATURE",
         receipt_header: "PAYMENT-RESPONSE",
+        ...(xrplEnabled() && {
+          also_accepts: {
+            currency: "XRP",
+            network: "xrpl:0",
+            scheme: "exact",
+            pricing: "USD-equivalent, converted to drops at the live XRP/USD rate",
+          },
+        }),
       },
       capabilities: [
         "AI Website Intelligence dimensions (Discoverable, Understandable, Callable, Trustworthy)",

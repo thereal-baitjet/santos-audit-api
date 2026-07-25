@@ -140,13 +140,21 @@ audit or invoke any tool advertised by the audited target.
 - Deep Page Audit price: $0.225 USDC per bounded compute reservation (225000 atomic units).
 - Network: `eip155:8453` (Base mainnet). Asset: USDC at 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.
 - Pay to: 0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B.
+- Alternative rail (when enabled by the operator): XRP on XRPL mainnet
+  (`xrpl:0`, scheme `exact`, `asset: "XRP"`, amount in drops — 1 XRP =
+  1,000,000 drops). The XRP option appears as a second `accepts` entry and is
+  USD-equivalent: the drop amount is computed from the same USD price at the
+  live XRP/USD rate when the 402 challenge is issued. Settles through t54's
+  public XRPL x402 facilitator via a payer-signed XRPL Payment transaction.
 - Humans without a USDC wallet: a one-time $5 USD [Agent Readiness Report by card](https://www.santosautomation.com/agent-readiness/buy)
   (Stripe Checkout) — no account, emailed as a private tokened link. This is a human
   convenience; the machine-payable per-call price remains $0.075 USDC via x402.
   Refunds by email to info@santosautomation.com.
 - Flow: request without payment returns HTTP 402; decode the `PAYMENT-REQUIRED`
-  header for full terms (`accepts[0]`); sign an EIP-3009 transferWithAuthorization
-  for the quoted amount; retry with `PAYMENT-SIGNATURE`. Any x402 v2 client
+  header for full terms (`accepts[0]` is USDC on Base; when the XRP rail is
+  enabled, `accepts[1]` is XRP on XRPL); sign an EIP-3009
+  transferWithAuthorization (or an XRPL Payment) for the quoted amount; retry
+  with `PAYMENT-SIGNATURE`. Any x402 v2 client
   (e.g. @x402/fetch with @x402/evm's ExactEvmScheme) automates this.
 - The 402 also carries an x402 Bazaar discovery extension (input/output JSON
   Schemas) so catalogs can index this resource automatically.

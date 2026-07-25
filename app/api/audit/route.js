@@ -6,7 +6,7 @@ import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { auditSite } from "../../../audit.js";
 import { notifyTransaction } from "../../../notify.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
-import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { resourceServer, acceptsFor } from "../../../lib/x402-server.js";
 import { recordEvent } from "../../../lib/analytics-store.js";
 import { signReport } from "../../../lib/report-signing.js";
 import { upsertPublicReport } from "../../../lib/public-reports.js";
@@ -40,12 +40,7 @@ async function handler(req) {
 }
 
 const routeConfig = {
-    accepts: {
-      scheme: "exact",
-      price: "$0.015",
-      network: NETWORK,
-      payTo: SELLER,
-    },
+    accepts: acceptsFor("$0.015"),
     description:
       "Run a fast, lightweight audit of a single public web page: performance signals (fetch timing, page weight), SEO signals, basic HTML accessibility signals, and security-header checks. Returns 0-100 category scores, detailed pass/fail checks, detected issues, and plain-English remediation guidance.",
     mimeType: "application/json",
@@ -54,7 +49,7 @@ const routeConfig = {
       body: {
         error: "Payment required",
         code: "PAYMENT_REQUIRED",
-        hint: "x402 v2: decode the base64 PAYMENT-REQUIRED response header for full terms ($0.015 USDC on eip155:8453), sign, and retry with a PAYMENT-SIGNATURE header. Any x402 v2 client (e.g. @x402/fetch) automates this. Docs: /llms.txt and /openapi.json.",
+        hint: "x402 v2: decode the base64 PAYMENT-REQUIRED response header for full terms ($0.015 — USDC on eip155:8453, or XRP on XRPL when enabled), sign, and retry with a PAYMENT-SIGNATURE header. Any x402 v2 client (e.g. @x402/fetch) automates this. Docs: /llms.txt and /openapi.json.",
       },
     }),
     serviceName: "Santos Quick Intelligence Audit",

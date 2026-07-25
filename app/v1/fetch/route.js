@@ -8,7 +8,7 @@ import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { fetchUrl, SAFE_FETCH_SCHEMA_VERSION } from "../../../lib/fetch-product.js";
 import { validateTarget } from "../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
-import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { resourceServer, acceptsFor } from "../../../lib/x402-server.js";
 import { notifyTransaction } from "../../../notify.js";
 
 const PRICE = process.env.SAFE_FETCH_PRICE_USDC ?? "0.002";
@@ -33,7 +33,7 @@ async function handler(req) {
 }
 
 const routeConfig = {
-  accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
+  accepts: acceptsFor(`$${PRICE}`),
   description:
     "Fetch one public URL through a hardened safe-fetcher and get the raw text body plus response metadata (final URL after redirects, status, selected headers, byte count, timing). SSRF-guarded — private, link-local, and cloud-metadata addresses are blocked including via redirects — with a 15s timeout, 2MB cap, and ports 80/443 only. Text formats only (HTML, JSON, XML, feeds, plain text, JS, SVG); read-only, no crawling, no JavaScript rendering.",
   mimeType: "application/json",
@@ -44,7 +44,7 @@ const routeConfig = {
     body: {
       error: "Payment required",
       code: "PAYMENT_REQUIRED",
-      hint: `x402 v2: decode the base64 PAYMENT-REQUIRED response header for the $${PRICE} USDC terms, sign, and retry with a PAYMENT-SIGNATURE header. Payment settles only on a successful fetch. Docs: /llms.txt and /openapi.json.`,
+      hint: `x402 v2: decode the base64 PAYMENT-REQUIRED response header for the $${PRICE} terms (USDC on Base, or XRP on XRPL when enabled), sign, and retry with a PAYMENT-SIGNATURE header. Payment settles only on a successful fetch. Docs: /llms.txt and /openapi.json.`,
     },
   }),
   extensions: {
