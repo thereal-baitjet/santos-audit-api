@@ -237,6 +237,7 @@ footer .fine { margin-top: 36px; font-size: 12.5px; color: var(--muted); font-fa
 .check-list li { position: relative; padding-left: 20px; color: var(--muted); font-size: 14px; }
 .check-list li::before { content: "✓"; position: absolute; left: 0; color: var(--good); }
 .split-section { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 42px; align-items: center; }
+.about-portrait { width: 100%; max-width: 320px; height: auto; aspect-ratio: 3 / 4; object-fit: cover; justify-self: center; border-radius: 12px; border: 1px solid var(--border); }
 .code-sample {
   width: 100%; max-width: 100%; overflow-x: auto; padding: 24px;
   background: #080a0c; border: 1px solid var(--border); border-radius: 10px;
