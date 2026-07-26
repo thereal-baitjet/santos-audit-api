@@ -537,6 +537,181 @@ const document = {
         },
       },
     },
+    "/v1/feed": {
+      get: {
+        operationId: "parseFeed",
+        tags: ["Feed Parser"],
+        summary: "Parse one public feed URL into normalized JSON ($0.003 USDC via x402, synchronous)",
+        description:
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful parse. Fetches one public feed URL through the same hardened SSRF-guarded fetcher as /v1/fetch (private/link-local/cloud-metadata addresses blocked including via redirects, 15s timeout, 2MB cap, ports 80/443 only), detects RSS 2.0, Atom, or JSON Feed, and returns normalized JSON: feed metadata (title, link, description, feed_url) plus up to 50 items with id, title, url, published, summary, and author. A target that is not a recognized feed returns 422 and never settles. A POST variant with a JSON {url} body is paywalled identically.",
+        parameters: [urlParam],
+        responses: {
+          200: {
+            description: "Feed parsed.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["schema_version", "url", "final_url", "format", "feed", "item_count", "items"],
+                  properties: {
+                    schema_version: { type: "string", const: "1.0.0" },
+                    url: { type: "string" },
+                    final_url: { type: "string", format: "uri" },
+                    format: { type: "string", enum: ["rss2", "atom", "json"] },
+                    feed: {
+                      type: "object",
+                      properties: {
+                        title: { type: ["string", "null"] },
+                        link: { type: ["string", "null"] },
+                        description: { type: ["string", "null"] },
+                        feed_url: { type: ["string", "null"] },
+                      },
+                    },
+                    item_count: { type: "integer", maximum: 50 },
+                    items: {
+                      type: "array",
+                      maxItems: 50,
+                      items: {
+                        type: "object",
+                        properties: {
+                          id: { type: ["string", "null"] },
+                          title: { type: ["string", "null"] },
+                          url: { type: ["string", "null"] },
+                          published: { type: ["string", "null"] },
+                          summary: { type: ["string", "null"] },
+                          author: { type: ["string", "null"] },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Invalid or blocked target URL (not charged).", content: { "application/json": { schema: errorSchema } } },
+          402: { description: "Payment required/invalid. Terms in the PAYMENT-REQUIRED header; body is an agent-readable hint." },
+          422: { description: "Target is not a recognized RSS 2.0, Atom, or JSON Feed (not charged — never settles).", content: { "application/json": { schema: errorSchema } } },
+          502: { description: "Target site unreachable (not charged).", content: { "application/json": { schema: errorSchema } } },
+          504: { description: "Target site timed out (not charged).", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/v1/links": {
+      get: {
+        operationId: "mapPageLinks",
+        tags: ["Link Map"],
+        summary: "Map one page's links into a categorized link map ($0.003 USDC via x402, synchronous)",
+        description:
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful response. Fetches one public HTML page (SSRF-guarded, 15s timeout, 5MB cap) and returns a categorized link map: every link resolved, deduped, and classified by kind (internal or external) plus topic tags (docs, pricing, api, careers, social, feed), with counts for each kind and topic — up to 200 links. Built for site-structure discovery: finding a target's docs, pricing, API, careers, social profiles, or feed URLs in one call. A POST variant with a JSON {url} body is paywalled identically.",
+        parameters: [urlParam],
+        responses: {
+          200: {
+            description: "Link map complete.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["schema_version", "url", "final_url", "http_status", "total_links", "counts", "links"],
+                  properties: {
+                    schema_version: { type: "string", const: "1.0.0" },
+                    url: { type: "string" },
+                    final_url: { type: "string", format: "uri" },
+                    http_status: { type: "integer" },
+                    total_links: { type: "integer", maximum: 200 },
+                    counts: {
+                      type: "object",
+                      properties: {
+                        internal: { type: "integer" },
+                        external: { type: "integer" },
+                        docs: { type: "integer" },
+                        pricing: { type: "integer" },
+                        api: { type: "integer" },
+                        careers: { type: "integer" },
+                        social: { type: "integer" },
+                        feed: { type: "integer" },
+                      },
+                    },
+                    links: {
+                      type: "array",
+                      maxItems: 200,
+                      items: {
+                        type: "object",
+                        required: ["url", "kind"],
+                        properties: {
+                          url: { type: "string" },
+                          text: { type: "string" },
+                          kind: { type: "string", enum: ["internal", "external"] },
+                          topics: { type: "array", items: { type: "string", enum: ["docs", "pricing", "api", "careers", "social", "feed"] } },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Invalid or blocked target URL (not charged).", content: { "application/json": { schema: errorSchema } } },
+          402: { description: "Payment required/invalid. Terms in the PAYMENT-REQUIRED header; body is an agent-readable hint." },
+          502: { description: "Target site unreachable (not charged).", content: { "application/json": { schema: errorSchema } } },
+          504: { description: "Target site timed out (not charged).", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/v1/summarize": {
+      post: {
+        operationId: "summarizePage",
+        tags: ["Summarizer"],
+        summary: "Summarize one page into structured JSON with Claude ($0.033 USDC via x402, synchronous)",
+        description:
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful summary. Fetches one public HTML page (SSRF-guarded, 15s timeout, 5MB cap) and returns a Claude-generated structured summary: title, summary, key_facts, entities, and word_count. An optional focus string steers the summary (e.g. \"pricing plans\"). Non-HTML targets return 422 and never settle. A GET variant with ?url=&focus= is paywalled identically.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["url"],
+                properties: {
+                  url: { type: "string", format: "uri", description: "Public HTTP/HTTPS page. Private-network/metadata targets rejected free of charge." },
+                  focus: { type: "string", description: "Optional steering prompt for the summary, e.g. \"pricing plans\"." },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Summary complete.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["schema_version", "url", "final_url", "http_status", "summary", "model"],
+                  properties: {
+                    schema_version: { type: "string", const: "1.0.0" },
+                    url: { type: "string" },
+                    final_url: { type: "string", format: "uri" },
+                    http_status: { type: "integer" },
+                    title: { type: ["string", "null"] },
+                    summary: { type: "string" },
+                    key_facts: { type: "array", items: { type: "string" } },
+                    entities: { type: "array", items: { type: "string" } },
+                    word_count: { type: "integer" },
+                    focus: { type: ["string", "null"] },
+                    model: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Invalid or blocked target URL (not charged).", content: { "application/json": { schema: errorSchema } } },
+          402: { description: "Payment required/invalid. Terms in the PAYMENT-REQUIRED header; body is an agent-readable hint." },
+          422: { description: "Target returned non-HTML content (not charged — never settles).", content: { "application/json": { schema: errorSchema } } },
+          502: { description: "Target site unreachable (not charged).", content: { "application/json": { schema: errorSchema } } },
+          504: { description: "Target site timed out (not charged).", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
     "/v1/screenshot": {
       get: {
         operationId: "renderScreenshot",

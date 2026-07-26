@@ -9,7 +9,10 @@
     "test": "node test.js",
     "test:agent-readiness": "node --test tests/agent-readiness.test.js",
     "test:website-intelligence": "node --test tests/website-intelligence.test.js",
-    "test:extract-structured": "node --test tests/extract-structured.test.js"
+    "test:extract-structured": "node --test tests/extract-structured.test.js",
+    "test:summarize": "node --test tests/summarize.test.js",
+    "test:feed": "node --test tests/feed.test.js",
+    "test:links": "node --test tests/links.test.js"
   },
   "keywords": [
     "x402",

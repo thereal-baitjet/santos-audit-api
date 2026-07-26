@@ -57,12 +57,15 @@ navigation uses the gold Santos eagle SVG emblem from `public/assets`.
 | Safe Fetch ($0.002 USDC, synchronous) | `GET /v1/fetch?url=https://example.com` |
 | Content Extraction ($0.005 USDC, synchronous) | `POST /v1/extract` `{"url": "https://example.com"}` |
 | Structured Extraction ($0.08 USDC, synchronous) | `POST /v1/extract/structured` `{"url": "...", "schema": {...}}` |
+| **Feed Parser** ($0.003 USDC, synchronous) | `GET /v1/feed?url=https://example.com/feed.xml` |
+| **Link Map** ($0.003 USDC, synchronous) | `GET /v1/links?url=https://example.com` |
+| **Summarizer** ($0.033 USDC, synchronous) | `POST /v1/summarize` `{"url": "https://example.com", "focus": "..."}` |
 | Screenshot & PDF Render ($0.01 USDC, synchronous) | `GET /v1/screenshot?url=https://example.com` |
 | **Deep Website Intelligence Audit** ($0.225 USDC, async job) | `POST /v1/audits` `{"url": "https://example.com"}` |
 | Free demos (1/day per IP, shared quota across all demos) | `GET /api/audit/demo?url=...` · `GET /api/agent-readiness/demo?url=...` |
 | OpenAPI 3.1 | [`/openapi.json`](https://api.santosautomation.com/openapi.json) |
 | llms.txt | [`/llms.txt`](https://api.santosautomation.com/llms.txt) |
-| MCP server (tools: `audit_website_preview`, `audit_agent_readiness`, `extract_page_markdown`, `extract_structured_data`) | `POST /mcp` |
+| MCP server (tools: `audit_website_preview`, `audit_agent_readiness`, `extract_page_markdown`, `extract_structured_data`, `feed_parse`, `link_map`, `summarize`) | `POST /mcp` |
 | Service manifest | [`/api`](https://api.santosautomation.com/api) |
 | Capability manifest | [`/capabilities.json`](https://api.santosautomation.com/capabilities.json) |
 | Well-known capability manifest | [`/.well-known/agent-capabilities.json`](https://www.santosautomation.com/.well-known/agent-capabilities.json) |
@@ -149,6 +152,27 @@ POST /api/audit/batch
 ```
 
 Working buyer example: [`buy-batch.js`](buy-batch.js).
+
+## Feed Parser, Link Map & Summarizer
+
+Three synchronous content tools under the same pay-per-success contract:
+
+- **Feed Parser** — `GET/POST /v1/feed` ($0.003 USDC): one public feed URL in,
+  normalized JSON out. Detects RSS 2.0, Atom, and JSON Feed through the same
+  SSRF-guarded fetcher as Safe Fetch; returns feed metadata plus up to 50
+  items (`id`, `title`, `url`, `published`, `summary`, `author`). A non-feed
+  target returns 422 and never settles. Buyer example:
+  [`buy-feed.js`](buy-feed.js).
+- **Link Map** — `GET/POST /v1/links` ($0.003 USDC): one HTML page in, a
+  categorized link map out — every link (max 200) with a kind (internal or
+  external) plus topic tags (docs, pricing, api, careers, social, feed) and
+  per-category counts. A site-discovery step, not a crawler. Buyer example:
+  [`buy-links.js`](buy-links.js).
+- **Summarizer** — `POST/GET /v1/summarize` ($0.033 USDC): one HTML page in, a
+  Claude-generated structured summary out (`title`, `summary`, `key_facts`,
+  `entities`, `word_count`), with an optional `focus` steering prompt.
+  Non-HTML targets return 422 and never settle. Buyer example:
+  [`buy-summarize.js`](buy-summarize.js).
 
 ### Free demo first
 

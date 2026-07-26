@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.10.0 — 2026-07-26 — Feed Parser, Link Map, and Summarizer
+
+### Added
+- **Santos Feed Parser** (`GET/POST /v1/feed`, $0.003 USDC via x402 v2, env
+  `FEED_PRICE_USDC`): one public feed URL to normalized JSON. Detects RSS 2.0,
+  Atom, and JSON Feed through the same SSRF-guarded fetcher as Safe Fetch;
+  returns feed metadata plus up to 50 items (`id`, `title`, `url`,
+  `published`, `summary`, `author`). A non-feed target returns 422 and never
+  settles.
+- **Santos Link Map** (`GET/POST /v1/links`, $0.003 USDC via x402 v2, env
+  `LINKS_PRICE_USDC`): one HTML page to a categorized link map — every link
+  (max 200) with a kind (internal or external) plus topic tags (docs, pricing,
+  api, careers, social, feed) and per-category counts. A site-discovery step,
+  not a crawler.
+- **Santos Summarizer** (`POST/GET /v1/summarize`, $0.033 USDC via x402 v2, env
+  `SUMMARIZE_PRICE_USDC`): one HTML page to a Claude-generated structured
+  summary (`title`, `summary`, `key_facts`, `entities`, `word_count`) with an
+  optional `focus` steering prompt. Non-HTML targets return 422 and never
+  settle.
+- **MCP tools** `feed_parse`, `link_map`, and `summarize`: each validates the
+  target and returns the canonical x402 HTTP handoff for its paid endpoint —
+  MCP never executes or settles the paid call.
+- Buyer examples: `buy-feed.js`, `buy-links.js`, `buy-summarize.js`.
+  Discovery surfaces updated per the suite template: OpenAPI, llms.txt,
+  capabilities manifest (`content.feed-parse`, `content.link-map`,
+  `content.summarize`), /api service manifest, and /docs.
+
 ## 2.9.0 — 2026-07-23 — Verified free tier, public reports, badge, signed reports
 
 ### Added

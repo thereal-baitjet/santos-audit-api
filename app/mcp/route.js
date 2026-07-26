@@ -102,6 +102,75 @@ const STRUCTURED_EXTRACT_TOOL = {
   annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
 };
 
+const FEED_PRICE = process.env.FEED_PRICE_USDC ?? "0.003";
+const LINKS_PRICE = process.env.LINKS_PRICE_USDC ?? "0.003";
+const SUMMARIZE_PRICE = process.env.SUMMARIZE_PRICE_USDC ?? "0.033";
+
+const FEED_PARSE_TOOL = {
+  name: "feed_parse",
+  description: `PAID CAPABILITY ($${FEED_PRICE} USDC per successful parse via x402 v2). Parses one public feed URL (RSS 2.0, Atom, or JSON Feed) into normalized JSON with feed metadata and up to 50 items; non-feed targets return 422 and never settle. This MCP call validates the target and returns the canonical x402 HTTP handoff; payment and the result are exchanged at GET ${PUBLIC_API_BASE_URL}/v1/feed?url=... (or POST {"url": "…"}). No account or API key is required.`,
+  inputSchema: {
+    type: "object",
+    properties: {
+      url: { type: "string", format: "uri", description: "A publicly reachable HTTP or HTTPS feed URL." },
+    },
+    required: ["url"],
+    additionalProperties: false,
+  },
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+};
+
+const LINK_MAP_TOOL = {
+  name: "link_map",
+  description: `PAID CAPABILITY ($${LINKS_PRICE} USDC per successful link map via x402 v2). Maps one public HTML page's links into a categorized link map — kind internal/external plus topic tags (docs, pricing, api, careers, social, feed) with per-category counts, up to 200 links. This MCP call validates the target and returns the canonical x402 HTTP handoff; payment and the result are exchanged at GET ${PUBLIC_API_BASE_URL}/v1/links?url=... (or POST {"url": "…"}). No account or API key is required.`,
+  inputSchema: {
+    type: "object",
+    properties: {
+      url: { type: "string", format: "uri", description: "A publicly reachable HTTP or HTTPS page." },
+    },
+    required: ["url"],
+    additionalProperties: false,
+  },
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+};
+
+const SUMMARIZE_TOOL = {
+  name: "summarize",
+  description: `PAID CAPABILITY ($${SUMMARIZE_PRICE} USDC per successful summary via x402 v2). Summarizes one public HTML page into a Claude-generated structured summary (title, summary, key_facts, entities, word_count) with an optional focus steering prompt; non-HTML targets return 422 and never settle. This MCP call validates the target and returns the canonical x402 HTTP handoff; payment and the result are exchanged at POST ${PUBLIC_API_BASE_URL}/v1/summarize with {"url": "…"} (or GET ?url=&focus=). No account or API key is required.`,
+  inputSchema: {
+    type: "object",
+    properties: {
+      url: { type: "string", format: "uri", description: "A publicly reachable HTTP or HTTPS page." },
+      focus: { type: "string", description: "Optional steering prompt for the summary, e.g. \"pricing plans\"." },
+    },
+    required: ["url"],
+    additionalProperties: false,
+  },
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+};
+
+// Paid-handoff tools: validate the target, then return the canonical x402 HTTP
+// handoff — MCP never executes or settles the paid call itself.
+function callPaidHandoffTool(args, { name, path, price }) {
+  if (!args || typeof args.url !== "string" || !args.url.trim()) {
+    return { isError: true, content: [{ type: "text", text: "INVALID_URL: a non-empty 'url' string argument is required." }] };
+  }
+  try {
+    const target = validateTarget(args.url.trim()).href;
+    const endpoint = `${PUBLIC_API_BASE_URL}${path}?url=${encodeURIComponent(target)}`;
+    return {
+      isError: true,
+      content: [{
+        type: "text",
+        text: `PAYMENT_REQUIRED: ${name} costs $${price} USDC per successful call on Base mainnet via x402 v2. Request ${endpoint} without a signature to receive PAYMENT-REQUIRED terms, then sign and retry with PAYMENT-SIGNATURE. A POST variant with a JSON body is paywalled identically.`,
+      }],
+    };
+  } catch (error) {
+    const code = error instanceof AuditError ? error.code : "INVALID_URL";
+    return { isError: true, content: [{ type: "text", text: `${code}: ${error.message}` }] };
+  }
+}
+
 async function callStructuredExtractTool(args, ip) {
   if (!args || typeof args.url !== "string" || !args.url.trim() || !args.schema || typeof args.schema !== "object") {
     return { isError: true, content: [{ type: "text", text: "INVALID_ARGUMENTS: 'url' (string) and 'schema' (object) are both required." }] };
@@ -259,18 +328,21 @@ async function handlePOST(req) {
         capabilities: { tools: {} },
         serverInfo: { name: "santos-website-intelligence", version: "2.9.0" },
         instructions:
-          `Use audit_website_preview for a free (1/day per IP) lightweight page audit, extract_page_markdown for a free page-to-Markdown extraction, or extract_structured_data for a free schema-conforming JSON extraction (all shared quota; unlimited via x402 at POST /v1/extract, $${EXTRACT_PRICE} USDC, and POST /v1/extract/structured, $${STRUCTURED_EXTRACT_PRICE} USDC). Agent Readiness is a paid $${AGENT_READINESS_PRICE} USDC capability; audit_agent_readiness validates the target and returns its canonical x402 HTTP handoff.`,
+          `Use audit_website_preview for a free (1/day per IP) lightweight page audit, extract_page_markdown for a free page-to-Markdown extraction, or extract_structured_data for a free schema-conforming JSON extraction (all shared quota; unlimited via x402 at POST /v1/extract, $${EXTRACT_PRICE} USDC, and POST /v1/extract/structured, $${STRUCTURED_EXTRACT_PRICE} USDC). Agent Readiness is a paid $${AGENT_READINESS_PRICE} USDC capability; audit_agent_readiness validates the target and returns its canonical x402 HTTP handoff. feed_parse, link_map, and summarize are paid handoff tools for /v1/feed ($${FEED_PRICE} USDC), /v1/links ($${LINKS_PRICE} USDC), and /v1/summarize ($${SUMMARIZE_PRICE} USDC) — each validates the target and returns the canonical x402 HTTP handoff.`,
       });
     }
     case "ping":
       return rpcResult(id, {});
     case "tools/list":
-      return rpcResult(id, { tools: [PREVIEW_TOOL, AGENT_READINESS_TOOL, EXTRACT_TOOL, STRUCTURED_EXTRACT_TOOL] });
+      return rpcResult(id, { tools: [PREVIEW_TOOL, AGENT_READINESS_TOOL, EXTRACT_TOOL, STRUCTURED_EXTRACT_TOOL, FEED_PARSE_TOOL, LINK_MAP_TOOL, SUMMARIZE_TOOL] });
     case "tools/call": {
       if (params?.name === PREVIEW_TOOL.name) return rpcResult(id, await callAuditTool(params?.arguments, ipFromRequest(req)));
       if (params?.name === AGENT_READINESS_TOOL.name) return rpcResult(id, await callAgentReadinessTool(params?.arguments));
       if (params?.name === EXTRACT_TOOL.name) return rpcResult(id, await callExtractTool(params?.arguments, ipFromRequest(req)));
       if (params?.name === STRUCTURED_EXTRACT_TOOL.name) return rpcResult(id, await callStructuredExtractTool(params?.arguments, ipFromRequest(req)));
+      if (params?.name === FEED_PARSE_TOOL.name) return rpcResult(id, callPaidHandoffTool(params?.arguments, { name: "Feed Parser", path: "/v1/feed", price: FEED_PRICE }));
+      if (params?.name === LINK_MAP_TOOL.name) return rpcResult(id, callPaidHandoffTool(params?.arguments, { name: "Link Map", path: "/v1/links", price: LINKS_PRICE }));
+      if (params?.name === SUMMARIZE_TOOL.name) return rpcResult(id, callPaidHandoffTool(params?.arguments, { name: "Summarizer", path: "/v1/summarize", price: SUMMARIZE_PRICE }));
       return rpcError(id, -32602, `Unknown tool: ${params?.name}`);
     }
     default:
@@ -286,7 +358,7 @@ async function handleGET(req) {
     service: "Santos Website Intelligence — Model Context Protocol (MCP) endpoint",
     transport: "MCP over Streamable HTTP. Send JSON-RPC 2.0 requests via POST to this URL.",
     methods: ["initialize", "tools/list", "tools/call", "ping"],
-    tools: ["audit_website_preview (free, 1/day per IP)", "audit_agent_readiness (paid via x402, returns the canonical HTTP handoff)", "extract_page_markdown (free preview, shared 1/day quota; unlimited via x402 POST /v1/extract)", "extract_structured_data (free preview, shared 1/day quota; unlimited via x402 POST /v1/extract/structured)"],
+    tools: ["audit_website_preview (free, 1/day per IP)", "audit_agent_readiness (paid via x402, returns the canonical HTTP handoff)", "extract_page_markdown (free preview, shared 1/day quota; unlimited via x402 POST /v1/extract)", "extract_structured_data (free preview, shared 1/day quota; unlimited via x402 POST /v1/extract/structured)", "feed_parse (paid via x402, returns the canonical HTTP handoff for /v1/feed)", "link_map (paid via x402, returns the canonical HTTP handoff for /v1/links)", "summarize (paid via x402, returns the canonical HTTP handoff for /v1/summarize)"],
     for_humans: `${PUBLIC_API_BASE_URL}/agent-readiness/buy — buy a $5 Agent Readiness Report by card, no account`,
     docs: {
       openapi: `${PUBLIC_API_BASE_URL}/openapi.json`,
@@ -300,7 +372,7 @@ async function handleGET(req) {
 <body style="font:16px/1.6 system-ui,sans-serif;max-width:640px;margin:6vh auto;padding:0 20px;background:#0b0d10;color:#e8e6e1">
 <h1 style="color:#d4a24e">Santos MCP endpoint</h1>
 <p>This is a <strong>Model Context Protocol</strong> endpoint. Automated clients talk to it with JSON-RPC 2.0 over HTTP <strong>POST</strong> (Streamable HTTP transport) — there is nothing to see here in a browser.</p>
-<p>Tools: <code>audit_website_preview</code> (free, 1/day per IP), <code>audit_agent_readiness</code> (paid via x402), <code>extract_page_markdown</code>, and <code>extract_structured_data</code> (free previews, unlimited via x402).</p>
+<p>Tools: <code>audit_website_preview</code> (free, 1/day per IP), <code>audit_agent_readiness</code> (paid via x402), <code>extract_page_markdown</code>, and <code>extract_structured_data</code> (free previews, unlimited via x402), plus <code>feed_parse</code>, <code>link_map</code>, and <code>summarize</code> (paid via x402 handoffs).</p>
 <p><strong>Just want a report?</strong> <a href="${PUBLIC_API_BASE_URL}/agent-readiness/buy" style="color:#d4a24e">Buy an Agent Readiness Report for $5 by card →</a></p>
 <p>Machine-readable: <a href="${PUBLIC_API_BASE_URL}/openapi.json" style="color:#d4a24e">OpenAPI</a> · <a href="${PUBLIC_API_BASE_URL}/llms.txt" style="color:#d4a24e">llms.txt</a> · <a href="${PUBLIC_API_BASE_URL}/capabilities.json" style="color:#d4a24e">capabilities.json</a></p>
 </body>`;

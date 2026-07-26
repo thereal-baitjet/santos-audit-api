@@ -67,6 +67,7 @@ const oaDoc = await oa.json().catch(() => ({}));
 check("openapi.json reachable + JSON", oa.status === 200 && (oa.headers.get("content-type") ?? "").includes("json"));
 check("openapi 3.1 with auditWebsite operation", oaDoc.openapi === "3.1.0" && oaDoc.paths?.["/api/audit"]?.get?.operationId === "auditWebsite" && !!oaDoc.paths?.["/api/audit/demo"]);
 check("openapi documents Agent Readiness contract", oaDoc.paths?.["/api/agent-readiness"]?.get?.operationId === "auditAgentReadiness" && oaDoc.components?.schemas?.AgentReadinessResult?.properties?.schema_version?.const === "1.0.0");
+check("openapi documents feed/links/summarize paths", oaDoc.paths?.["/v1/feed"]?.get?.operationId === "parseFeed" && oaDoc.paths?.["/v1/links"]?.get?.operationId === "mapPageLinks" && oaDoc.paths?.["/v1/summarize"]?.post?.operationId === "summarizePage");
 check("openapi documents additive Website Intelligence", oaDoc.info?.title === "Santos Website Intelligence API" && oaDoc.components?.schemas?.WebsiteIntelligence?.properties?.dimensions?.properties?.callable);
 
 // Target validation runs AFTER the paywall by design (see the route's
@@ -83,6 +84,7 @@ check("Agent Readiness 402 discovery names the canonical route", [undefined, "/a
 
 const capabilities = await (await fetch(`${BASE}/capabilities.json`)).json();
 check("vendor capability manifest is explicit, versioned, and prices Agent Readiness", capabilities.standard === false && capabilities.manifest_version === "1.0.0" && capabilities.capabilities?.some((item) => item.id === "agent-readiness.quick" && item.price?.amount === "0.075" && item.billing_unit === "successful audit"));
+check("vendor capability manifest prices feed/links/summarize", capabilities.capabilities?.some((item) => item.id === "content.feed-parse" && item.price?.amount === "0.003") && capabilities.capabilities?.some((item) => item.id === "content.link-map" && item.price?.amount === "0.003") && capabilities.capabilities?.some((item) => item.id === "content.summarize" && item.price?.amount === "0.033"));
 
 // 3d) llms.txt
 const llms = await fetch(`${BASE}/llms.txt`);
@@ -109,6 +111,12 @@ const readinessCall = await (await rpc("tools/call", { name: "audit_agent_readin
 check("MCP Agent Readiness closes the free execution bypass", readinessCall.result?.isError === true && /PAYMENT_REQUIRED/.test(JSON.stringify(readinessCall.result)) && /0\.075/.test(JSON.stringify(readinessCall.result)));
 const badCall = await (await rpc("tools/call", { name: "audit_website_preview", arguments: { url: "http://127.0.0.1/" } })).json();
 check("MCP rejects private URL", badCall.result?.isError === true && /PRIVATE_ADDRESS_BLOCKED/.test(JSON.stringify(badCall.result)));
+const handoffTools = ["feed_parse", "link_map", "summarize"];
+check("MCP lists feed_parse, link_map, summarize with strict schemas", handoffTools.every((n) => { const t = tools.result?.tools?.find((tool) => tool.name === n); return t?.inputSchema?.required?.includes("url") && t?.inputSchema?.additionalProperties === false; }));
+const feedCall = await (await rpc("tools/call", { name: "feed_parse", arguments: { url: "https://example.com/feed.xml" } })).json();
+check("MCP feed_parse returns the paid x402 handoff (no free execution)", feedCall.result?.isError === true && /PAYMENT_REQUIRED/.test(JSON.stringify(feedCall.result)) && /0\.003/.test(JSON.stringify(feedCall.result)));
+const feedBad = await (await rpc("tools/call", { name: "feed_parse", arguments: { url: "http://127.0.0.1/" } })).json();
+check("MCP feed_parse rejects private URL", feedBad.result?.isError === true && /PRIVATE_ADDRESS_BLOCKED/.test(JSON.stringify(feedBad.result)));
 
 // 3f) Deep Page Audit tier: honest state either way — 503 while disabled, or a
 // valid $DEEP price x402 challenge when enabled. Reads without tokens are 401/503.
@@ -147,6 +155,16 @@ const headProbe = await fetch(`${BASE}/api/audit?url=example.com`, { method: "HE
 check("HEAD on paid route is still paywalled (402)", headProbe.status === 402, `got ${headProbe.status}`);
 const unpaidBody = await unpaid.json().catch(() => ({}));
 check("402 body has agent-readable hint", unpaidBody.code === "PAYMENT_REQUIRED" && /PAYMENT-REQUIRED/.test(unpaidBody.hint ?? ""));
+
+// 4b) Feed Parser, Link Map, Summarizer: unpaid requests get the x402 challenge
+for (const [path, expectedAmount] of [["/v1/feed", "3000"], ["/v1/links", "3000"], ["/v1/summarize", "33000"]]) {
+  const r = await fetch(`${BASE}${path}?url=${encodeURIComponent("https://example.com")}`);
+  const h = r.headers.get("payment-required");
+  const t = h ? JSON.parse(Buffer.from(h, "base64").toString("utf-8")) : {};
+  check(`${path} without payment returns 402 with $${Number(expectedAmount) / 1e6} terms`, r.status === 402 && t.x402Version === 2 && t.accepts?.[0]?.network === NET && t.accepts?.[0]?.amount === expectedAmount, `got ${r.status} amount=${t.accepts?.[0]?.amount}`);
+}
+check("manifest lists feed/links/summarize endpoints", !!manifest.endpoints?.["GET /v1/feed?url="] && !!manifest.endpoints?.["GET /v1/links?url="] && !!manifest.endpoints?.["POST /v1/summarize"]);
+check("manifest lists feed/links/summarize tiers with prices", manifest.tiers?.["feed-parser"]?.price_usdc === "0.003" && manifest.tiers?.["link-map"]?.price_usdc === "0.003" && manifest.tiers?.summarizer?.price_usdc === "0.033");
 
 // 5) Paid route with funded agent wallet -> settled 200 + full report
 (await import("dotenv")).config();

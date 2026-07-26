@@ -13,7 +13,7 @@ Built and operated by Santos Automation. From discoverable to callable.
 
 - [API documentation](https://www.santosautomation.com/docs): complete human-readable reference — quickstart, x402 payment flow, all capabilities, MCP, errors, limits, and roadmap
 - [OpenAPI 3.1 specification](https://api.santosautomation.com/openapi.json): full request/response schemas for every endpoint
-- [Remote MCP server](https://api.santosautomation.com/mcp): Streamable HTTP; tools: audit_website_preview and audit_agent_readiness
+- [Remote MCP server](https://api.santosautomation.com/mcp): Streamable HTTP; tools: audit_website_preview, audit_agent_readiness, extract_page_markdown, extract_structured_data, feed_parse, link_map, summarize
 - [Service manifest](https://api.santosautomation.com/api): live service description and pricing
 - [Capability manifest](https://api.santosautomation.com/capabilities.json): vendor-specific capability manifest (not a formal standard)
 - [Agent capability manifest](https://www.santosautomation.com/.well-known/agent-capabilities.json): well-known agent-capabilities document
@@ -26,6 +26,9 @@ Built and operated by Santos Automation. From discoverable to callable.
 - [Safe Fetch](https://api.santosautomation.com/v1/fetch?url=https%3A%2F%2Fexample.com): $0.002 USDC, synchronous — raw text body via a hardened SSRF-guarded fetcher (GET ?url= or POST {"url"}); text formats only
 - [Page-to-Markdown Extraction](https://api.santosautomation.com/v1/extract): $0.005 USDC, synchronous — POST {"url": "https://example.com"} (or GET ?url=); clean Markdown, title, links, metadata
 - [Structured Extraction](https://api.santosautomation.com/v1/extract/structured): $0.08 USDC, synchronous — POST {"url": "https://example.com", "schema": {...}}; LLM-extracted JSON validated against your own JSON Schema
+- [Santos Feed Parser](https://api.santosautomation.com/v1/feed?url=https%3A%2F%2Fexample.com%2Ffeed.xml): $0.003 USDC, synchronous — one feed URL (RSS 2.0, Atom, or JSON Feed) to normalized JSON with feed metadata and up to 50 items (GET ?url= or POST {"url"}); non-feed targets return 422 and never settle
+- [Santos Link Map](https://api.santosautomation.com/v1/links?url=https%3A%2F%2Fexample.com): $0.003 USDC, synchronous — one HTML page to a categorized link map: every link (max 200) with kind internal/external plus topic tags (docs, pricing, api, careers, social, feed) and per-category counts
+- [Santos Summarizer](https://api.santosautomation.com/v1/summarize): $0.033 USDC, synchronous — POST {"url": "https://example.com", "focus": "optional steering"} (or GET ?url=); Claude-generated structured summary with key facts, entities, and word count; non-HTML targets return 422 and never settle
 - [Free demo audit](https://api.santosautomation.com/api/audit/demo?url=https%3A%2F%2Fexample.com): 1/day per IP, same report shape as the paid Quick Audit
 - [Free demo Agent Readiness](https://api.santosautomation.com/api/agent-readiness/demo?url=https%3A%2F%2Fexample.com): 1/day per IP (quota shared with all demos), same quick-pass result shape as the paid Agent Readiness audit
 - [Free demo extraction](https://api.santosautomation.com/v1/extract/demo?url=https%3A%2F%2Fexample.com): 1/day per IP (quota shared with the demo audit), same shape as paid extraction
@@ -101,6 +104,28 @@ pipelines. It returns readability-isolated Markdown, title, description,
 canonical URL, outbound links, and word count for one public page — no
 crawling and no JavaScript rendering.
 
+Choose FEED PARSER ($0.003, seconds) when you have a feed URL and need its
+content as clean JSON rather than raw XML: monitoring blogs, news sources,
+release feeds, or podcast feeds. It detects RSS 2.0, Atom, and JSON Feed and
+returns normalized feed metadata plus up to 50 items with id, title, url,
+published, summary, and author — through the same SSRF-guarded fetcher as
+Safe Fetch. A target that is not a recognized feed returns 422 and is never
+charged.
+
+Choose LINK MAP ($0.003, seconds) when you need to understand a site's link
+structure from one page: finding a target's docs, pricing, API reference,
+careers page, social profiles, or feed URL before deciding what to fetch
+next. It returns every link (max 200) with a kind (internal or external) and
+topic tags (docs, pricing, api, careers, social, feed), plus counts for each
+kind and topic — a site discovery step, not a crawler.
+
+Choose SUMMARIZER ($0.033, seconds) when you need the gist of one page as
+structured JSON rather than full content: triage before deeper extraction,
+digest pipelines, or answering "what is this page about". It returns a
+Claude-generated summary with title, key_facts, entities, and word_count; an
+optional focus string steers the summary (e.g. "pricing plans"). Non-HTML
+targets return 422 and are never charged.
+
 Choose SCREENSHOT & PDF RENDER ($0.01, seconds) when you need a VISUAL of the
 rendered page from a real isolated Chromium browser. Because it executes
 JavaScript, it captures what fetch-and-parse tiers cannot: SPAs, client-rendered
@@ -134,6 +159,9 @@ audit or invoke any tool advertised by the audited target.
 - Safe Fetch price: $0.002 USDC per successful fetch (2000 atomic units).
 - Page-to-Markdown Extraction price: $0.005 USDC per successful extraction (5000 atomic units).
 - Structured Extraction price: $0.08 USDC per successful schema-conforming extraction (80000 atomic units).
+- Feed Parser price: $0.003 USDC per successful parse (3000 atomic units).
+- Link Map price: $0.003 USDC per successful link map (3000 atomic units).
+- Summarizer price: $0.033 USDC per successful summary (33000 atomic units).
 - Quick Audit price: $0.015 USDC per successful audit (15000 atomic units).
 - Screenshot & PDF Render price: $0.01 USDC per successful render (10000 atomic units).
 - Agent Readiness price: $0.075 USDC per successful audit (75000 atomic units).

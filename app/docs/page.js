@@ -10,7 +10,7 @@ const PAGE = {
   path: "/docs",
   title: "API Documentation — Santos Website Intelligence",
   description:
-    "Complete developer documentation for the Santos Website Intelligence API: seven x402-payable capabilities on Base, free daily demos, MCP, OpenAPI, errors, and limits.",
+    "Complete developer documentation for the Santos Website Intelligence API: ten x402-payable capabilities on Base, free daily demos, MCP, OpenAPI, errors, and limits.",
 };
 
 export const metadata = pageMetadata(PAGE);
@@ -159,6 +159,50 @@ const CAPABILITIES = [
     demo: "POST /v1/extract/structured/demo",
   },
   {
+    id: "feed",
+    name: "Santos Feed Parser",
+    method: "GET",
+    path: "/v1/feed",
+    price: process.env.FEED_PRICE_USDC ?? "0.003",
+    mode: "Synchronous",
+    settles: "on a successful parse",
+    summary:
+      "One feed URL in, normalized JSON out — detects RSS 2.0, Atom, or JSON Feed and returns feed metadata (title, link, description, feed_url) plus up to 50 items with id, title, url, published, summary, and author. Fetched through the same hardened SSRF-guarded fetcher as Safe Fetch. A target that is not a recognized feed returns 422 and never settles. A POST variant accepts a JSON {\"url\"} body.",
+    params: [["url", "required — public HTTP/HTTPS feed URL"]],
+    curl: `curl '${API}/v1/feed?url=https%3A%2F%2Fexample.com%2Ffeed.xml'`,
+  },
+  {
+    id: "links",
+    name: "Santos Link Map",
+    method: "GET",
+    path: "/v1/links",
+    price: process.env.LINKS_PRICE_USDC ?? "0.003",
+    mode: "Synchronous",
+    settles: "on a successful link map",
+    summary:
+      "One HTML page in, categorized link map out — every link (max 200) resolved and deduped with a kind (internal or external) plus topic tags (docs, pricing, api, careers, social, feed), and counts for each kind and topic. Built for site-structure discovery: find a target's docs, pricing, API, careers, social profiles, or feed URL in one call. A POST variant accepts a JSON {\"url\"} body. No crawling, no JavaScript rendering.",
+    params: [["url", "required — public HTTP/HTTPS page"]],
+    curl: `curl '${API}/v1/links?url=https%3A%2F%2Fexample.com'`,
+  },
+  {
+    id: "summarize",
+    name: "Santos Summarizer",
+    method: "POST",
+    path: "/v1/summarize",
+    price: process.env.SUMMARIZE_PRICE_USDC ?? "0.033",
+    mode: "Synchronous",
+    settles: "on a successful summary",
+    summary:
+      "One HTML page in, Claude-generated structured summary out — title, summary, key_facts, entities, and word_count. An optional focus string steers the summary (e.g. \"pricing plans\"). Built for triage before deeper extraction and digest pipelines. Non-HTML targets return 422 and never settle. A GET ?url=&focus= variant is paywalled identically. No crawling, no JavaScript rendering.",
+    params: [
+      ["url", "required — public HTTP/HTTPS page"],
+      ["focus", "optional — steering prompt for the summary, e.g. \"pricing plans\""],
+    ],
+    curl: `curl -X POST ${API}/v1/summarize \\
+  -H 'Content-Type: application/json' \\
+  -d '{"url": "https://example.com/article", "focus": "pricing plans"}'`,
+  },
+  {
     id: "deep",
     name: "Deep Website Intelligence Audit",
     method: "POST",
@@ -202,7 +246,7 @@ const ERROR_ROWS = [
 const MACHINE_SURFACES = [
   ["OpenAPI 3.1", `${API}/openapi.json`, "Typed operations, request/response schemas, error models, and x402 behavior for every endpoint"],
   ["llms.txt", `${API}/llms.txt`, "Low-noise plain-text service guide with canonical machine links and agent selection guidance"],
-  ["MCP server", `${API}/mcp`, "Streamable HTTP; tools: audit_website_preview, audit_agent_readiness, extract_page_markdown, extract_structured_data"],
+  ["MCP server", `${API}/mcp`, "Streamable HTTP; tools: audit_website_preview, audit_agent_readiness, extract_page_markdown, extract_structured_data, feed_parse, link_map, summarize"],
   ["Capability manifest", `${API}/capabilities.json`, "Vendor-specific manifest: tier selection guidance, pricing, limits, and support"],
   ["Agent capabilities", "https://www.santosautomation.com/.well-known/agent-capabilities.json", "Well-known agent-capabilities document"],
   ["Service manifest", `${API}/api`, "Live service description and pricing at the API root"],
@@ -239,7 +283,7 @@ export default function DocsPage() {
         <p className="kicker">Documentation · for humans and robots</p>
         <h1>Santos API documentation</h1>
         <p className="lede">
-          Everything you need to call the Santos Website Intelligence API: seven machine-payable
+          Everything you need to call the Santos Website Intelligence API: ten machine-payable
           capabilities on Base mainnet, free daily demos, a remote MCP server, and stable
           machine-readable contracts. No account and no traditional API key — payment happens
           inside the HTTP request via x402.
@@ -317,7 +361,7 @@ const report = await res.json(); // paid, settled, done`}</code></pre>
 
       <section className="content-section" id="endpoints">
         <p className="section-label">03 · Capability reference</p>
-        <h2>Seven capabilities, one payment model</h2>
+        <h2>Ten capabilities, one payment model</h2>
         <p className="sub wide">
           All prices are USDC per <em>successful</em> call. Every capability audits or processes one
           public page per call — no crawling, no login-protected content, private networks blocked.
@@ -358,6 +402,9 @@ const report = await res.json(); // paid, settled, done`}</code></pre>
               <tr><th scope="row"><code>audit_agent_readiness</code></th><td>Validates the target and returns the paid x402 handoff terms</td></tr>
               <tr><th scope="row"><code>extract_page_markdown</code></th><td>Free page-to-Markdown extraction (shared demo quota)</td></tr>
               <tr><th scope="row"><code>extract_structured_data</code></th><td>Free structured extraction against your JSON Schema (shared demo quota)</td></tr>
+              <tr><th scope="row"><code>feed_parse</code></th><td>Validates the feed URL and returns the paid x402 handoff for /v1/feed</td></tr>
+              <tr><th scope="row"><code>link_map</code></th><td>Validates the target and returns the paid x402 handoff for /v1/links</td></tr>
+              <tr><th scope="row"><code>summarize</code></th><td>Validates the target and returns the paid x402 handoff for /v1/summarize</td></tr>
             </tbody>
           </table>
         </div>
@@ -417,7 +464,7 @@ const report = await res.json(); // paid, settled, done`}</code></pre>
         <p className="section-label">07 · Roadmap</p>
         <h2>The suite keeps growing</h2>
         <p className="sub wide">
-          The API grew from one audit endpoint to seven capabilities, and we plan to add new
+          The API grew from one audit endpoint to ten capabilities, and we plan to add new
           features and capabilities as time allows. Everything ships under the same contract:
           read-only, one-shot, single-page, x402 pay-per-success — no subscriptions, no accounts,
           no endpoints that send messages or act on your behalf.
