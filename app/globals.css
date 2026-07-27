@@ -43,9 +43,14 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   max-width: 100%;
   object-fit: contain;
 }
-nav ul { display: flex; gap: 28px; list-style: none; font-size: 14px; }
+nav ul { display: flex; gap: 28px; list-style: none; font-size: 14px; align-items: center; }
 nav ul a { color: var(--muted); }
 nav ul a:hover { color: var(--ink); text-decoration: none; }
+.nav-cta {
+  background: var(--accent); color: var(--accent-ink); font-weight: 600;
+  padding: 7px 16px; border-radius: 6px; white-space: nowrap;
+}
+.nav-cta:hover { color: var(--accent-ink); text-decoration: none; filter: brightness(1.08); }
 
 /* ---- hero ---- */
 header.hero {
@@ -532,6 +537,18 @@ header.hero {
   font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
   padding: 3px 10px; border-radius: 4px; font-weight: 700;
 }
+
+.plan--human {
+  border-color: rgba(220, 175, 92, .55); position: relative;
+  background: linear-gradient(180deg, rgba(212, 162, 78, .08), var(--surface) 55%);
+}
+.plan--human::before {
+  content: "human · by card"; position: absolute; top: -11px; right: 20px;
+  background: var(--accent); color: var(--accent-ink); font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 4px; font-weight: 700;
+}
+.plan--human .btn { align-self: flex-start; margin-top: auto; }
 
 .dimension-card, .feature-card, .plan { transition: border-color .15s, transform .15s; }
 .dimension-card:hover, .feature-card:hover, .plan:hover {

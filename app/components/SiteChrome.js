@@ -16,6 +16,7 @@ export function SiteNav() {
         <li><a href="/docs">Docs</a></li>
         <li><a href="/methodology/agent-readiness">Methodology</a></li>
         <li><a href="/#pricing">Pricing</a></li>
+        <li><a className="nav-cta" href="/agent-readiness/buy">Get a Report</a></li>
       </ul>
     </nav>
   );
@@ -36,6 +37,8 @@ export function SiteFooter() {
           <a href="/verify">Verify a report</a>
           <a href="/ci">CI recipe</a>
           <a href="/reports/sample-agent-readiness">Sample report</a>
+          <a href="/agent-readiness/buy">Get a report</a>
+          <a href="/monitoring">Monitoring</a>
           <a href="/learn/what-is-ai-website-intelligence">Learn</a>
           <a href="/openapi.json" data-analytics-event="openapi_downloaded">OpenAPI</a>
           <a href="/llms.txt">llms.txt</a>
