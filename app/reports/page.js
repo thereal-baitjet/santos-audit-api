@@ -20,7 +20,7 @@ const dateOf = (value) => {
 const scoreClass = (score) => (score >= 80 ? "good" : score >= 60 ? "warn" : "bad");
 
 export default async function ReportsLeaderboardPage() {
-  const rows = await topPublicReports(200).catch(() => []);
+  const rows = await topPublicReports(500).catch(() => []);
 
   const scored = rows.map((r) => r.score).filter((s) => Number.isFinite(s)).sort((a, b) => a - b);
   const average = scored.length ? Math.round(scored.reduce((a, b) => a + b, 0) / scored.length) : null;

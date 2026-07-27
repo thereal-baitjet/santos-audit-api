@@ -46,6 +46,22 @@ const DOMAINS = [
   // finance & crypto
   "paypal.com", "squareup.com", "coinbase.com", "kraken.com", "robinhood.com", "chase.com", "bankofamerica.com", "capitalone.com", "visa.com", "mastercard.com",
   "plaid.com", "wise.com", "revolut.com", "ethereum.org", "base.org", "solana.com", "uniswap.org", "opensea.io", "chain.link", "binance.com",
+  // dev tools & API services
+  "postman.com", "insomnia.rest", "hoppscotch.io", "rapidapi.com", "swagger.io", "stoplight.io", "readme.com", "mintlify.com", "gitbook.com", "docusaurus.io",
+  "cursor.com", "windsurf.com", "codeium.com", "sourcegraph.com", "coderabbit.ai", "greptile.com", "v0.dev", "bolt.new", "lovable.dev", "replit.com",
+  "codesandbox.io", "stackblitz.com", "glitch.com", "codepen.io", "jsfiddle.net", "obsidian.md", "logseq.com", "zapier.com", "make.com", "n8n.io",
+  // security & identity
+  "okta.com", "auth0.com", "clerk.com", "workos.com", "1password.com", "bitwarden.com", "lastpass.com", "dashlane.com", "crowdstrike.com", "paloaltonetworks.com",
+  "snyk.io", "semgrep.dev", "sonarsource.com", "veracode.com", "hackerone.com", "bugcrowd.com", "letsencrypt.org", "digicert.com", "entrust.com", "duo.com",
+  // ecommerce & marketplaces
+  "aliexpress.com", "bigcommerce.com", "magento.com", "woocommerce.com", "mercari.com", "poshmark.com", "depop.com", "stockx.com", "goat.com", "chewy.com",
+  "ikea.com", "homedepot.com", "lowes.com", "sephora.com", "ulta.com", "glossier.com", "newegg.com", "rakuten.com", "zalando.com", "asos.com",
+  // gov, edu & reference
+  "usa.gov", "irs.gov", "nasa.gov", "nih.gov", "cdc.gov", "weather.gov", "data.gov", "loc.gov", "archives.gov", "sec.gov",
+  "mit.edu", "stanford.edu", "harvard.edu", "berkeley.edu", "coursera.org", "edx.org", "khanacademy.org", "udacity.com", "udemy.com", "duolingo.com",
+  // travel, food & health
+  "delta.com", "united.com", "aa.com", "southwest.com", "marriott.com", "hilton.com", "hyatt.com", "kayak.com", "skyscanner.com", "vrbo.com",
+  "mcdonalds.com", "starbucks.com", "chipotle.com", "dominos.com", "grubhub.com", "ubereats.com", "opentable.com", "allrecipes.com", "webmd.com", "mayoclinic.org",
 ];
 
 async function runAudit() {

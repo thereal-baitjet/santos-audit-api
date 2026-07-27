@@ -52,7 +52,7 @@ test("callable dimension uses only applicable API, MCP, and commerce categories"
 
 test("all required product and learning pages have unique metadata", () => {
   assert.equal(Object.keys(PRODUCT_PAGES).length, 6);
-  assert.equal(Object.keys(LEARN_ARTICLES).length, 8);
+  assert.equal(Object.keys(LEARN_ARTICLES).length, 13);
   assert.equal(new Set(Object.values(PRODUCT_PAGES).map((page) => page.title)).size, 6);
   assert.equal(new Set(Object.values(PRODUCT_PAGES).map((page) => page.description)).size, 6);
   assert.ok(Object.values(PRODUCT_PAGES).every((page) => page.sections.length >= 3 && page.path.startsWith("/")));
