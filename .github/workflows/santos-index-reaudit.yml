@@ -1,0 +1,41 @@
+# Santos Index monthly re-audit.
+# Re-audits every domain in scripts/seed-public-reports.mjs and upserts the
+# results into public_reports, keeping the /reports leaderboard a living
+# benchmark. Runs on the 3rd of each month; can also be triggered manually.
+#
+# Required repo secret: SUPABASE_ACCESS_TOKEN (Supabase Management API PAT —
+# supabase.com/dashboard/account/tokens). The audit phase needs no secrets
+# (our own engine, no x402 payment).
+name: santos-index-reaudit
+
+on:
+  schedule:
+    - cron: "17 9 3 * *" # 3rd of month, 09:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: none
+
+jobs:
+  reaudit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Audit all index domains
+        run: node scripts/seed-public-reports.mjs audit
+      - name: Upsert results into public_reports
+        run: node scripts/seed-public-reports.mjs insert "$SUPABASE_ACCESS_TOKEN"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      - name: Upload raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seed-results
+          path: scripts/seed-results.jsonl
+          retention-days: 90
