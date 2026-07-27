@@ -143,7 +143,8 @@ async function handler(req) {
 const routeConfig = {
     accepts: { scheme: "exact", price: PRICE, network: NETWORK, payTo: SELLER },
     description:
-      `Create one Deep Page Audit job with browser-rendered checks and a bounded compute reservation. ${PAYMENT_CONTRACT}`,
+      // Keep under CDP's ~500-char resource.description verify limit (x402#2284).
+      "Create one Deep Page Audit job with browser-rendered checks and a bounded compute reservation. Payment reserves one job: validated, enqueued, executed once with configured browser, request, and byte limits. Settles when the job is accepted, not on report completion. Slow, broken, or blocking target sites are completed audits of that behavior, not refund cases.",
     mimeType: "application/json",
     serviceName: "Santos Deep Page Audit",
     tags: ["website-audit", "lighthouse", "accessibility", "axe-core", "security-headers", "browser-rendered"],
