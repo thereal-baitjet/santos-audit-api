@@ -6,3 +6,4 @@ node_modules/
 mcp-registry-key.pem
 .DS_Store
 __pycache__/
+scripts/seed-results.jsonl

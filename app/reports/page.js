@@ -33,7 +33,7 @@ export default async function ReportsLeaderboardPage() {
         <header className="page-hero">
           <p className="kicker">Public reports · opt-in only</p>
           <h1>The web isn't agent-ready — yet.</h1>
-          <p className="lede">Every domain below ran a Santos audit and chose to list its score publicly. Reports are signed — anyone can verify them — and each page carries an embeddable badge for your README.</p>
+          <p className="lede">Every domain below ran a Santos audit and chose to list its score publicly. Reports are signed — anyone can verify them — and each page carries an embeddable badge for your README. The index is re-audited monthly; scores drift as sites change.</p>
           {average != null && (
             <div className="stat-strip">
               <div className="wrap">
@@ -41,6 +41,7 @@ export default async function ReportsLeaderboardPage() {
                 <div className="stat"><b>{average}</b><span>average score</span></div>
                 <div className="stat"><b>{median}</b><span>median score</span></div>
                 <div className="stat"><b>{scored[scored.length - 1]}</b><span>highest score</span></div>
+                <div className="stat"><b>{dateOf(rows.reduce((a, r) => (new Date(r.created_at) > new Date(a.created_at) ? r : a), rows[0]).created_at)}</b><span>last updated</span></div>
               </div>
             </div>
           )}
