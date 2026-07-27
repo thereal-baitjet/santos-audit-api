@@ -8,6 +8,17 @@ export const metadata = {
 
 const ENTRIES = [
   {
+    version: "2.10.0",
+    date: "2026-07-26",
+    items: [
+      "Santos Feed Parser (GET/POST /v1/feed, $0.003 USDC): one feed URL to normalized JSON — detects RSS 2.0, Atom, and JSON Feed through the SSRF-guarded fetcher; returns feed metadata plus up to 50 items; non-feed targets return 422 and never settle.",
+      "Santos Link Map (GET/POST /v1/links, $0.003 USDC): one HTML page to a categorized link map — every link (max 200) with an internal/external kind plus topic tags (docs, pricing, api, careers, social, feed) and per-category counts.",
+      "Santos Summarizer (POST/GET /v1/summarize, $0.033 USDC): one HTML page to a Claude-generated structured summary (title, summary, key_facts, entities, word_count) with an optional focus steering prompt; non-HTML targets return 422 and never settle.",
+      "New MCP tools feed_parse, link_map, and summarize: each validates the target and returns the canonical x402 HTTP handoff for its paid endpoint — MCP never executes or settles the paid call.",
+      "Buyer examples: buy-feed.js, buy-links.js, buy-summarize.js. Discovery surfaces updated: OpenAPI, llms.txt, capabilities manifest, /api service manifest, and /docs.",
+    ],
+  },
+  {
     version: "2.9.0",
     date: "2026-07-23",
     items: [
@@ -98,7 +109,7 @@ export default function ChangelogPage() {
       <h1>Changelog.</h1>
       <p>
         Product history for the Santos Website Intelligence API. Latest version:{" "}
-        <strong>2.9.0</strong>. Machine-readable version and contract data:{" "}
+        <strong>2.10.0</strong>. Machine-readable version and contract data:{" "}
         <a href="/version">/version</a>.
       </p>
 

@@ -1,4 +1,4 @@
-// Agent buys a $0.005 site audit via x402 v2 (local dev server).
+// Agent buys a $0.015 site audit via x402 v2 (local dev server).
 import { privateKeyToAccount } from "viem/accounts";
 import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm";

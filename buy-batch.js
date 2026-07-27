@@ -1,4 +1,4 @@
-// Batch test: 10 sites, one $0.10 USDC x402 payment (buyer = seller, our own wallet).
+// Batch test: one flat $0.50 USDC x402 payment covers up to 50 URLs (buyer = seller, our own wallet).
 import { privateKeyToAccount } from "viem/accounts";
 import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm";
@@ -9,6 +9,7 @@ const fetchWithPay = wrapFetchWithPaymentFromConfig(fetch, {
   schemes: [{ network: "eip155:8453", client: new ExactEvmScheme(account) }],
 });
 
+// Up to 50 URLs are covered by the same flat $0.50 payment — add more as needed.
 const urls = [
   "https://example.com",
   "https://en.wikipedia.org",

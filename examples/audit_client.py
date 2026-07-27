@@ -1,7 +1,7 @@
 """Santos Site Audit API — Python client examples.
 
 Free demo (no payment, 1/day per IP): plain HTTP.
-Paid tier ($0.005 USDC via x402): use the `x402` PyPI package with a funded
+Paid tier ($0.015 USDC via x402): use the `x402` PyPI package with a funded
 Base-mainnet wallet; it handles the 402 -> sign -> retry flow automatically.
 """
 
@@ -21,7 +21,7 @@ def demo_audit(url: str) -> dict:
 
 
 def paid_audit(url: str) -> dict:
-    """Paid audit via x402 v2 ($0.005 USDC on Base mainnet).
+    """Paid audit via x402 v2 ($0.015 USDC on Base mainnet).
 
     The paid endpoint speaks x402 v2 (PAYMENT-REQUIRED / PAYMENT-SIGNATURE
     headers). Use an x402 v2-capable client; check the x402 PyPI package's

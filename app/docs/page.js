@@ -10,7 +10,7 @@ const PAGE = {
   path: "/docs",
   title: "API Documentation — Santos Website Intelligence",
   description:
-    "Complete developer documentation for the Santos Website Intelligence API: ten x402-payable capabilities on Base, free daily demos, MCP, OpenAPI, errors, and limits.",
+    "Complete developer documentation for the Santos Website Intelligence API: eleven x402-payable capabilities on Base, free daily demos, MCP, OpenAPI, errors, and limits.",
 };
 
 export const metadata = pageMetadata(PAGE);
@@ -112,6 +112,21 @@ const CAPABILITIES = [
     params: [["url", "required — public HTTP/HTTPS page"]],
     curl: `curl '${API}/api/audit?url=https%3A%2F%2Fexample.com'`,
     demo: "GET /api/audit/demo",
+  },
+  {
+    id: "batch",
+    name: "Batch Quick Intelligence Audit",
+    method: "POST",
+    path: "/api/audit/batch",
+    price: process.env.BATCH_AUDIT_PRICE_USDC ?? "0.50",
+    mode: "Synchronous",
+    settles: "only when at least one audit succeeds",
+    summary:
+      "Up to 50 public URLs in one flat payment — each URL gets the full Quick Intelligence audit (scores, checks, issues) in a single synchronous response. Per-URL failure isolation: one unreachable target does not fail the batch, and payment settles only when at least one audit succeeds.",
+    params: [["urls", "required — JSON array of 1–50 public HTTP/HTTPS URLs"]],
+    curl: `curl -X POST ${API}/api/audit/batch \\
+  -H 'Content-Type: application/json' \\
+  -d '{"urls": ["https://example.com", "https://example.org"]}'`,
   },
   {
     id: "agent-readiness",
@@ -283,7 +298,7 @@ export default function DocsPage() {
         <p className="kicker">Documentation · for humans and robots</p>
         <h1>Santos API documentation</h1>
         <p className="lede">
-          Everything you need to call the Santos Website Intelligence API: ten machine-payable
+          Everything you need to call the Santos Website Intelligence API: eleven machine-payable
           capabilities on Base mainnet, free daily demos, a remote MCP server, and stable
           machine-readable contracts. No account and no traditional API key — payment happens
           inside the HTTP request via x402.
@@ -361,7 +376,7 @@ const report = await res.json(); // paid, settled, done`}</code></pre>
 
       <section className="content-section" id="endpoints">
         <p className="section-label">03 · Capability reference</p>
-        <h2>Ten capabilities, one payment model</h2>
+        <h2>Eleven capabilities, one payment model</h2>
         <p className="sub wide">
           All prices are USDC per <em>successful</em> call. Every capability audits or processes one
           public page per call — no crawling, no login-protected content, private networks blocked.
@@ -464,7 +479,7 @@ const report = await res.json(); // paid, settled, done`}</code></pre>
         <p className="section-label">07 · Roadmap</p>
         <h2>The suite keeps growing</h2>
         <p className="sub wide">
-          The API grew from one audit endpoint to ten capabilities, and we plan to add new
+          The API grew from one audit endpoint to eleven capabilities, and we plan to add new
           features and capabilities as time allows. Everything ships under the same contract:
           read-only, one-shot, single-page, x402 pay-per-success — no subscriptions, no accounts,
           no endpoints that send messages or act on your behalf.

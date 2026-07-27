@@ -17,9 +17,9 @@ been submitted yet.
 
 - **Name:** Santos Site Audit API
 - **Short description:** A machine-payable API that audits public websites for performance, SEO, accessibility, and security.
-- **Long description:** Santos Site Audit API gives AI agents and automated workflows a structured technical review of a public website. It returns category scores, detailed checks, detected issues, and actionable remediation recommendations. Production audits cost $0.005 USDC on Base through x402, with no user account or traditional API key required.
+- **Long description:** Santos Site Audit API gives AI agents and automated workflows a structured technical review of a public website. It returns category scores, detailed checks, detected issues, and actionable remediation recommendations. Production audits cost $0.015 USDC on Base through x402, with no user account or traditional API key required.
 - **Category:** Website analysis / developer tools
-- **Price:** $0.005 USDC per audit
+- **Price:** $0.015 USDC per audit
 - **Network:** Base mainnet (eip155:8453)
 - **Authentication:** x402 v2 payment authorization (`PAYMENT-SIGNATURE` request header / `PAYMENT-RESPONSE` receipt header)
 - **Canonical endpoint:** https://api.santosautomation.com/api/audit
@@ -42,9 +42,9 @@ current CDP Bazaar listing UI) for the resource URL.
 ## 2. x402scan / x402 ecosystem directory — **LIVE**
 
 - Site: https://www.x402scan.com (and the ecosystem list at https://www.x402.org/ecosystem)
-- Listing carries all 3 paid + 4 public endpoints (per `docs/suite-roadmap.md`).
-  Submitted with the canonical listing copy above: resource URL, description,
-  category, and a signature from the receiving wallet
+- Listing carries all 11 paid endpoints plus the public demo and discovery
+  endpoints. Submitted with the canonical listing copy above: resource URL,
+  description, category, and a signature from the receiving wallet
   (`0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B`) to prove ownership.
 - Logo: `public/assets/santos-logo.png` (serve as https://api.santosautomation.com/assets/santos-logo.png).
 
@@ -59,7 +59,7 @@ current CDP Bazaar listing UI) for the resource URL.
 
 ## 4. GitHub repository settings **[manual]**
 
-- Description: `$0.005 x402 website audit API for AI agents, covering performance, SEO, accessibility, and security with no traditional API key.`
+- Description: `x402 website intelligence API for AI agents: 11 machine-payable capabilities ($0.002–$0.50 USDC on Base) with no account or traditional API key.`
 - Topics: `x402`, `ai-agents`, `website-audit`, `seo-api`, `accessibility`, `web-security`, `openapi`, `mcp-server`, `base`, `usdc`
 - Note: the repo is currently **private**; listings that link to it should
   either omit the repo link or the repo should be made public first.
@@ -73,7 +73,9 @@ current CDP Bazaar listing UI) for the resource URL.
 - Description: `Website intelligence audits for AI agents: free preview plus x402-paid Agent Readiness scoring`
 - Tools to list: `audit_website_preview` (free, 1/day per IP), `audit_agent_readiness`
   (paid handoff, 0.075 USDC via x402), `extract_page_markdown` (free preview),
-  `extract_structured_data` (free preview).
+  `extract_structured_data` (free preview), `feed_parse` (paid handoff, 0.003
+  USDC via x402), `link_map` (paid handoff, 0.003 USDC via x402), `summarize`
+  (paid handoff, 0.033 USDC via x402).
 - Categories/tags: `website-audit`, `seo`, `ai-agents`, `x402`, `extraction`
 
 ## 6. Glama (glama.ai) **[manual]**
@@ -84,7 +86,9 @@ current CDP Bazaar listing UI) for the resource URL.
 - Description: `Website intelligence audits for AI agents: free preview plus x402-paid Agent Readiness scoring`
 - Tools to list: `audit_website_preview` (free, 1/day per IP), `audit_agent_readiness`
   (paid handoff, 0.075 USDC via x402), `extract_page_markdown` (free preview),
-  `extract_structured_data` (free preview).
+  `extract_structured_data` (free preview), `feed_parse` (paid handoff, 0.003
+  USDC via x402), `link_map` (paid handoff, 0.003 USDC via x402), `summarize`
+  (paid handoff, 0.033 USDC via x402).
 - Links: website https://www.santosautomation.com · docs https://api.santosautomation.com/llms.txt
 - Note: Glama cross-references the official MCP Registry entry and `server.json`
   at the repo root — both already exist.
@@ -97,7 +101,9 @@ current CDP Bazaar listing UI) for the resource URL.
 - Description: `Website intelligence audits for AI agents: free preview plus x402-paid Agent Readiness scoring`
 - Tools to list: `audit_website_preview` (free, 1/day per IP), `audit_agent_readiness`
   (paid handoff, 0.075 USDC via x402), `extract_page_markdown` (free preview),
-  `extract_structured_data` (free preview).
+  `extract_structured_data` (free preview), `feed_parse` (paid handoff, 0.003
+  USDC via x402), `link_map` (paid handoff, 0.003 USDC via x402), `summarize`
+  (paid handoff, 0.033 USDC via x402).
 - Links: website https://www.santosautomation.com · OpenAPI https://api.santosautomation.com/openapi.json
 
 ## 8. Awesome lists **[manual]**
@@ -128,7 +134,7 @@ Production and Preview. All canonical URLs in this document are current.
 - **Result schema:** `AgentReadinessResult` 1.0.0
 - **Capability manifest:** https://api.santosautomation.com/capabilities.json
 - **Price:** $0.075 USDC per successful audit through x402 v2 on Base mainnet
-  (`amount: "25000"`, billing unit: successful response).
+  (`amount: "75000"`, billing unit: successful response).
 
 The official MCP Registry entry is published and domain ownership is verified
 (see the status note at the top). Any version bump in `server.json` still

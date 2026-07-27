@@ -1,4 +1,4 @@
-// Run a single x402-backed smoke test across the three paid endpoints.
+// Run a single x402-backed smoke test across the three core paid audit endpoints.
 import { randomUUID } from "node:crypto";
 import { privateKeyToAccount } from "viem/accounts";
 import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
