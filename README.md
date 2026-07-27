@@ -17,8 +17,8 @@
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
-│   SANTOS WEBSITE INTELLIGENCE • AI-READY WEB EVALUATION   │
-│   Discover • Understand • Call • Trust                    │
+│    SANTOS WEBSITE INTELLIGENCE • AI-READY WEB EVALUATION     │
+│             Discover • Understand • Call • Trust             │
 └──────────────────────────────────────────────────────────────┘
 ```
 
