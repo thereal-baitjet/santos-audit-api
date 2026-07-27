@@ -41,6 +41,7 @@ prioritized fixes. No account or traditional API key; paid resources use the
 [![Agent-Ready badge](https://api.santosautomation.com/v1/badge?url=santosautomation.com)](https://www.santosautomation.com/reports/santosautomation.com)
 [![x402](https://img.shields.io/badge/payments-x402%20v2%20%7C%20USDC%20on%20Base-2775ca)](https://x402.org/)
 [![OpenAPI](https://img.shields.io/badge/spec-OpenAPI%203.1-6ba539)](https://api.santosautomation.com/openapi.json)
+[![santos-audit-api MCP server](https://glama.ai/mcp/servers/thereal-baitjet/santos-audit-api/badges/score.svg)](https://glama.ai/mcp/servers/thereal-baitjet/santos-audit-api)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Live: API at **https://api.santosautomation.com** · landing page at
