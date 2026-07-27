@@ -5,3 +5,4 @@ node_modules/
 .next/
 mcp-registry-key.pem
 .DS_Store
+__pycache__/
