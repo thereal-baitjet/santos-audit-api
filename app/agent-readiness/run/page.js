@@ -31,14 +31,14 @@ export default function AgentReadinessRunPage() {
             Assess how well a public website or service can be discovered, understood,
             invoked, and — where applicable — paid by AI agents. The agent-first path is
             {PRICE} USDC per successful audit, settled on Base mainnet via x402 v2.
-            Optional human card purchase is available for a one-time $5 report.
+            Optional human card purchase is available for one-time reports from $9.
           </p>
         </header>
 
         <section className="ar-section" aria-labelledby="run-h">
           <h2 id="run-h" className="sr-only">Start the audit</h2>
           <p className="human-banner">
-            Prefer the optional human card purchase? <a href="/agent-readiness/buy"><strong>Buy the report by card for $5 →</strong></a> — no account, emailed to you. For agents, the primary path is <strong>{PRICE} USDC via x402</strong> per successful audit.
+            Prefer the optional human card purchase? <a href="/agent-readiness/buy"><strong>Buy a report by card — $9 Quick or $29 Deep →</strong></a> — no account, emailed to you. For agents, the primary path is <strong>{PRICE} USDC via x402</strong> per successful audit.
           </p>
           <AgentReadinessRun />
         </section>

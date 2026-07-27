@@ -87,10 +87,12 @@ export default function TermsPage() {
         that is not enforced by the live route.
       </p>
       <p>
-        Card purchases: the human Agent Readiness Report is a one-time $5 USD charge
-        processed by Stripe (no account is created by Santos). The price is fixed
-        server-side. After payment you receive a private, tokened link to your report by
-        email. Refunds for card purchases are handled manually — email{" "}
+        Card purchases: human reports are a one-time charge by tier — $9 USD Quick
+        (Agent Readiness, fetch-based evidence) or $29 USD Deep (Website
+        Intelligence, browser-rendered) — processed by Stripe (no account is
+        created by Santos). Prices are fixed server-side. After payment you receive
+        a private, tokened link to your report by email. Refunds for card purchases
+        are handled manually — email{" "}
         <a href="mailto:info@santosautomation.com">info@santosautomation.com</a> with your
         purchase email and we will review the request.
       </p>

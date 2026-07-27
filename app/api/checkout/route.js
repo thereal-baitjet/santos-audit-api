@@ -1,8 +1,10 @@
-// POST /api/checkout — create a Stripe Checkout Session for the $5 human
-// Agent Readiness Report. The price is server-side only; the client supplies
-// just the target URL and email, both validated here.
+// POST /api/checkout — create a Stripe Checkout Session: a tiered human
+// report ($9 Quick / $29 Deep one-time by card) or a Santos Monitoring
+// subscription ($9/mo, product="monitoring"). Prices are server-side only; the
+// client supplies just the target URL, email, and tier, all validated here.
 import { NextResponse } from "next/server";
-import { stripe, stripeConfigured, HUMAN_REPORT_AMOUNT_CENTS, HUMAN_REPORT_NAME } from "../../../lib/stripe/client.js";
+import { stripe, stripeConfigured, REPORT_TIERS, tierAmountCents, checkoutMetadata } from "../../../lib/stripe/client.js";
+import { monitoringCheckoutParams } from "../../../lib/monitoring/checkout.js";
 import { validateTarget, AuditError } from "../../../lib/safe-fetch.js";
 
 const NO_STORE = { "Cache-Control": "no-store" };
@@ -25,6 +27,19 @@ export async function POST(req) {
     return NextResponse.json({ error: "Body must be JSON.", code: "INVALID_REQUEST" }, { status: 400, headers: NO_STORE });
   }
 
+  // Products: "report" (one-time tiered report, default) and "monitoring"
+  // (monthly subscription). Anything else is an unknown product.
+  const product = String(body.product ?? "report").trim() || "report";
+  if (product !== "report" && product !== "monitoring") {
+    return NextResponse.json({ error: `Unknown product: ${product}.`, code: "INVALID_PRODUCT" }, { status: 400, headers: NO_STORE });
+  }
+
+  const tierKey = String(body.tier ?? "quick").trim() || "quick";
+  const tier = REPORT_TIERS[tierKey];
+  if (product === "report" && !tier) {
+    return NextResponse.json({ error: `Unknown report tier: ${tierKey}.`, code: "INVALID_TIER" }, { status: 400, headers: NO_STORE });
+  }
+
   const email = String(body.email ?? "").trim();
   if (!EMAIL_RE.test(email) || email.length > 254) {
     return NextResponse.json({ error: "A valid email address is required.", code: "INVALID_EMAIL" }, { status: 400, headers: NO_STORE });
@@ -41,16 +56,31 @@ export async function POST(req) {
   }
 
   const origin = siteOrigin(req);
+
+  // Monitoring is a subscription Checkout Session; the tier machinery below is
+  // for one-time reports only.
+  if (product === "monitoring") {
+    try {
+      const session = await stripe().checkout.sessions.create(
+        monitoringCheckoutParams({ email, targetUrl: target, origin })
+      );
+      return NextResponse.json({ url: session.url }, { headers: NO_STORE });
+    } catch (e) {
+      console.error("Stripe monitoring checkout create failed:", e.message);
+      return NextResponse.json({ error: "Could not start checkout. Please try again.", code: "CHECKOUT_FAILED" }, { status: 502, headers: NO_STORE });
+    }
+  }
+
   const lineItems = process.env.STRIPE_PRICE_ID
     ? [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }]
     : [{
         quantity: 1,
         price_data: {
           currency: "usd",
-          unit_amount: HUMAN_REPORT_AMOUNT_CENTS, // server-controlled price
+          unit_amount: tierAmountCents(tierKey), // server-controlled price
           product_data: {
-            name: HUMAN_REPORT_NAME,
-            description: "One-time AI Agent Readiness audit of one public page, emailed to you.",
+            name: tier.name,
+            description: "One-time audit of one public page, emailed to you.",
           },
         },
       }];
@@ -60,7 +90,7 @@ export async function POST(req) {
       mode: "payment",
       line_items: lineItems,
       customer_email: email,
-      metadata: { target_url: target, product: "agent_readiness_report" },
+      metadata: checkoutMetadata({ targetUrl: target, tier: tierKey }),
       success_url: `${origin}/agent-readiness/thanks?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/agent-readiness/buy?canceled=1`,
     });

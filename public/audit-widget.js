@@ -31,7 +31,7 @@
     box.replaceChildren();
     box.append(element("p", "", "Locked out until midnight UTC — one free audit per day per verified email."));
     const links = element("p", "locked-out-links");
-    const card = element("a", "", "$5 Agent Readiness Report by card");
+    const card = element("a", "", "Human report by card ($9 Quick / $29 Deep)");
     card.href = "/agent-readiness/buy";
     const api = element("a", "", "Paid API (x402, $0.015/audit)");
     api.href = "/openapi.json";

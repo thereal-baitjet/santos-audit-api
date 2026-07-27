@@ -6,13 +6,13 @@ import { stripeConfigured } from "../../../lib/stripe/client.js";
 const X402_PRICE = getAgentReadinessPriceUsdc();
 
 export const metadata = {
-  title: "Buy an Agent Readiness Report ($5, card) | Santos Website Intelligence",
+  title: "Buy a Website Report by Card ($9 Quick / $29 Deep) | Santos Website Intelligence",
   description:
-    "Get a one-time AI Agent Readiness Report for your website — $5 by card, no account, emailed to you. Measures how discoverable, understandable, callable, and trustworthy your site is to AI agents, with evidence and prioritized fixes.",
+    "Get a one-time human report for your website by card — $9 Quick (Agent Readiness, fetch-based evidence) or $29 Deep (Website Intelligence, browser-rendered Lighthouse + axe-core + screenshots), no account, emailed to you.",
   alternates: { canonical: "/agent-readiness/buy" },
   robots: { index: true, follow: true },
   openGraph: {
-    title: "Buy an Agent Readiness Report ($5)",
+    title: "Buy a Website Report by Card ($9 Quick / $29 Deep)",
     description: "One-time card purchase, emailed to you. Is your site ready for AI agents?",
     url: "/agent-readiness/buy",
     type: "website",
@@ -25,13 +25,14 @@ export default function BuyPage() {
       <article className="content-page ar-page">
         <header>
           <p className="kicker">For agents · optional human card purchase</p>
-          <h1>Get your Agent Readiness Report</h1>
+          <h1>Get your Website Report</h1>
           <p className="lede">
             The primary path for agents is <strong>{X402_PRICE} USDC</strong> per successful
-            audit via x402 on Base. This page is the optional one-time <strong>$5</strong>
-            card purchase for humans who want a report by email — discoverability,
-            understandability, callability, and trust, with evidence and prioritized fixes.
-            No account, no wallet, no subscription.
+            audit via x402 on Base. This page is the optional one-time card purchase
+            for humans who want a formatted report by email: <strong>$9 Quick</strong> —
+            agent readiness with fetch-based evidence, emailed same-day — or{" "}
+            <strong>$29 Deep</strong> — browser-rendered website intelligence (Lighthouse,
+            axe-core, screenshots), emailed when ready. No account, no wallet, no subscription.
           </p>
         </header>
 
@@ -61,8 +62,8 @@ export default function BuyPage() {
           <div className="track-grid">
             <div className="track">
               <h3>Humans</h3>
-              <p className="track-price">$5 <span>one-time report</span></p>
-              <p>Optional card purchase for a report by email. No account, no crypto. This page.</p>
+              <p className="track-price">$9–$29 <span>one-time report</span></p>
+              <p>Optional card purchase for a formatted report by email — Quick ($9) or Deep, browser-rendered ($29). No account, no crypto. This page.</p>
             </div>
             <div className="track">
               <h3>Agents</h3>

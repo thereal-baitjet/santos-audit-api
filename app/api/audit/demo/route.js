@@ -14,7 +14,7 @@ function rateLimited() {
     {
       error: "Free demo is 1 audit/day (shared across all demo endpoints). Agents can pay per-call at GET /api/audit (x402, $0.015 USDC).",
       code: "RATE_LIMITED",
-      for_humans: "No USDC wallet? Buy the one-time $5 Agent Readiness Report by card at /agent-readiness/buy — no account needed.",
+      for_humans: "No USDC wallet? Buy a one-time human report by card ($9 Quick / $29 Deep) at /agent-readiness/buy — no account needed.",
       retry_after: retryAfter,
     },
     {

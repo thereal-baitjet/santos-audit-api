@@ -16,6 +16,7 @@ const ALLOWED = new Set([
   "pricing_viewed", "sample_report_viewed", "paid_agent_flow_viewed",
   "payment_challenge_received", "payment_started", "payment_completed",
   "payment_rejected", "agent_audit_completed", "openapi_downloaded", "contact_clicked",
+  "monitoring_started", "deep_report_completed", "regression_alert_sent",
 ]);
 
 const HASH_SECRET = process.env.RATE_LIMIT_HASH_SECRET ?? "santos-demo-limit";

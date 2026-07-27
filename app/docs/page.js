@@ -137,7 +137,7 @@ const CAPABILITIES = [
     mode: "Synchronous",
     settles: "on a successful audit",
     summary:
-      "Bounded passive assessment of whether AI agents can discover, understand, select, invoke, and — when applicable — transact with a public service. Classifies the target first so ordinary websites are not penalized for lacking OpenAPI, MCP, or machine commerce. At most eight extra public requests; never authenticates, submits forms, invokes target tools, or sends a payment to the audited site. Humans can alternatively buy a one-time $5 report by card.",
+      "Bounded passive assessment of whether AI agents can discover, understand, select, invoke, and — when applicable — transact with a public service. Classifies the target first so ordinary websites are not penalized for lacking OpenAPI, MCP, or machine commerce. At most eight extra public requests; never authenticates, submits forms, invokes target tools, or sends a payment to the audited site. Humans can alternatively buy a one-time report by card — $9 Quick or $29 Deep (browser-rendered).",
     params: [
       ["url", "required — public HTTP/HTTPS page"],
       ["depth", "quick (default and currently the only depth)"],
@@ -364,7 +364,7 @@ const report = await res.json(); // paid, settled, done`}</code></pre>
               <tr><th scope="row">Asset</th><td>USDC · <code>0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913</code></td></tr>
               <tr><th scope="row">Pay to</th><td><code>0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B</code></td></tr>
               <tr><th scope="row">Scheme</th><td><code>exact</code> — the 402 quotes the exact atomic USDC amount</td></tr>
-              <tr><th scope="row">Human option</th><td>No wallet? A one-time <a href="/agent-readiness/buy">$5 Agent Readiness Report by card</a> (Stripe), emailed as a private link</td></tr>
+              <tr><th scope="row">Human option</th><td>No wallet? A one-time <a href="/agent-readiness/buy">report by card — $9 Quick or $29 Deep</a> (Stripe), emailed as a private link</td></tr>
             </tbody>
           </table>
         </div>

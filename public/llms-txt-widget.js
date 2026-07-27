@@ -26,7 +26,7 @@
     box.replaceChildren();
     box.append(element("p", "", "Locked out until midnight UTC — one free call per day per verified email, shared across free tools."));
     const links = element("p", "locked-out-links");
-    const card = element("a", "", "$5 Agent Readiness Report by card");
+    const card = element("a", "", "Human report by card ($9 Quick / $29 Deep)");
     card.href = "/agent-readiness/buy";
     const audit = element("a", "", "Run Agent Readiness");
     audit.href = "/agent-readiness/run";
