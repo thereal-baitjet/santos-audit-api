@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.15.0 — 2026-07-28 — Claude custom connector
+
+### Added
+- **`/integrations/claude`** — setup guide for adding Santos to Claude as a custom
+  connector, with the manual Settings → Connectors flow, a copyable test prompt,
+  and an explicit statement that Claude does not sign x402 payments or manage a
+  wallet. Paid tools return a handoff for a wallet-enabled wrapper to settle.
+- **Capability manifest** gains `mcp_registry`, a direct official-registry
+  verification URL, and lists the Claude custom connector in `mcp_clients`.
+
+### Changed
+- `llms.txt` MCP-clients section now covers Claude and Grok together and links the
+  registry record; the `/docs` MCP section is broadened to "Grok, Claude & MCP
+  clients". Grok and Claude pages cross-link with accurate wording: same endpoint,
+  different client setup.
+
+### Notes
+- **No server-code change.** Protocol testing against the deployed endpoint
+  confirmed Claude compatibility as-is: `initialize` negotiates 2025-06-18,
+  `notifications/initialized` returns 202, all seven tool names are unique and
+  under 64 characters with valid JSON Schema inputs, unknown methods return
+  JSON-RPC −32601, and invalid or blocked targets return clean MCP errors with no
+  stack traces or internal detail.
+- One endpoint, one registry listing (`com.santosautomation/site-audit`), one tool
+  set. No Claude-only server, no OAuth, no change to the unauthenticated model the
+  Grok integration depends on.
+
 ## 2.14.0 — 2026-07-28 — Free-tier quota identity
 
 ### Added

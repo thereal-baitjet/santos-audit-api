@@ -359,7 +359,7 @@ curl -X POST ${API}/api/leads/verify/confirm \\
             release and live status are always machine-readable.
           </p>
           <div className="integration-grid">
-            <a href={`${API}/mcp`}><strong>MCP endpoint</strong><span>Streamable HTTP · seven tools · strict schemas</span></a>
+            <a href="https://registry.modelcontextprotocol.io/v0/servers?search=com.santosautomation/site-audit"><strong>Official MCP Registry</strong><span>com.santosautomation/site-audit — verify the remote URL</span></a><a href={`${API}/mcp`}><strong>MCP endpoint</strong><span>Streamable HTTP · seven tools · strict schemas</span></a>
             <a href="/openapi.json" data-analytics-event="openapi_downloaded"><strong>OpenAPI 3.1</strong><span>Typed operations, schemas, errors, and x402 behavior</span></a>
             <a href="/.well-known/agent-capabilities.json"><strong>Capability manifest</strong><span>Selection guidance, pricing, limits, and support</span></a>
             <a href="/llms.txt"><strong>llms.txt</strong><span>Low-noise service guide and canonical machine links</span></a>
@@ -371,6 +371,7 @@ curl -X POST ${API}/api/leads/verify/confirm \\
         <section className="content-section related">
           <h2>Continue</h2>
           <div className="related-links">
+            <a href="/integrations/claude">Claude — same endpoint, different setup<span aria-hidden="true"> →</span></a>
             <a href="/docs">API documentation<span aria-hidden="true"> →</span></a>
             <a href="/ci">Gate pull requests on agent readiness<span aria-hidden="true"> →</span></a>
             <a href="/methodology/agent-readiness">Scoring methodology<span aria-hidden="true"> →</span></a>

@@ -43,7 +43,7 @@ const TOC = [
   ["#payment", "Paying with x402"],
   ["#endpoints", "Capability reference"],
   ["#mcp", "MCP server"],
-  ["#grok", "Grok & xAI"],
+  ["#grok", "Grok, Claude & MCP clients"],
   ["#robots", "For robots"],
   ["#errors", "Errors & limits"],
   ["#roadmap", "Roadmap"],
@@ -419,12 +419,22 @@ const report = await res.json(); // paid, settled, done`}</code></pre>
       </section>
 
       <section className="content-section" id="grok">
-        <h2>Grok &amp; xAI</h2>
+        <h2>Grok, Claude &amp; MCP clients</h2>
         <p className="sub wide">
-          Grok supports Remote MCP tools, so the server above drops straight in. Register it once
-          and all seven tools appear in the model&rsquo;s tool list — free previews execute inline
-          and need no wallet; paid tools return the canonical x402 handoff for your agent to
-          settle. Full walkthrough: <a href="/integrations/grok">Grok integration</a>.
+          One endpoint serves every client — there is no client-specific server and no duplicate
+          registry listing. Free tools execute inline and need no wallet; paid tools return the
+          canonical x402 handoff for a wallet-enabled wrapper to settle. Verify the listing in the
+          official MCP Registry as{" "}
+          <a href="https://registry.modelcontextprotocol.io/v0/servers?search=com.santosautomation/site-audit"><code>com.santosautomation/site-audit</code></a>.
+        </p>
+        <p className="sub wide">
+          <strong>Claude</strong> — Settings → Connectors → Add custom connector →{" "}
+          <code>{`${API}/mcp`}</code>. No OAuth, no token.{" "}
+          <a href="/integrations/claude">Claude setup guide</a>.
+        </p>
+        <p className="sub wide">
+          <strong>Grok / xAI</strong> — register it as a Remote MCP tool:{" "}
+          <a href="/integrations/grok">Grok setup guide</a>.
         </p>
         <pre className="code-sample" tabIndex={0}><code>{`from xai_sdk.tools import mcp
 
