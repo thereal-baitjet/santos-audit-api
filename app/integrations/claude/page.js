@@ -80,6 +80,14 @@ const LIST_TOOLS = `curl -X POST ${MCP} \\
   -H 'Accept: application/json, text/event-stream' \\
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'`;
 
+// -s user, not the default local scope: local registers the server for one
+// directory only, so it silently disappears when you open another project.
+const CLAUDE_CODE = `claude mcp add -s user --transport http santos ${MCP}
+
+# confirm it registered
+claude mcp list
+# santos: ${MCP} (HTTP) - ✔ Connected`;
+
 export default function ClaudeIntegrationPage() {
   return (
     <PageShell>
@@ -111,17 +119,43 @@ export default function ClaudeIntegrationPage() {
           <p className="section-label">Step one</p>
           <h2>Add the connector</h2>
           <p className="sub wide">
-            In Claude, open <strong>Settings</strong> → <strong>Connectors</strong> →{" "}
+            <strong>Claude.ai and Claude Code are configured separately.</strong> A connector added
+            in Claude.ai settings is not visible to Claude Code, and vice versa — adding it in one
+            place and calling it from the other is the most common reason the tools appear missing.
+            Pick the surface you actually use.
+          </p>
+          <h3>Claude.ai</h3>
+          <p className="sub wide">
+            Open <strong>Settings</strong> → <strong>Connectors</strong> →{" "}
             <strong>Add custom connector</strong>, paste the endpoint below, and connect. Claude
             handles discovery from there — it calls <code>tools/list</code>, reads the input
-            schemas, and decides when to invoke.
+            schemas, and decides when to invoke. Custom connectors require a paid Claude plan. If
+            the server does not appear in your connector list afterwards, it did not save; add it
+            again.
           </p>
           <p><CopyButton text={MCP} label="Copy endpoint" /></p>
           <pre className="code-sample" tabIndex={0}><code>{MCP}</code></pre>
+          <h3>Claude Code</h3>
+          <p className="sub wide">
+            Register it from the CLI. Use <code>-s user</code> — the default <code>local</code>{" "}
+            scope registers the server for the current directory only, so it vanishes the moment
+            you open another project.
+          </p>
+          <p><CopyButton text={CLAUDE_CODE} label="Copy command" /></p>
+          <pre className="code-sample" tabIndex={0}><code>{CLAUDE_CODE}</code></pre>
+          <p className="sub wide">
+            Restart the session afterwards — MCP servers are read at startup, so the tools are not
+            callable until Claude Code reloads. If <code>claude mcp list</code> shows entries
+            prefixed <code>claude.ai</code>, those are your Claude.ai connectors mirrored into the
+            CLI; a Santos entry missing from that list means the Claude.ai connector was never
+            saved.
+          </p>
+          <h3>Either way</h3>
           <p className="sub wide">
             Nothing else to configure. The endpoint is public and unauthenticated — there is no
-            OAuth step, no token to paste, and no key to manage. Verify the exact tool list Claude
-            will see from your own shell:
+            OAuth step, no token to paste, and no key to manage. If a client prompts for OAuth it
+            is guessing; Santos requires none. Verify the exact tool list Claude will see from your
+            own shell:
           </p>
           <pre className="code-sample" tabIndex={0}><code>{LIST_TOOLS}</code></pre>
         </section>

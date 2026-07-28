@@ -428,9 +428,10 @@ const report = await res.json(); // paid, settled, done`}</code></pre>
           <a href="https://registry.modelcontextprotocol.io/v0/servers?search=com.santosautomation/site-audit"><code>com.santosautomation/site-audit</code></a>.
         </p>
         <p className="sub wide">
-          <strong>Claude</strong> — Settings → Connectors → Add custom connector →{" "}
-          <code>{`${API}/mcp`}</code>. No OAuth, no token.{" "}
-          <a href="/integrations/claude">Claude setup guide</a>.
+          <strong>Claude</strong> — Claude.ai and Claude Code are configured separately. Claude.ai:
+          Settings → Connectors → Add custom connector → <code>{`${API}/mcp`}</code>. Claude Code:{" "}
+          <code>{`claude mcp add -s user --transport http santos ${API}/mcp`}</code>. No OAuth, no
+          token. <a href="/integrations/claude">Claude setup guide</a>.
         </p>
         <p className="sub wide">
           <strong>Grok / xAI</strong> — register it as a Remote MCP tool:{" "}

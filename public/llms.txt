@@ -27,8 +27,11 @@ MCP-capable client. One endpoint and one registry listing serve every client —
 client-specific server. Published in the official MCP Registry as com.santosautomation/site-audit
 (verify: https://registry.modelcontextprotocol.io/v0/servers?search=com.santosautomation/site-audit).
 
-Claude — add as a custom connector: Settings > Connectors > Add custom connector >
-https://api.santosautomation.com/mcp. No OAuth, no token, no key. Setup guide:
+Claude — Claude.ai and Claude Code are configured separately; a connector added in one is
+not visible to the other.
+  Claude.ai:   Settings > Connectors > Add custom connector > https://api.santosautomation.com/mcp
+  Claude Code: claude mcp add -s user --transport http santos https://api.santosautomation.com/mcp
+No OAuth, no token, no key. Setup guide:
 https://www.santosautomation.com/integrations/claude
 
 Grok / xAI Remote MCP Tools:
