@@ -79,17 +79,26 @@ const LIST_TOOLS = `curl -X POST ${API}/mcp \\
   -H 'Accept: application/json, text/event-stream' \\
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'`;
 
+// Verbatim from a live tools/call. The handoff arrives as isError: true with a
+// single text block — payment-required is signalled on MCP's error channel, so
+// the model treats it as "not done yet" rather than a finished answer.
 const HANDOFF = `{
-  "payment_required": true,
-  "method": "GET",
-  "url": "${API}/api/agent-readiness?url=https%3A%2F%2Fexample.com&depth=quick",
-  "price_usdc": "${readiness}",
-  "network": "eip155:8453",
-  "protocol": "x402-v2",
-  "settles": "only on a successful (2xx) response"
+  "isError": true,
+  "content": [
+    {
+      "type": "text",
+      "text": "PAYMENT_REQUIRED: Agent Readiness costs $${readiness} USDC per successful
+               audit on Base mainnet via x402 v2. Request
+               ${API}/api/agent-readiness?url=https%3A%2F%2Fexample.com%2F&depth=quick
+               without a signature to receive PAYMENT-REQUIRED terms, then sign and
+               retry with PAYMENT-SIGNATURE. Free preview: GET
+               ${API}/api/agent-readiness/demo?url=https%3A%2F%2Fexample.com%2F
+               (1/day per IP, shared quota, same result shape)."
+    }
+  ]
 }`;
 
-const SETTLE = `// Any x402 v2 client settles the handoff. Node example:
+const SETTLE = `// Any x402 v2 client settles the URL named in the handoff text.
 import { privateKeyToAccount } from "viem/accounts";
 import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm";
@@ -101,8 +110,11 @@ const fetchWithPay = wrapFetchWithPaymentFromConfig(fetch, {
   }],
 });
 
-// handoff.url came from the MCP tool result above.
-const res = await fetchWithPay(handoff.url);
+// Build the same URL the handoff names — the 402, signing, and retry are automatic.
+const target = "https://example.com";
+const res = await fetchWithPay(
+  \`${API}/api/agent-readiness?url=\${encodeURIComponent(target)}&depth=quick\`
+);
 const report = await res.json();
 console.log(report.website_intelligence_score);`;
 
@@ -227,12 +239,17 @@ export default function GrokIntegrationPage() {
             → your wrapper retries that URL with a PAYMENT-SIGNATURE header<br />
             <span className="g">← 200 · versioned evidence + PAYMENT-RESPONSE receipt</span>
           </div>
-          <p className="sub wide">The tool result is shaped like this:</p>
+          <p className="sub wide">
+            The tool result comes back on MCP&rsquo;s error channel — <code>isError: true</code>{" "}
+            with one text block. That is deliberate: a payment-required result is not a finished
+            answer, and signalling it as an error keeps the model from reporting a price quote as
+            though it were an audit. The text names the price, the exact URL to pay for, and the
+            free preview:
+          </p>
           <pre className="code-sample" tabIndex={0}><code>{HANDOFF}</code></pre>
           <p className="sub wide">
-            Settling it is a single wrapped <code>fetch</code>. Any x402 v2 client works; the
-            payment step is identical to the one in the{" "}
-            <a href="/ci">CI recipe</a>.
+            Settling it is a single wrapped <code>fetch</code> against that URL. Any x402 v2 client
+            works; the payment step is identical to the one in the <a href="/ci">CI recipe</a>.
           </p>
           <p><CopyButton text={SETTLE} label="Copy settlement" /></p>
           <pre className="code-sample" tabIndex={0}><code>{SETTLE}</code></pre>
