@@ -5,6 +5,7 @@
 // Events persist to analytics_events (migration 008) via lib/analytics-store.js,
 // which FAILS OPEN — when the database is unavailable we keep a console trail.
 import { NextResponse } from "next/server";
+import { requireSecret } from "../../../lib/required-env.js";
 import { createHmac } from "node:crypto";
 import { recordEvent } from "../../../lib/analytics-store.js";
 import { ipFromRequest } from "../../../lib/demo-limit.js";
@@ -19,7 +20,7 @@ const ALLOWED = new Set([
   "monitoring_started", "deep_report_completed", "regression_alert_sent",
 ]);
 
-const HASH_SECRET = process.env.RATE_LIMIT_HASH_SECRET ?? "santos-demo-limit";
+const HASH_SECRET = requireSecret("RATE_LIMIT_HASH_SECRET", "santos-demo-limit");
 
 // Same HMAC scheme as lib/demo-limit.js: raw IPs never persist.
 function ipHash(req) {

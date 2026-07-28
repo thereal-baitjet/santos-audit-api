@@ -142,3 +142,20 @@ test("index statistics claims match the canonical index stats", () => {
   const homepage = read("app/page.js");
   assert.ok(!/median[^<]*57/i.test(homepage), "homepage still claims the stale median of 57");
 });
+
+test("the README advertises no hardcoded API version", () => {
+  // The badge read v2.11.0 while production served 2.16.0 — stale exactly where
+  // a developer inspects the project first. It now resolves $.api_version from
+  // /version at render time, so this asserts nobody reintroduces a literal.
+  const readme = read("README.md");
+  const badgeLine = readme.split("\n").find((line) => line.includes("![API version]"));
+  assert.ok(badgeLine, "the API version badge must exist");
+  assert.ok(
+    badgeLine.includes("dynamic/json") && badgeLine.includes("api_version"),
+    "the API version badge must resolve from /version, not a literal"
+  );
+  assert.ok(
+    !/badge\/API-v\d+\.\d+\.\d+/.test(readme),
+    "a hardcoded version badge was reintroduced"
+  );
+});

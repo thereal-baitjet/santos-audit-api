@@ -27,6 +27,17 @@ function rateLimited() {
   );
 }
 
+function degraded() {
+  return NextResponse.json(
+    {
+      error: "Free LLM-backed extraction is paused while the free-tier limiter cannot enforce quota.",
+      code: "SERVICE_DEGRADED",
+      for_humans: "This is temporary and being alerted on. The paid endpoint is unaffected: POST /v1/extract/structured.",
+    },
+    { status: 503, headers: { ...CORS, "Retry-After": "300" } }
+  );
+}
+
 function invalidToken() {
   return NextResponse.json(
     { error: "That free-tier token is not valid or has expired.", code: "INVALID_TOKEN", for_humans: INVALID_TOKEN_HELP },
@@ -44,8 +55,12 @@ async function handlePOST(req) {
     return auditErrorResponse(e);
   }
 
-  const gate = await openDemoQuota(req);
-  if (!gate.ok) return gate.reason === "invalid_token" ? invalidToken() : rateLimited();
+  const gate = await openDemoQuota(req, { heavy: true });
+  if (!gate.ok) {
+    if (gate.reason === "invalid_token") return invalidToken();
+    if (gate.reason === "degraded") return degraded();
+    return rateLimited();
+  }
 
   try {
     const result = await extractStructured(url, body.schema);

@@ -16,6 +16,7 @@
 // readiness is fast, but Stripe still wants a prompt ack; retries are safe
 // because claimSession() is the idempotency gate).
 import { after, NextResponse } from "next/server";
+import { requireSecret } from "../../../../lib/required-env.js";
 import { createHmac } from "node:crypto";
 import { stripe, stripeConfigured, tierPriceUsd, HUMAN_REPORT_PRICE_USD } from "../../../../lib/stripe/client.js";
 import { claimSession, completePurchase, failPurchase, markProcessing } from "../../../../lib/stripe/store.js";
@@ -32,7 +33,7 @@ import { notifyTransaction } from "../../../../notify.js";
 import { recordEvent } from "../../../../lib/analytics-store.js";
 
 const NO_STORE = { "Cache-Control": "no-store" };
-const IDEM_SECRET = process.env.IDEMPOTENCY_HASH_SECRET ?? "dev-only-idem-secret";
+const IDEM_SECRET = requireSecret("IDEMPOTENCY_HASH_SECRET", "dev-only-idem-secret");
 
 function siteOrigin() {
   return process.env.PUBLIC_SITE_URL || "https://www.santosautomation.com";
