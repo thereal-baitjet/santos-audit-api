@@ -1,4 +1,5 @@
 import { PageShell } from "../../components/SiteChrome.js";
+import StructuredData from "../../components/StructuredData.js";
 import CopyButton from "../../ci/CopyButton.js";
 import { apiProduct } from "../../../lib/products.js";
 
@@ -13,10 +14,55 @@ const links = apiProduct("/v1/links").priceUsdc;
 const summarize = apiProduct("/v1/summarize").priceUsdc;
 
 export const metadata = {
+  // Kept inside the 50–160 character band the Quick Audit checks for.
   title: "Grok & xAI Integration — Remote MCP Website Intelligence | Santos",
   description:
-    "Add the Santos MCP server to Grok in one line. Seven website-intelligence tools over Streamable HTTP: free previews need no wallet, paid tools return a canonical x402 handoff that settles in USDC on Base only on success.",
+    "Add the Santos MCP server to Grok in one line. Seven website-intelligence tools: free previews need no wallet, paid tools settle over x402.",
   alternates: { canonical: "/integrations/grok" },
+};
+
+// The page advertises paid access, so it carries the machine-readable Offer and
+// WebAPI metadata an agent needs to price the service without reading prose.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebAPI",
+      "@id": `${SITE}/integrations/grok#api`,
+      name: "Santos Website Intelligence — Remote MCP server",
+      url: `${API}/mcp`,
+      documentation: `${API}/openapi.json`,
+      termsOfService: `${SITE}/terms`,
+      provider: { "@id": `${SITE}/#organization` },
+      serviceType: "Remote MCP server for AI website intelligence",
+      description:
+        "A Remote MCP server over Streamable HTTP exposing seven website-intelligence tools to Grok and any MCP-capable client. Free previews execute inline; paid tools return a canonical x402 request settled in USDC on Base.",
+      offers: [
+        { "@type": "Offer", name: "Agent Readiness audit (audit_agent_readiness)", price: readiness, priceCurrency: "USDC", url: `${API}/api/agent-readiness` },
+        { "@type": "Offer", name: "Feed parse (feed_parse)", price: feed, priceCurrency: "USDC", url: `${API}/v1/feed` },
+        { "@type": "Offer", name: "Link map (link_map)", price: links, priceCurrency: "USDC", url: `${API}/v1/links` },
+        { "@type": "Offer", name: "Summarize (summarize)", price: summarize, priceCurrency: "USDC", url: `${API}/v1/summarize` },
+      ],
+    },
+    {
+      "@type": "TechArticle",
+      "@id": `${SITE}/integrations/grok#guide`,
+      headline: "Grok-ready website intelligence in one line",
+      url: `${SITE}/integrations/grok`,
+      description:
+        "Register the Santos MCP server as a Grok Remote MCP tool, then use free previews or settle paid tools over x402.",
+      about: { "@id": `${SITE}/integrations/grok#api` },
+      provider: { "@id": `${SITE}/#organization` },
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
+        { "@type": "ListItem", position: 2, name: "Integrations", item: `${SITE}/integrations/grok` },
+        { "@type": "ListItem", position: 3, name: "Grok", item: `${SITE}/integrations/grok` },
+      ],
+    },
+  ],
 };
 
 const MCP_SNIPPET = `from xai_sdk.tools import mcp
@@ -63,6 +109,7 @@ console.log(report.website_intelligence_score);`;
 export default function GrokIntegrationPage() {
   return (
     <PageShell>
+      <StructuredData data={jsonLd} />
       <article className="marketing-page">
         <div className="breadcrumbs" aria-label="Breadcrumb">
           <a href="/">Home</a><span aria-hidden="true">/</span>
