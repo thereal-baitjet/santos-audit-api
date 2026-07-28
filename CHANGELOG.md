@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.13.0 — 2026-07-28 — Grok & xAI Remote MCP integration
+
+### Added
+- **`/integrations/grok`** — the Grok integration guide. Grok supports Remote MCP
+  tools and Santos already publishes a public MCP server over Streamable HTTP, so
+  this is a discovery and developer-experience surface, not a new backend
+  capability. Covers the one-line `xai_sdk` registration, the seven tools Grok
+  sees, the free-preview path that needs no wallet, and the handoff pattern for
+  paid tools.
+- **Capability manifest declares MCP client compatibility**: new `mcp_transport`
+  (`streamable-http`) and `mcp_clients` fields, so an agent can confirm Grok
+  compatibility from the manifest without parsing prose.
+- **`llms.txt` gains an `## MCP clients` section** carrying the exact registration
+  snippet, plus an integration-guide link under Machine surfaces.
+- `/docs` gains a **Grok & xAI** section and table-of-contents entry.
+- The guide is linked from primary navigation, the homepage integration grid, the
+  footer developer links, and the sitemap.
+
+### Notes
+- No new endpoints, no pricing changes, and no change to how payment settles. Paid
+  MCP tools continue to return the canonical x402 request rather than settling it —
+  the calling agent holds the key and performs settlement.
+
 ## 2.12.0 — 2026-07-28 — Scoring accuracy: pricing attribution and paid-resource selection
 
 ### Fixed

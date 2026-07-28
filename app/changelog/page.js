@@ -8,6 +8,16 @@ export const metadata = {
 
 const ENTRIES = [
   {
+    version: "2.13.0",
+    date: "2026-07-28",
+    items: [
+      "Grok & xAI integration guide at /integrations/grok: register the Santos MCP server as a Grok Remote MCP tool in one line, with the free-preview path first and the paid x402 handoff second. No backend change — Grok speaks Remote MCP and Santos already publishes one.",
+      "Capability manifest declares MCP client compatibility: new mcp_transport (streamable-http) and mcp_clients fields, so an agent can confirm Grok compatibility from the manifest without reading prose.",
+      "llms.txt gains an ## MCP clients section with the exact xai_sdk registration snippet, and links the integration guide from Machine surfaces.",
+      "/docs gains a Grok & xAI section; the integration is linked from primary navigation, the homepage integration grid, the footer, and the sitemap.",
+    ],
+  },
+  {
     version: "2.12.0",
     date: "2026-07-28",
     items: [
@@ -132,7 +142,7 @@ export default function ChangelogPage() {
       <h1>Changelog.</h1>
       <p>
         Product history for the Santos Website Intelligence API. Latest version:{" "}
-        <strong>2.12.0</strong>. Machine-readable version and contract data:{" "}
+        <strong>2.13.0</strong>. Machine-readable version and contract data:{" "}
         <a href="/version">/version</a>.
       </p>
 

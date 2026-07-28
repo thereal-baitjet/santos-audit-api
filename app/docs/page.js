@@ -43,6 +43,7 @@ const TOC = [
   ["#payment", "Paying with x402"],
   ["#endpoints", "Capability reference"],
   ["#mcp", "MCP server"],
+  ["#grok", "Grok & xAI"],
   ["#robots", "For robots"],
   ["#errors", "Errors & limits"],
   ["#roadmap", "Roadmap"],
@@ -415,6 +416,24 @@ const report = await res.json(); // paid, settled, done`}</code></pre>
   -H 'Content-Type: application/json' \\
   -H 'Accept: application/json, text/event-stream' \\
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'`}</code></pre>
+      </section>
+
+      <section className="content-section" id="grok">
+        <h2>Grok &amp; xAI</h2>
+        <p className="sub wide">
+          Grok supports Remote MCP tools, so the server above drops straight in. Register it once
+          and all seven tools appear in the model&rsquo;s tool list — free previews execute inline
+          and need no wallet; paid tools return the canonical x402 handoff for your agent to
+          settle. Full walkthrough: <a href="/integrations/grok">Grok integration</a>.
+        </p>
+        <pre className="code-sample" tabIndex={0}><code>{`from xai_sdk.tools import mcp
+
+tools = [
+    mcp(
+        server_url="${API}/mcp",
+        server_label="santos",
+    )
+]`}</code></pre>
       </section>
 
       <section className="content-section" id="robots">
