@@ -33,6 +33,78 @@ const ALLOWED_ORIGINS = new Set(
   ].filter(Boolean)
 );
 
+// Output schemas. MCP clients use these to parse a result structurally instead
+// of scraping the text block, so every tool that returns structuredContent
+// declares one that matches what it actually returns.
+//
+// The paid tools return a payment handoff rather than data, so they share
+// PAYMENT_HANDOFF_SCHEMA — previously audit_agent_readiness advertised the full
+// audit result schema for a response that never contains an audit.
+const PAYMENT_HANDOFF_SCHEMA = Object.freeze({
+  type: "object",
+  properties: {
+    payment_required: { type: "boolean", const: true },
+    protocol: { type: "string", description: "x402-v2" },
+    method: { type: "string", description: "HTTP method to use for the paid request." },
+    url: { type: "string", format: "uri", description: "Exact URL to request, then pay for and retry." },
+    price_usdc: { type: "string", description: "Price in USDC for one successful call." },
+    network: { type: "string", description: "CAIP-2 chain id, eip155:8453 (Base mainnet)." },
+    settles: { type: "string", description: "When funds move." },
+    free_preview_url: { type: "string", format: "uri", description: "Free alternative, where one exists." },
+  },
+  required: ["payment_required", "protocol", "method", "url", "price_usdc", "network"],
+});
+
+const QUICK_AUDIT_OUTPUT_SCHEMA = Object.freeze({
+  type: "object",
+  properties: {
+    schema_version: { type: "string" },
+    url: { type: "string", format: "uri" },
+    fetched_at: { type: "string", format: "date-time" },
+    http_status: { type: "integer" },
+    timing_ms: { type: "object" },
+    overall_score: { type: "integer", minimum: 0, maximum: 100 },
+    scores: { type: "object", description: "performance, seo, accessibility, security (0-100 each)." },
+    checks: { type: "object", description: "Individual pass/fail checks with detail." },
+    website_intelligence_score: { type: "integer", minimum: 0, maximum: 100 },
+    website_intelligence: { type: "object", description: "Discoverable, Understandable, Callable, Trustworthy." },
+    issues: { type: "array", items: { type: "string" } },
+    audited_by: { type: "string" },
+  },
+  required: ["schema_version", "url", "overall_score", "scores", "website_intelligence_score", "issues"],
+});
+
+const EXTRACT_OUTPUT_SCHEMA = Object.freeze({
+  type: "object",
+  properties: {
+    schema_version: { type: "string" },
+    url: { type: "string", format: "uri" },
+    final_url: { type: "string", format: "uri" },
+    http_status: { type: "integer" },
+    title: { type: ["string", "null"] },
+    byline: { type: ["string", "null"] },
+    description: { type: ["string", "null"] },
+    canonical_url: { type: ["string", "null"] },
+    markdown: { type: "string", description: "Readability-isolated main content." },
+    links: { type: "array", items: { type: "object" } },
+    word_count: { type: "integer" },
+    fetched_at: { type: "string", format: "date-time" },
+  },
+  required: ["schema_version", "url", "markdown", "word_count"],
+});
+
+const STRUCTURED_EXTRACT_OUTPUT_SCHEMA = Object.freeze({
+  type: "object",
+  properties: {
+    schema_version: { type: "string" },
+    url: { type: "string", format: "uri" },
+    data: { type: "object", description: "Fields extracted against the caller's own JSON Schema, re-validated before return." },
+    model: { type: "string" },
+    word_count: { type: "integer" },
+  },
+  required: ["data"],
+});
+
 const PREVIEW_TOOL = {
   name: "audit_website_preview",
   description:
@@ -55,6 +127,7 @@ const PREVIEW_TOOL = {
     required: ["url"],
     additionalProperties: false,
   },
+  outputSchema: QUICK_AUDIT_OUTPUT_SCHEMA,
   annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
 };
 
@@ -70,7 +143,7 @@ const AGENT_READINESS_TOOL = {
     required: ["url"],
     additionalProperties: false,
   },
-  outputSchema: AGENT_READINESS_RESULT_SCHEMA,
+  outputSchema: PAYMENT_HANDOFF_SCHEMA,
   annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
 };
 
@@ -94,6 +167,7 @@ const EXTRACT_TOOL = {
     required: ["url"],
     additionalProperties: false,
   },
+  outputSchema: EXTRACT_OUTPUT_SCHEMA,
   annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
 };
 
@@ -118,6 +192,7 @@ const STRUCTURED_EXTRACT_TOOL = {
     required: ["url", "schema"],
     additionalProperties: false,
   },
+  outputSchema: STRUCTURED_EXTRACT_OUTPUT_SCHEMA,
   annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
 };
 
@@ -136,6 +211,7 @@ const FEED_PARSE_TOOL = {
     required: ["url"],
     additionalProperties: false,
   },
+  outputSchema: PAYMENT_HANDOFF_SCHEMA,
   annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
 };
 
@@ -150,6 +226,7 @@ const LINK_MAP_TOOL = {
     required: ["url"],
     additionalProperties: false,
   },
+  outputSchema: PAYMENT_HANDOFF_SCHEMA,
   annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
 };
 
@@ -165,6 +242,7 @@ const SUMMARIZE_TOOL = {
     required: ["url"],
     additionalProperties: false,
   },
+  outputSchema: PAYMENT_HANDOFF_SCHEMA,
   annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
 };
 
@@ -183,6 +261,15 @@ function callPaidHandoffTool(args, { name, path, price }) {
         type: "text",
         text: `PAYMENT_REQUIRED: ${name} costs $${price} USDC per successful call on Base mainnet via x402 v2. Request ${endpoint} without a signature to receive PAYMENT-REQUIRED terms, then sign and retry with PAYMENT-SIGNATURE. A POST variant with a JSON body is paywalled identically.`,
       }],
+      structuredContent: {
+        payment_required: true,
+        protocol: "x402-v2",
+        method: "GET",
+        url: endpoint,
+        price_usdc: price,
+        network: "eip155:8453",
+        settles: "only on a successful (2xx) response",
+      },
     };
   } catch (error) {
     const code = error instanceof AuditError ? error.code : "INVALID_URL";
@@ -321,6 +408,16 @@ function callAgentReadinessTool(args) {
         type: "text",
         text: `PAYMENT_REQUIRED: Agent Readiness costs $${AGENT_READINESS_PRICE} USDC per successful audit on Base mainnet via x402 v2. Request ${endpoint} without a signature to receive PAYMENT-REQUIRED terms, then sign and retry with PAYMENT-SIGNATURE. Free preview: GET ${demoEndpoint} (1/day per IP, shared quota, same result shape).`,
       }],
+      structuredContent: {
+        payment_required: true,
+        protocol: "x402-v2",
+        method: "GET",
+        url: endpoint,
+        price_usdc: AGENT_READINESS_PRICE,
+        network: "eip155:8453",
+        settles: "only on a successful (2xx) response",
+        free_preview_url: demoEndpoint,
+      },
     };
   } catch (error) {
     const code = error instanceof AuditError ? error.code : "AUDIT_FAILED";

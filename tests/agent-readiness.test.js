@@ -161,7 +161,10 @@ test("follows explicitly advertised API subdomains but not unrelated origins", a
 
 test("caches bounded MCP Registry results for the configured TTL", async () => {
   const target = "https://registry-cache.example";
-  const registry = "https://registry.test/v0.1/servers?limit=100";
+  // registry-cache.example -> reverse-DNS namespace example.registry-cache.
+  // The lookup searches by that namespace; the registry does not match
+  // dotted hostnames, so paging without a search found nothing.
+  const registry = "https://registry.test/v0/servers?search=example.registry-cache&limit=100";
   const calls = [];
   const fetcher = mockFetcher({
     [`${target}/`]: response(200, `<html><head><link rel="mcp" href="/mcp"></head><body><main><h1>MCP server</h1><p>Model Context Protocol documentation, support, privacy, and limits.</p></main></body></html>`),
