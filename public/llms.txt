@@ -18,11 +18,23 @@ Built and operated by Santos Automation. From discoverable to callable.
 - [Capability manifest](https://api.santosautomation.com/capabilities.json): vendor-specific capability manifest (not a formal standard)
 - [Agent capability manifest](https://www.santosautomation.com/.well-known/agent-capabilities.json): well-known agent-capabilities document
 - [Grok & xAI integration](https://www.santosautomation.com/integrations/grok): register this MCP server as a Grok Remote MCP tool in one line — free previews, paid x402 handoff
+- [Claude integration](https://www.santosautomation.com/integrations/claude): add this MCP server to Claude as a custom connector — same endpoint as the Grok integration
 
 ## MCP clients
 
 This server is a standard Remote MCP server over Streamable HTTP and works with any
-MCP-capable client. Verified compatible with Grok / xAI Remote MCP Tools:
+MCP-capable client. One endpoint and one registry listing serve every client — there is no
+client-specific server. Published in the official MCP Registry as com.santosautomation/site-audit
+(verify: https://registry.modelcontextprotocol.io/v0/servers?search=com.santosautomation/site-audit).
+
+Claude — Claude.ai and Claude Code are configured separately; a connector added in one is
+not visible to the other.
+  Claude.ai:   Settings > Connectors > Add custom connector > https://api.santosautomation.com/mcp
+  Claude Code: claude mcp add -s user --transport http santos https://api.santosautomation.com/mcp
+No OAuth, no token, no key. Setup guide:
+https://www.santosautomation.com/integrations/claude
+
+Grok / xAI Remote MCP Tools:
 
     from xai_sdk.tools import mcp
     tools = [mcp(server_url="https://api.santosautomation.com/mcp", server_label="santos")]
@@ -56,6 +68,11 @@ moves funds. Integration guide: https://www.santosautomation.com/integrations/gr
 - [Deep Website Intelligence Audit](https://api.santosautomation.com/v1/audits): $0.225 USDC, asynchronous job — POST {"url": "https://example.com"}
 
 ## Free tools (no payment)
+
+Free quota is 1 call per day per identity, shared across every free tool. Without a token
+that identity is the calling IP — hosted agents share one address, so the allowance is spent
+by whoever calls first. Issue your own verified-email token (no card, valid 30 days) at
+https://www.santosautomation.com/free-token and pass it as `token`.
 
 - [Free verified-email audit](https://api.santosautomation.com/api/audit/free?url=https%3A%2F%2Fexample.com): 1/day per verified email (token from POST /api/leads/verify/request → confirm), same report shape as the paid Quick Audit, HMAC-signed; quota shared with the llms.txt generator
 - [Agent-Ready badge](https://api.santosautomation.com/v1/badge?url=https%3A%2F%2Fexample.com): free SVG shield of a site's latest public score — no quota; embed `[![badge](https://api.santosautomation.com/v1/badge?url=example.com)](https://www.santosautomation.com/reports/example.com)`

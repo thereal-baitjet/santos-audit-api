@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 import { extractStructured } from "../../../../../lib/extract-structured.js";
 import { validateTarget } from "../../../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../../../lib/errors.js";
-import { hasFreeAudit, markFreeAudit, ipFromRequest } from "../../../../../lib/demo-limit.js";
+import { openDemoQuota, FREE_TIER_HELP, INVALID_TOKEN_HELP } from "../../../../../lib/demo-limit.js";
 
 const PRICE = process.env.STRUCTURED_EXTRACT_PRICE_USDC ?? "0.08";
 
@@ -20,15 +20,21 @@ function rateLimited() {
     {
       error: `Free demo is 1 request/day (shared across all demo endpoints). Agents can pay per-call at POST /v1/extract/structured (x402, $${PRICE} USDC).`,
       code: "RATE_LIMITED",
-      for_humans: "No USDC wallet? Buy a one-time human report by card ($9 Quick / $29 Deep) at /agent-readiness/buy — no account needed.",
+      for_humans: FREE_TIER_HELP,
       retry_after: retryAfter,
     },
     { status: 429, headers: { ...CORS, "Retry-After": String(retryAfter) } }
   );
 }
 
+function invalidToken() {
+  return NextResponse.json(
+    { error: "That free-tier token is not valid or has expired.", code: "INVALID_TOKEN", for_humans: INVALID_TOKEN_HELP },
+    { status: 401, headers: CORS }
+  );
+}
+
 async function handlePOST(req) {
-  const ip = ipFromRequest(req);
   const body = await req.json().catch(() => ({}));
   const url = typeof body.url === "string" ? body.url : "";
 
@@ -38,12 +44,13 @@ async function handlePOST(req) {
     return auditErrorResponse(e);
   }
 
-  if (!(await hasFreeAudit(ip))) return rateLimited();
+  const gate = await openDemoQuota(req);
+  if (!gate.ok) return gate.reason === "invalid_token" ? invalidToken() : rateLimited();
 
   try {
     const result = await extractStructured(url, body.schema);
     // Atomic claim AFTER success: failures stay free, races can't double-spend.
-    if (!(await markFreeAudit(ip))) return rateLimited();
+    if (!(await gate.claim())) return rateLimited();
     return NextResponse.json({ tier: "free-demo", ...result }, { headers: CORS });
   } catch (e) {
     return auditErrorResponse(e);

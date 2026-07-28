@@ -15,6 +15,7 @@ export function SiteNav() {
         <li><a href="/website-intelligence-api">API</a></li>
         <li><a href="/docs">Docs</a></li>
         <li><a href="/integrations/grok">Grok</a></li>
+        <li><a href="/integrations/claude">Claude</a></li>
         <li><a href="/methodology/agent-readiness">Methodology</a></li>
         <li><a href="/#pricing">Pricing</a></li>
         <li><a className="nav-cta" href="/agent-readiness/buy">Get a Report</a></li>
@@ -38,6 +39,7 @@ export function SiteFooter() {
           <a href="/verify">Verify a report</a>
           <a href="/ci">CI recipe</a>
           <a href="/integrations/grok">Grok &amp; xAI</a>
+          <a href="/integrations/claude">Claude connector</a>
           <a href="/reports/sample-agent-readiness">Sample report</a>
           <a href="/agent-readiness/buy">Get a report</a>
           <a href="/monitoring">Monitoring</a>

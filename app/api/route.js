@@ -17,7 +17,7 @@ async function handleGET() {
       manifest_version: "1",
       name: "Santos Website Intelligence API",
       alternate_name: "Santos Agent Readiness API",
-      version: "2.14.0",
+      version: "2.16.0",
       description:
         "AI Website Intelligence for measuring whether public websites can be discovered, understood, trusted, and used by AI agents. Returns structured evidence, applicability, coverage, scores, and prioritized remediation.",
       canonical_url: PUBLIC_API_BASE_URL,

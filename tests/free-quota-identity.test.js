@@ -64,3 +64,46 @@ test("raw identities never appear in a storage key", async () => {
   assert.ok(!ipKey.includes(ip), "the raw IP leaked into the key");
   assert.ok(!dailyEmailKey(email).includes(email), "the raw email leaked into the key");
 });
+
+// ---------------------------------------------------------------------------
+// The HTTP demo gate. Same identity rules as the MCP tools, so a caller who
+// runs out is told the same actionable next step everywhere.
+// ---------------------------------------------------------------------------
+
+import { openDemoQuota, FREE_TIER_HELP, INVALID_TOKEN_HELP } from "../lib/demo-limit.js";
+
+const request = (token) => ({
+  nextUrl: { searchParams: new URLSearchParams(token ? { token } : {}) },
+  headers: new Headers({ "x-forwarded-for": "203.0.113.55" }),
+});
+
+test("the demo gate rejects a token that does not verify", async () => {
+  const gate = await openDemoQuota(request("nope-not-a-token"));
+  assert.equal(gate.ok, false);
+  assert.equal(gate.reason, "invalid_token");
+  assert.ok(!gate.claim, "a rejected gate must expose no claim");
+});
+
+test("the demo gate falls back to the IP when no token is supplied", async () => {
+  const gate = await openDemoQuota(request());
+  // Either it opened on the IP allowance or that IP is already spent — both are
+  // IP-identified outcomes, never an invalid-token rejection.
+  assert.notEqual(gate.reason, "invalid_token");
+  if (gate.ok) {
+    assert.equal(gate.identity, "ip");
+    assert.equal(typeof gate.claim, "function");
+  } else {
+    assert.equal(gate.reason, "rate_limited");
+  }
+});
+
+test("free-tier help names the free path before the paid one", async () => {
+  // The whole point of the funnel fix: a caller who runs out must be offered the
+  // step that costs them nothing and identifies them, not just a checkout link.
+  const freeAt = FREE_TIER_HELP.indexOf("/free-token");
+  const paidAt = FREE_TIER_HELP.indexOf("/agent-readiness/buy");
+  assert.ok(freeAt !== -1, "help text must link the token page");
+  assert.ok(paidAt !== -1, "help text must still offer the paid path");
+  assert.ok(freeAt < paidAt, "the free path must come first");
+  assert.ok(INVALID_TOKEN_HELP.includes("/free-token"), "invalid-token help must link the token page");
+});

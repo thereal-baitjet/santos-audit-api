@@ -8,6 +8,25 @@ export const metadata = {
 
 const ENTRIES = [
   {
+    version: "2.16.0",
+    date: "2026-07-28",
+    items: [
+      "New /free-token page issues a verified-email token in about thirty seconds — no card, valid 30 days — so a caller gets their own daily free quota instead of competing for a shared IP allowance.",
+      "Every free endpoint now accepts an optional token: the five IP-keyed demo routes join the three MCP tools and /api/audit/free. One identity rule across the whole free tier.",
+      "Running out of quota is no longer a dead end. RATE_LIMITED responses lead with the free token path before the paid one, and an invalid token returns 401 INVALID_TOKEN with a link rather than silently falling back to the shared quota.",
+    ],
+  },
+  {
+    version: "2.15.0",
+    date: "2026-07-28",
+    items: [
+      "Claude integration guide at /integrations/claude: add the existing MCP endpoint as a Claude custom connector. No server change — protocol testing confirmed the deployed endpoint is already Claude-compatible, so Claude and Grok share one server, one registry listing, and one tool set.",
+      "Capability manifest gains mcp_registry (a direct official-registry verification URL) and lists Claude alongside Grok in mcp_clients.",
+      "llms.txt MCP clients section now covers both clients and links the registry record; /docs section broadened to Grok, Claude & MCP clients.",
+      "No endpoint, tool name, schema, free-quota, or x402 pricing change.",
+    ],
+  },
+  {
     version: "2.14.0",
     date: "2026-07-28",
     items: [
@@ -151,7 +170,7 @@ export default function ChangelogPage() {
       <h1>Changelog.</h1>
       <p>
         Product history for the Santos Website Intelligence API. Latest version:{" "}
-        <strong>2.14.0</strong>. Machine-readable version and contract data:{" "}
+        <strong>2.16.0</strong>. Machine-readable version and contract data:{" "}
         <a href="/version">/version</a>.
       </p>
 

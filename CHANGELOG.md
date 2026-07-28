@@ -1,5 +1,54 @@
 # Changelog
 
+## 2.16.0 — 2026-07-28 — Free-tier funnel
+
+### Added
+- **`/free-token`** — issues a verified-email token in about thirty seconds (no
+  card, valid 30 days) and shows it ready to paste into an MCP tool call. The
+  free tools key their daily quota on that token instead of the caller IP.
+
+### Changed
+- **Every free endpoint now accepts an optional `token`.** The five IP-keyed demo
+  routes (`/api/audit/demo`, `/api/agent-readiness/demo`, `/v1/fetch/demo`,
+  `/v1/extract/demo`, `/v1/extract/structured/demo`) join the three MCP tools and
+  `/api/audit/free` on one identity rule, via a shared `openDemoQuota` gate.
+- **Running out is no longer a dead end.** `RATE_LIMITED` responses lead with the
+  free token path before the paid one — previously they jumped straight to card
+  checkout, which offered nothing to a caller who simply wanted to keep
+  evaluating.
+
+### Security
+- A token that does not verify returns **401 `INVALID_TOKEN`** with a link to
+  issue a new one, and never falls back to the shared IP allowance — falling back
+  would make a junk token a way around a spent quota.
+
+## 2.15.0 — 2026-07-28 — Claude custom connector
+
+### Added
+- **`/integrations/claude`** — setup guide for adding Santos to Claude as a custom
+  connector, with the manual Settings → Connectors flow, a copyable test prompt,
+  and an explicit statement that Claude does not sign x402 payments or manage a
+  wallet. Paid tools return a handoff for a wallet-enabled wrapper to settle.
+- **Capability manifest** gains `mcp_registry`, a direct official-registry
+  verification URL, and lists the Claude custom connector in `mcp_clients`.
+
+### Changed
+- `llms.txt` MCP-clients section now covers Claude and Grok together and links the
+  registry record; the `/docs` MCP section is broadened to "Grok, Claude & MCP
+  clients". Grok and Claude pages cross-link with accurate wording: same endpoint,
+  different client setup.
+
+### Notes
+- **No server-code change.** Protocol testing against the deployed endpoint
+  confirmed Claude compatibility as-is: `initialize` negotiates 2025-06-18,
+  `notifications/initialized` returns 202, all seven tool names are unique and
+  under 64 characters with valid JSON Schema inputs, unknown methods return
+  JSON-RPC −32601, and invalid or blocked targets return clean MCP errors with no
+  stack traces or internal detail.
+- One endpoint, one registry listing (`com.santosautomation/site-audit`), one tool
+  set. No Claude-only server, no OAuth, no change to the unauthenticated model the
+  Grok integration depends on.
+
 ## 2.14.0 — 2026-07-28 — Free-tier quota identity
 
 ### Added

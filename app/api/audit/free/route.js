@@ -36,7 +36,7 @@ function notVerified() {
     {
       error: "A verified email is required for the free daily audit.",
       code: "EMAIL_NOT_VERIFIED",
-      for_humans: "Verify once: POST /api/leads/verify/request {email, url} → 6-digit code by email → POST /api/leads/verify/confirm {email, code} → token valid 30 days.",
+      for_humans: "Get a free token in about thirty seconds at https://www.santosautomation.com/free-token (no card, valid 30 days), then retry with &token=… . API flow: POST /api/leads/verify/request {email, url} → 6-digit code by email → POST /api/leads/verify/confirm {email, code}.",
     },
     { status: 401, headers: CORS }
   );
