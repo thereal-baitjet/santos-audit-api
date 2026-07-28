@@ -1,4 +1,5 @@
 import { withAgentLog } from "../../../lib/agent-log.js";
+import { requireSecret } from "../../../lib/required-env.js";
 // POST /v1/audits — create a Deep Page Audit job.
 //
 // Payment contract (x402 v2, $DEEP_AUDIT_PRICE_USDC): the payment purchases a
@@ -22,7 +23,7 @@ import { x402EnvCheck } from "../../../lib/x402-env-check.js";
 import { hasWorkerCapacity } from "../../../lib/deep/capacity.js";
 
 const PRICE = `$${process.env.DEEP_AUDIT_PRICE_USDC ?? "0.225"}`;
-const IDEM_SECRET = process.env.IDEMPOTENCY_HASH_SECRET ?? "dev-only-idem-secret";
+const IDEM_SECRET = requireSecret("IDEMPOTENCY_HASH_SECRET", "dev-only-idem-secret");
 
 const jobLinks = (id) => ({
   status_url: `${PUBLIC_API_BASE_URL}/v1/audits/${id}`,

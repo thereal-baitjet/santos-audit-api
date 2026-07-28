@@ -6,7 +6,7 @@ import { withAgentLog } from "../../lib/agent-log.js";
 import { NextResponse } from "next/server";
 import { auditSite } from "../../audit.js";
 import { AuditError, validateTarget } from "../../lib/safe-fetch.js";
-import { resolveFreeQuota, peekKey, claimKey, secondsUntilUtcMidnight, ipFromRequest } from "../../lib/demo-limit.js";
+import { resolveFreeQuota, peekKey, claimKey, secondsUntilUtcMidnight, ipFromRequest, limiterStatus } from "../../lib/demo-limit.js";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
 import { apiProduct } from "../../lib/products.js";
 
@@ -288,7 +288,20 @@ function callPaidHandoffTool(args, { name, path, price }) {
 //
 // Returns { error } to return immediately, or { claim } to call after success
 // so a failed call never burns the day's allowance.
-async function openFreeQuota(args, ip, paidHint) {
+async function openFreeQuota(args, ip, paidHint, { heavy = false } = {}) {
+  // The free LLM path spends real tokens. While the limiter cannot enforce a
+  // durable quota, refuse it rather than spend what we cannot account for.
+  if (heavy && limiterStatus().degraded) {
+    return {
+      error: {
+        isError: true,
+        content: [{
+          type: "text",
+          text: "SERVICE_DEGRADED: the free-tier limiter cannot enforce quota right now, so LLM-backed extraction is paused. The paid endpoint is unaffected: POST " + PUBLIC_API_BASE_URL + "/v1/extract/structured.",
+        }],
+      },
+    };
+  }
   const { key, identity } = await resolveFreeQuota({ token: args?.token, ip });
   if (!key) {
     return {
@@ -325,7 +338,7 @@ async function callStructuredExtractTool(args, ip) {
     const code = e instanceof AuditError ? e.code : "INVALID_URL";
     return { isError: true, content: [{ type: "text", text: `${code}: ${e.message}` }] };
   }
-  const gate = await openFreeQuota(args, ip, `For unlimited extraction use the x402 endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract/structured ($${STRUCTURED_EXTRACT_PRICE} USDC on Base mainnet).`);
+  const gate = await openFreeQuota(args, ip, `For unlimited extraction use the x402 endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract/structured ($${STRUCTURED_EXTRACT_PRICE} USDC on Base mainnet).`, { heavy: true });
   if (gate.error) return gate.error;
   try {
     const result = await extractStructured(args.url.trim(), args.schema);

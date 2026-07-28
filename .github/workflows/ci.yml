@@ -1,0 +1,70 @@
+# Continuous integration: the automated gate on every push and pull request.
+#
+# Runs with no secrets. Everything here must pass without a database, an
+# Anthropic key, CDP credentials, or a wallet — the unit suites are hermetic by
+# design and `npm test` (node test.js) is deliberately excluded because it is an
+# integration test that expects a server on :3000.
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+# Superseded runs on the same branch are pointless once a newer commit exists.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: install · test · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` and not `npm install`: it installs exactly the lockfile and
+      # fails when package.json and the lockfile disagree, which is the check
+      # that catches a dependency change committed without its lockfile.
+      - name: Install
+        run: npm ci
+
+      # Every tests/*.test.js file. Node's runner exits non-zero on any failure,
+      # so a regression cannot reach a green check.
+      #
+      # The glob is deliberate: `node --test tests/` resolves `tests` as a module
+      # and dies with MODULE_NOT_FOUND before running anything, which would have
+      # made this step a green check that tested nothing.
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Production build
+        run: npm run build
+
+  audit:
+    name: dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # Fails the job on a high or critical advisory. This is the gate that
+      # would have caught the Next App Router advisories rather than waiting for
+      # someone to run an audit by hand.
+      - name: npm audit (high and above)
+        run: npm audit --audit-level=high
