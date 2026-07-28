@@ -64,18 +64,41 @@ test("these two lines alone produce no pricing contradiction", () => {
   );
 });
 
-test("a genuine contradiction is still reported", () => {
-  // Same route, two different documented prices — the extractor must not go so
-  // quiet that it stops catching the thing it exists to catch.
+test("a genuine contradiction is still reported against enforced terms", () => {
+  // The check that matters: what the service advertises versus what it actually
+  // charges. The extractor must not go so quiet that it stops catching this.
   const claims = claimsFor(
-    `- [Widget](https://api.example.com/v1/widget): $0.010 USDC per call\n` +
-    `- [Widget](https://api.example.com/v1/widget): $0.990 USDC per call\n`,
+    `- [Widget](https://api.example.com/v1/widget): $0.010 USDC per call\n`,
     "https://api.example.com/llms.txt"
   );
-  const assessment = assessPricing({ claims });
+  const challengeClaim = {
+    source: "x402_challenge",
+    source_url: "https://api.example.com/v1/widget",
+    resource_url: "https://api.example.com/v1/widget",
+    amount: "0.99",
+    currency: "USDC",
+  };
+  const assessment = assessPricing({ claims, challengeClaim });
+  assert.equal(assessment.status, "contradictory");
   assert.ok(
     assessment.contradictions.some((item) => item.field === "amount"),
-    "a real same-route price disagreement was missed"
+    "advertised $0.010 versus an enforced $0.99 was missed"
+  );
+});
+
+test("several advertised prices at one URL are not a contradiction", () => {
+  // A checkout page selling a $9 and a $29 report states two real prices for
+  // one URL. With no enforced challenge to compare against, neither is "the"
+  // price, and calling them contradictory accuses the site of nothing.
+  const claims = claimsFor(
+    `- [Quick Report](https://example.com/buy): $9 USD one-time\n` +
+    `- [Deep Report](https://example.com/buy): $29 USD one-time\n`,
+    "https://example.com/llms.txt"
+  );
+  const assessment = assessPricing({ claims });
+  assert.deepEqual(
+    assessment.contradictions.filter((item) => item.field === "amount"),
+    []
   );
 });
 
