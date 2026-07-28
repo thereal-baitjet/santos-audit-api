@@ -159,7 +159,7 @@ const document = {
   openapi: "3.1.0",
   info: {
     title: "Santos Website Intelligence API",
-    version: "2.11.0",
+    version: "2.12.0",
     description:
       `AI Website Intelligence for determining whether public websites can be discovered, understood, trusted, and used by agents. Eleven paid capabilities use USDC on Base mainnet (eip155:8453) via x402 v2 with no account or traditional API key. QUICK INTELLIGENCE (GET /api/audit, $${QUICK_PRICE}, synchronous): lightweight single-page fetch-and-parse audit. AGENT READINESS (GET /api/agent-readiness, $${AGENT_READINESS_PRICE}, synchronous): bounded passive discovery and applicability-aware assessment of agent-facing interfaces. DEEP WEBSITE INTELLIGENCE (POST /v1/audits, $${DEEP_PRICE}, asynchronous): real Chromium via Playwright, Lighthouse, rendered axe-core, browser evidence, screenshots, and passive security checks. The other eight paid capabilities — SAFE FETCH (GET /v1/fetch, $${FETCH_PRICE}), CONTENT EXTRACTION (POST /v1/extract, $${EXTRACT_PRICE}), FEED PARSER (GET /v1/feed, $${FEED_PRICE}), LINK MAP (GET /v1/links, $${LINKS_PRICE}), SUMMARIZER (POST /v1/summarize, $${SUMMARIZE_PRICE}), SCREENSHOT & PDF RENDER (GET /v1/screenshot, $${SCREENSHOT_PRICE}), STRUCTURED EXTRACTION (POST /v1/extract/structured, $${STRUCTURED_EXTRACT_PRICE}), and BATCH QUICK INTELLIGENCE (POST /api/audit/batch, $${BATCH_PRICE} flat for up to 50 URLs) — are documented per-path below. Quick and Agent Readiness payments settle only on a successful response; Deep payment purchases a bounded compute reservation and settles when the job is accepted.`,
     contact: { name: "Santos Automation", email: "info@santosautomation.com", url: "https://www.santosautomation.com" },

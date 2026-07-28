@@ -77,7 +77,7 @@ test("sitemap contains canonical public pages only and robots preserves machine 
 test("well-known manifest presents compatible ids with complete discovery metadata", () => {
   const manifest = capabilityManifest();
   assert.equal(manifest.name, "Santos Website Intelligence API");
-  assert.equal(manifest.version, "2.11.0");
+  assert.equal(manifest.version, "2.12.0");
   assert.equal(manifest.payment_protocols[0].protocol, "x402-v2");
   assert.ok(manifest.capabilities.some((item) => item.id === "agent-readiness.quick" && item.price.amount === "0.075"));
   assert.ok(manifest.capabilities.some((item) => item.id === "site-audit.quick"));

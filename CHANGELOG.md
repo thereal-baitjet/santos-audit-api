@@ -1,6 +1,39 @@
 # Changelog
 
-## 2.11.0 — 2026-07-27 — Tiered human reports, Monitoring subscription, lifecycle emails
+## 2.12.0 — 2026-07-28 — Scoring accuracy: pricing attribution and paid-resource selection
+
+### Fixed
+- **Prices no longer bind to a neighbouring route.** The pricing extractor took
+  a symmetric ±220-character window around a price and used the *first* URL in
+  it. In a catalogue list — `/api/audit` at $0.015 on one line, `/api/audit/batch`
+  at $0.50 on the next — the batch price reached back into the previous line and
+  was recorded as the documented price of `/api/audit`, contradicting the
+  enforced price. Any API whose routes share a path prefix was affected. A price
+  now binds to the closest URL on either side with no *other* price between the
+  two.
+- **Illustrative rates are no longer read as competing prices.** `$0.50 flat per
+  batch ($0.01/URL at full capacity)` was recorded as a second price for the same
+  route. A price inside parentheses on a line that already states one outside
+  them is an illustration, not a claim.
+- **A pricing contradiction now requires enforced terms.** Grouping claims by
+  resource URL and treating the first as authoritative meant a single URL selling
+  more than one product — a checkout page with a $9 and a $29 report — was
+  reported as contradicting itself. A contradiction is only raised against an
+  actual x402 challenge, which is what "enforced" has always meant.
+- **Paid-resource probing selects a real endpoint.** The probe could pick
+  `openapi.json` — a free specification document — and then report that the paid
+  resource returned no valid challenge when it answered 200. Specification and
+  documentation artifacts are now excluded, a resource carrying a real x402 price
+  outranks a link whose label merely mentions payment, and display placeholders
+  (`?url=…`) are stripped before probing.
+
+### Changed
+- Santos Index: **santosautomation.com re-audited at 100** (was 94, audited
+  2026-07-26). The site itself did not change — three of its findings were
+  false positives produced by the defects above, which had depressed the
+  agent-commerce and structured-identity subscores. The same corrected engine
+  scores every domain in the index, and the index average is unchanged at 59.6
+  across 311 domains.
 
 ### Added
 - **Tiered human reports by card**: the retired $5 report is replaced by two

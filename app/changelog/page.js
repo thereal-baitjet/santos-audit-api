@@ -8,6 +8,17 @@ export const metadata = {
 
 const ENTRIES = [
   {
+    version: "2.12.0",
+    date: "2026-07-28",
+    items: [
+      "Scoring accuracy: prices no longer bind to a neighbouring route. The pricing extractor read a fixed window around each price and took the first URL in it, so in a catalogue list the price on one line could be recorded against the route on the line above — and then reported as contradicting the enforced price. Any API whose routes share a path prefix was affected.",
+      "An illustrative rate in parentheses ($0.50 flat per batch ($0.01/URL at full capacity)) is no longer read as a second, competing price for the same route.",
+      "A pricing contradiction now requires enforced terms. A single URL selling more than one product — a checkout page with a $9 and a $29 report — was being reported as contradicting itself; contradictions are only raised against an actual x402 challenge.",
+      "Paid-resource probing selects a real endpoint: specification and documentation artifacts (openapi.json, llms.txt, capability manifests) are excluded, a resource carrying a real x402 price outranks a link whose label merely mentions payment, and display placeholders (?url=…) are stripped before probing.",
+      "Santos Index: santosautomation.com re-audited at 100 (was 94). The site did not change — three of its findings were false positives from the defects above. The same corrected engine scores every domain; the index average is unchanged at 59.6 across 311 domains.",
+    ],
+  },
+  {
     version: "2.11.0",
     date: "2026-07-27",
     items: [
@@ -121,7 +132,7 @@ export default function ChangelogPage() {
       <h1>Changelog.</h1>
       <p>
         Product history for the Santos Website Intelligence API. Latest version:{" "}
-        <strong>2.11.0</strong>. Machine-readable version and contract data:{" "}
+        <strong>2.12.0</strong>. Machine-readable version and contract data:{" "}
         <a href="/version">/version</a>.
       </p>
 
