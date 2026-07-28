@@ -1,5 +1,38 @@
 # Changelog
 
+## 2.11.0 — 2026-07-27 — Tiered human reports, Monitoring subscription, lifecycle emails
+
+### Added
+- **Tiered human reports by card**: the retired $5 report is replaced by two
+  one-time tiers at `/agent-readiness/buy` — **Quick Agent Readiness Report
+  ($9 USD)**, fetch-based evidence, and **Deep Website Intelligence Report
+  ($29 USD)**, browser-rendered (Lighthouse, axe-core, screenshots, network
+  evidence). Both are formatted, emailed as private tokened links, and
+  verifiable. Framing is now explicit site-wide: x402 prices are the agent
+  price (raw API); card prices are the human report (formatted, emailed,
+  verifiable).
+- **Santos Monitoring** (`/monitoring`, $9 USD/month by card): weekly re-audit
+  of one URL with the same engine, an email alert when the score moves 5+
+  points, and a monthly digest when stable. Every monitoring email carries a
+  manage link; cancellation stops re-audits and future charges immediately.
+- **Lifecycle emails with index comparison**: report and monitoring emails
+  show the score alongside the Santos Index average so owners can see where
+  they stand against 300+ public reports.
+- **Daily cron**: scheduled weekly re-audits, regression alerts, and digests
+  for active monitoring subscriptions.
+- Human checkout CTAs site-wide: homepage, docs, MCP explainer, and widgets
+  point to `/agent-readiness/buy` and `/monitoring`.
+- Terms: monitoring subscription terms (monthly renewal, cancel anytime via
+  the manage link, alerts are informational, not an SLA).
+
+### Changed
+- The Santos Index now covers **310+ public reports**; site copy updated from
+  "200+" to "300+" (homepage, /reports metadata, index findings guide).
+- Capability manifest `human_purchase` now lists all three card products
+  (Quick $9, Deep $29, Monitoring $9/mo).
+- Version pins bumped to 2.11.0: `/version`, `/api` manifest, OpenAPI info,
+  capability manifest, MCP serverInfo, server.json, and tests.
+
 ## 2.10.0 — 2026-07-26 — Feed Parser, Link Map, and Summarizer
 
 ### Added

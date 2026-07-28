@@ -8,6 +8,10 @@ import { auditSite } from "../../audit.js";
 import { AuditError, validateTarget } from "../../lib/safe-fetch.js";
 import { hasFreeAudit, markFreeAudit, ipFromRequest } from "../../lib/demo-limit.js";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
+import { apiProduct } from "../../lib/products.js";
+
+// Quoted price resolves from the canonical catalog, never a literal.
+const QUICK_PRICE = apiProduct("/api/audit").priceUsdc;
 import { AGENT_READINESS_RESULT_SCHEMA } from "../../lib/agent-readiness/contract.js";
 import { getAgentReadinessPriceUsdc } from "../../lib/agent-readiness/product-pricing.js";
 import { extractPage } from "../../lib/extract.js";
@@ -33,7 +37,7 @@ const PREVIEW_TOOL = {
   name: "audit_website_preview",
   description:
     "FREE PREVIEW (1 audit per day per IP) of Santos Website Intelligence. Runs a fast Quick Intelligence Audit of one public page: fetch timing, page weight, SEO, basic HTML accessibility, security headers, Website Intelligence dimensions, pass/fail checks, and remediation guidance. It audits one page only—no crawling, JavaScript rendering, Core Web Vitals, WCAG certification, or vulnerability scanning. " +
-    `For unlimited audits, use the machine-payable production endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... — $0.015 USDC per successful audit on Base mainnet (eip155:8453) via x402 v2; no account or API key required.`,
+    `For unlimited audits, use the machine-payable production endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... — $${QUICK_PRICE} USDC per successful audit on Base mainnet (eip155:8453) via x402 v2; no account or API key required.`,
   inputSchema: {
     type: "object",
     properties: {
@@ -254,7 +258,7 @@ async function callAuditTool(args, ip) {
       isError: true,
       content: [{
         type: "text",
-        text: `RATE_LIMITED: the free preview is 1 audit/day per IP. For unlimited audits use the x402 endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... ($0.015 USDC on Base mainnet).`,
+        text: `RATE_LIMITED: the free preview is 1 audit/day per IP. For unlimited audits use the x402 endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... ($${QUICK_PRICE} USDC on Base mainnet).`,
       }],
     };
   }
@@ -326,7 +330,7 @@ async function handlePOST(req) {
       return rpcResult(id, {
         protocolVersion: negotiated,
         capabilities: { tools: {} },
-        serverInfo: { name: "santos-website-intelligence", version: "2.10.0" },
+        serverInfo: { name: "santos-website-intelligence", version: "2.11.0" },
         instructions:
           `Use audit_website_preview for a free (1/day per IP) lightweight page audit, extract_page_markdown for a free page-to-Markdown extraction, or extract_structured_data for a free schema-conforming JSON extraction (all shared quota; unlimited via x402 at POST /v1/extract, $${EXTRACT_PRICE} USDC, and POST /v1/extract/structured, $${STRUCTURED_EXTRACT_PRICE} USDC). Agent Readiness is a paid $${AGENT_READINESS_PRICE} USDC capability; audit_agent_readiness validates the target and returns its canonical x402 HTTP handoff. feed_parse, link_map, and summarize are paid handoff tools for /v1/feed ($${FEED_PRICE} USDC), /v1/links ($${LINKS_PRICE} USDC), and /v1/summarize ($${SUMMARIZE_PRICE} USDC) — each validates the target and returns the canonical x402 HTTP handoff.`,
       });

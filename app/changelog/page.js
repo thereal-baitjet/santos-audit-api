@@ -8,6 +8,18 @@ export const metadata = {
 
 const ENTRIES = [
   {
+    version: "2.11.0",
+    date: "2026-07-27",
+    items: [
+      "Tiered human reports by card at /agent-readiness/buy: Quick Agent Readiness Report ($9, fetch-based) and Deep Website Intelligence Report ($29, browser-rendered) — one-time, formatted, emailed, and verifiable. The retired $5 report is gone; x402 prices are the agent price (raw API), card prices are the human report.",
+      "Santos Monitoring (/monitoring, $9/mo by card): weekly re-audit of one URL with the same engine, an email alert when the score moves 5+ points, and a monthly digest. Cancel anytime via the manage link in every monitoring email.",
+      "Lifecycle emails with index comparison: report and monitoring emails show the score alongside the Santos Index average across 300+ public reports.",
+      "Daily cron drives the weekly re-audits, regression alerts, and digests for active subscriptions.",
+      "Human checkout CTAs site-wide: homepage, docs, MCP explainer, and widgets point to /agent-readiness/buy and /monitoring.",
+      "The Santos Index now covers 310+ public reports — site copy updated from 200+ to 300+.",
+    ],
+  },
+  {
     version: "2.10.0",
     date: "2026-07-26",
     items: [
@@ -109,7 +121,7 @@ export default function ChangelogPage() {
       <h1>Changelog.</h1>
       <p>
         Product history for the Santos Website Intelligence API. Latest version:{" "}
-        <strong>2.10.0</strong>. Machine-readable version and contract data:{" "}
+        <strong>2.11.0</strong>. Machine-readable version and contract data:{" "}
         <a href="/version">/version</a>.
       </p>
 

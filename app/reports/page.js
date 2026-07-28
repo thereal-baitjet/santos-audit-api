@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 const path = "/reports";
 export const metadata = {
   title: "The web isn't agent-ready — yet. | Santos Leaderboard",
-  description: "200+ public agent-readiness reports, ranked by score. Average 59/100 — see where the world's biggest sites fail, and where yours stands.",
+  description: "300+ public agent-readiness reports, ranked by score. Average 59/100 — see where the world's biggest sites fail, and where yours stands.",
   alternates: { canonical: path },
-  openGraph: { title: "The web isn't agent-ready — yet. | Santos Leaderboard", description: "200+ public agent-readiness scores, ranked. Average 59/100. Run a free audit to list your site.", type: "website", url: path },
+  openGraph: { title: "The web isn't agent-ready — yet. | Santos Leaderboard", description: "300+ public agent-readiness scores, ranked. Average 59/100. Run a free audit to list your site.", type: "website", url: path },
 };
 
 const dateOf = (value) => {

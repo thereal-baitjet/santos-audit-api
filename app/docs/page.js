@@ -1,10 +1,9 @@
 import { PageShell } from "../components/SiteChrome.js";
 import StructuredData from "../components/StructuredData.js";
 import { pageMetadata } from "../../lib/marketing-content.js";
-import { getAgentReadinessPriceUsdc } from "../../lib/agent-readiness/product-pricing.js";
+import { apiProduct } from "../../lib/products.js";
 
 const API = "https://api.santosautomation.com";
-const readinessPrice = getAgentReadinessPriceUsdc();
 
 const PAGE = {
   path: "/docs",
@@ -55,7 +54,6 @@ const CAPABILITIES = [
     name: "Safe Fetch",
     method: "GET",
     path: "/v1/fetch",
-    price: process.env.SAFE_FETCH_PRICE_USDC ?? "0.002",
     mode: "Synchronous",
     settles: "on a successful fetch",
     summary:
@@ -69,7 +67,6 @@ const CAPABILITIES = [
     name: "Content Extraction",
     method: "POST",
     path: "/v1/extract",
-    price: process.env.EXTRACT_PRICE_USDC ?? "0.005",
     mode: "Synchronous",
     settles: "on a successful extraction",
     summary:
@@ -85,7 +82,6 @@ const CAPABILITIES = [
     name: "Screenshot & PDF Render",
     method: "GET",
     path: "/v1/screenshot",
-    price: process.env.SCREENSHOT_PRICE_USDC ?? "0.01",
     mode: "Synchronous",
     settles: "only when render bytes are returned",
     summary:
@@ -104,7 +100,6 @@ const CAPABILITIES = [
     name: "Quick Intelligence Audit",
     method: "GET",
     path: "/api/audit",
-    price: "0.015",
     mode: "Synchronous",
     settles: "on a successful audit",
     summary:
@@ -118,7 +113,6 @@ const CAPABILITIES = [
     name: "Batch Quick Intelligence Audit",
     method: "POST",
     path: "/api/audit/batch",
-    price: process.env.BATCH_AUDIT_PRICE_USDC ?? "0.50",
     mode: "Synchronous",
     settles: "only when at least one audit succeeds",
     summary:
@@ -133,7 +127,6 @@ const CAPABILITIES = [
     name: "Agent Readiness Audit",
     method: "GET",
     path: "/api/agent-readiness",
-    price: readinessPrice,
     mode: "Synchronous",
     settles: "on a successful audit",
     summary:
@@ -149,7 +142,6 @@ const CAPABILITIES = [
     name: "Structured Extraction",
     method: "POST",
     path: "/v1/extract/structured",
-    price: process.env.STRUCTURED_EXTRACT_PRICE_USDC ?? "0.08",
     mode: "Synchronous",
     settles: "only when the output validates against your schema",
     summary:
@@ -178,7 +170,6 @@ const CAPABILITIES = [
     name: "Santos Feed Parser",
     method: "GET",
     path: "/v1/feed",
-    price: process.env.FEED_PRICE_USDC ?? "0.003",
     mode: "Synchronous",
     settles: "on a successful parse",
     summary:
@@ -191,7 +182,6 @@ const CAPABILITIES = [
     name: "Santos Link Map",
     method: "GET",
     path: "/v1/links",
-    price: process.env.LINKS_PRICE_USDC ?? "0.003",
     mode: "Synchronous",
     settles: "on a successful link map",
     summary:
@@ -204,7 +194,6 @@ const CAPABILITIES = [
     name: "Santos Summarizer",
     method: "POST",
     path: "/v1/summarize",
-    price: process.env.SUMMARIZE_PRICE_USDC ?? "0.033",
     mode: "Synchronous",
     settles: "on a successful summary",
     summary:
@@ -222,7 +211,6 @@ const CAPABILITIES = [
     name: "Deep Website Intelligence Audit",
     method: "POST",
     path: "/v1/audits",
-    price: process.env.DEEP_AUDIT_PRICE_USDC ?? "0.225",
     mode: "Asynchronous job",
     settles: "when the job is accepted (201) — a bounded compute reservation",
     summary:
@@ -275,7 +263,7 @@ function CapabilityCard({ cap }) {
         <p className="doc-endpoint-route">
           <span className="pill">{cap.method}</span> <code>{cap.path}</code>
         </p>
-        <p className="doc-endpoint-price">${cap.price} <span>USDC · {cap.mode} · settles {cap.settles}</span></p>
+        <p className="doc-endpoint-price">${apiProduct(cap.path).priceUsdc} <span>USDC · {cap.mode} · settles {cap.settles}</span></p>
       </div>
       <p className="doc-endpoint-summary">{cap.summary}</p>
       <dl className="doc-params">
@@ -389,7 +377,7 @@ const report = await res.json(); // paid, settled, done`}</code></pre>
                 <tr key={cap.id}>
                   <th scope="row"><a href={`#${cap.id}`}>{cap.name}</a></th>
                   <td><code>{cap.method} {cap.path}</code></td>
-                  <td>${cap.price}</td>
+                  <td>${apiProduct(cap.path).priceUsdc}</td>
                   <td>{cap.mode}</td>
                 </tr>
               ))}
