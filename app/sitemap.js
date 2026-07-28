@@ -20,6 +20,7 @@ export default async function sitemap() {
     "/reports/sample-agent-readiness",
     "/llms-txt-generator",
     "/ci",
+    "/integrations/grok",
     "/verify",
     "/status",
     "/changelog",

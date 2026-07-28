@@ -17,6 +17,22 @@ Built and operated by Santos Automation. From discoverable to callable.
 - [Service manifest](https://api.santosautomation.com/api): live service description and pricing
 - [Capability manifest](https://api.santosautomation.com/capabilities.json): vendor-specific capability manifest (not a formal standard)
 - [Agent capability manifest](https://www.santosautomation.com/.well-known/agent-capabilities.json): well-known agent-capabilities document
+- [Grok & xAI integration](https://www.santosautomation.com/integrations/grok): register this MCP server as a Grok Remote MCP tool in one line — free previews, paid x402 handoff
+
+## MCP clients
+
+This server is a standard Remote MCP server over Streamable HTTP and works with any
+MCP-capable client. Verified compatible with Grok / xAI Remote MCP Tools:
+
+    from xai_sdk.tools import mcp
+    tools = [mcp(server_url="https://api.santosautomation.com/mcp", server_label="santos")]
+
+Also usable from Claude, ChatGPT, and any custom MCP client. Free preview tools
+(audit_website_preview, extract_page_markdown, extract_structured_data) execute inline and
+require no wallet, sharing one quota of 1 call per day per IP. Paid tools
+(audit_agent_readiness, feed_parse, link_map, summarize) validate the target and return the
+canonical x402 HTTP request; the calling agent settles it in USDC on Base mainnet. MCP never
+moves funds. Integration guide: https://www.santosautomation.com/integrations/grok
 
 ## API — audit modes
 
