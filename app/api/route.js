@@ -3,15 +3,21 @@ import { NextResponse } from "next/server";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
 import { capabilityManifest } from "../../lib/capabilities.js";
 import { AGENT_READINESS_BILLING_UNIT, getAgentReadinessPriceUsdc } from "../../lib/agent-readiness/product-pricing.js";
+import { apiProduct } from "../../lib/products.js";
 
 async function handleGET() {
   const readinessPrice = getAgentReadinessPriceUsdc();
+  // Quick-audit price comes from the canonical catalog so the manifest can
+  // never advertise a price the paywall does not charge.
+  const quickPrice = apiProduct("/api/audit").priceUsdc;
+  // USDC is a 6-decimal asset; atomic units are what the 402 challenge quotes.
+  const quickAtomic = String(Math.round(Number(quickPrice) * 1e6));
   return NextResponse.json(
     {
       manifest_version: "1",
       name: "Santos Website Intelligence API",
       alternate_name: "Santos Agent Readiness API",
-      version: "2.10.0",
+      version: "2.11.0",
       description:
         "AI Website Intelligence for measuring whether public websites can be discovered, understood, trusted, and used by AI agents. Returns structured evidence, applicability, coverage, scores, and prioritized remediation.",
       canonical_url: PUBLIC_API_BASE_URL,
@@ -21,9 +27,9 @@ async function handleGET() {
       capability_manifest_url: `${PUBLIC_API_BASE_URL}/capabilities.json`,
       website: "https://www.santosautomation.com",
       pricing: {
-        amount: "0.015",
+        amount: quickPrice,
         currency: "USDC",
-        atomic_amount: "15000",
+        atomic_amount: quickAtomic,
         billing_unit: "successful audit",
       },
       payment: {
@@ -54,7 +60,7 @@ async function handleGET() {
         quick: {
           title: "Quick Intelligence Audit",
           endpoint: "GET /api/audit?url=",
-          price_usdc: "0.015",
+          price_usdc: quickPrice,
           mode: "synchronous",
           engine: "fetch + HTML parsing (no browser)",
         },
@@ -138,7 +144,7 @@ async function handleGET() {
         },
       },
       endpoints: {
-        "GET /api/audit?url=": "$0.015 USDC via x402 v2 — quick audit, synchronous",
+        "GET /api/audit?url=": `$${quickPrice} USDC via x402 v2 — quick audit, synchronous`,
         "POST /api/audit/batch": `$${process.env.BATCH_AUDIT_PRICE_USDC ?? "0.50"} USDC via x402 v2 — batch quick audit, flat price up to 50 URLs, synchronous`,
         "GET /api/agent-readiness?url=&depth=quick": `$${readinessPrice} USDC via x402 v2 — Agent Readiness audit, synchronous`,
         "GET /v1/fetch?url=": `$${process.env.SAFE_FETCH_PRICE_USDC ?? "0.002"} USDC via x402 v2 — SSRF-guarded raw fetch, synchronous`,

@@ -15,12 +15,14 @@
   <strong>Measure whether a public website is discoverable, understandable, callable, and trustworthy for agents.</strong>
 </p>
 
-```text
+<div align="center">
+<pre>
 ┌──────────────────────────────────────────────────────────────┐
 │    SANTOS WEBSITE INTELLIGENCE • AI-READY WEB EVALUATION     │
 │             Discover • Understand • Call • Trust             │
 └──────────────────────────────────────────────────────────────┘
-```
+</pre>
+</div>
 
 **AI Website Intelligence and Agent Readiness for the agentic web** — Quick,
 Agent Readiness, and browser-rendered Deep audits return structured evidence and
@@ -37,7 +39,7 @@ prioritized fixes. No account or traditional API key; paid resources use the
 
 [![Live site](https://img.shields.io/website?url=https%3A%2F%2Fwww.santosautomation.com&label=live%20site)](https://www.santosautomation.com/)
 [![Vercel production](https://img.shields.io/badge/production-Vercel-black?logo=vercel)](https://vercel.com/thereal-baitjets-projects/santos-api)
-[![API version](https://img.shields.io/badge/API-v2.10.0-d4a24e)](https://api.santosautomation.com/openapi.json)
+[![API version](https://img.shields.io/badge/API-v2.11.0-d4a24e)](https://api.santosautomation.com/openapi.json)
 [![Agent-Ready badge](https://api.santosautomation.com/v1/badge?url=santosautomation.com)](https://www.santosautomation.com/reports/santosautomation.com)
 [![x402](https://img.shields.io/badge/payments-x402%20v2%20%7C%20USDC%20on%20Base-2775ca)](https://x402.org/)
 [![OpenAPI](https://img.shields.io/badge/spec-OpenAPI%203.1-6ba539)](https://api.santosautomation.com/openapi.json)
@@ -98,6 +100,11 @@ scores, endpoint paths, capability ids, and payment behavior remain compatible.
 - [Agent Readiness Methodology](https://www.santosautomation.com/methodology/agent-readiness)
 - [Sample Agent Readiness Report](https://www.santosautomation.com/reports/sample-agent-readiness)
 - [Learning guides](https://www.santosautomation.com/learn/what-is-ai-website-intelligence)
+
+## For humans (card, no crypto)
+
+- [Buy a report by card](https://www.santosautomation.com/agent-readiness/buy) — **$9 Quick** (Agent Readiness, fetch-based) or **$29 Deep** (Website Intelligence, browser-rendered), one-time, formatted and emailed. x402 prices remain the agent price (raw API); card prices are the human report.
+- [Santos Monitoring](https://www.santosautomation.com/monitoring) — **$9/mo** subscription: weekly re-audit of one URL, an email alert when the score moves 5+ points, and a monthly digest. Cancel anytime.
 
 ## How agents pay (x402)
 

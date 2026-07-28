@@ -4,9 +4,21 @@ import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
 import { AGENT_READINESS_RESULT_SCHEMA } from "../../lib/agent-readiness/contract.js";
 import { getAgentReadinessPriceUsdc, usdcAtomicAmount } from "../../lib/agent-readiness/product-pricing.js";
 import { STRUCTURED_EXTRACTION_SCHEMA_VERSION } from "../../lib/extract-structured.js";
+import { apiProduct } from "../../lib/products.js";
 
 const AGENT_READINESS_PRICE = getAgentReadinessPriceUsdc();
-const STRUCTURED_EXTRACT_PRICE = process.env.STRUCTURED_EXTRACT_PRICE_USDC ?? "0.08";
+const priceFor = (route) => apiProduct(route).priceUsdc;
+const QUICK_PRICE = priceFor("/api/audit");
+const QUICK_ATOMIC = usdcAtomicAmount(QUICK_PRICE);
+const BATCH_PRICE = priceFor("/api/audit/batch");
+const DEEP_PRICE = priceFor("/v1/audits");
+const FETCH_PRICE = priceFor("/v1/fetch");
+const EXTRACT_PRICE = priceFor("/v1/extract");
+const FEED_PRICE = priceFor("/v1/feed");
+const LINKS_PRICE = priceFor("/v1/links");
+const SUMMARIZE_PRICE = priceFor("/v1/summarize");
+const SCREENSHOT_PRICE = priceFor("/v1/screenshot");
+const STRUCTURED_EXTRACT_PRICE = priceFor("/v1/extract/structured");
 const AGENT_READINESS_ATOMIC_PRICE = usdcAtomicAmount(AGENT_READINESS_PRICE);
 
 const scoreSchema = { type: "integer", minimum: 0, maximum: 100 };
@@ -147,9 +159,9 @@ const document = {
   openapi: "3.1.0",
   info: {
     title: "Santos Website Intelligence API",
-    version: "2.10.0",
+    version: "2.11.0",
     description:
-      `AI Website Intelligence for determining whether public websites can be discovered, understood, trusted, and used by agents. Eleven paid capabilities use USDC on Base mainnet (eip155:8453) via x402 v2 with no account or traditional API key. QUICK INTELLIGENCE (GET /api/audit, $0.015, synchronous): lightweight single-page fetch-and-parse audit. AGENT READINESS (GET /api/agent-readiness, $${AGENT_READINESS_PRICE}, synchronous): bounded passive discovery and applicability-aware assessment of agent-facing interfaces. DEEP WEBSITE INTELLIGENCE (POST /v1/audits, $0.225, asynchronous): real Chromium via Playwright, Lighthouse, rendered axe-core, browser evidence, screenshots, and passive security checks. The other eight paid capabilities — SAFE FETCH (GET /v1/fetch, $0.002), CONTENT EXTRACTION (POST /v1/extract, $0.005), FEED PARSER (GET /v1/feed, $0.003), LINK MAP (GET /v1/links, $0.003), SUMMARIZER (POST /v1/summarize, $0.033), SCREENSHOT & PDF RENDER (GET /v1/screenshot, $0.01), STRUCTURED EXTRACTION (POST /v1/extract/structured, $0.08), and BATCH QUICK INTELLIGENCE (POST /api/audit/batch, $0.50 flat for up to 50 URLs) — are documented per-path below. Quick and Agent Readiness payments settle only on a successful response; Deep payment purchases a bounded compute reservation and settles when the job is accepted.`,
+      `AI Website Intelligence for determining whether public websites can be discovered, understood, trusted, and used by agents. Eleven paid capabilities use USDC on Base mainnet (eip155:8453) via x402 v2 with no account or traditional API key. QUICK INTELLIGENCE (GET /api/audit, $${QUICK_PRICE}, synchronous): lightweight single-page fetch-and-parse audit. AGENT READINESS (GET /api/agent-readiness, $${AGENT_READINESS_PRICE}, synchronous): bounded passive discovery and applicability-aware assessment of agent-facing interfaces. DEEP WEBSITE INTELLIGENCE (POST /v1/audits, $${DEEP_PRICE}, asynchronous): real Chromium via Playwright, Lighthouse, rendered axe-core, browser evidence, screenshots, and passive security checks. The other eight paid capabilities — SAFE FETCH (GET /v1/fetch, $${FETCH_PRICE}), CONTENT EXTRACTION (POST /v1/extract, $${EXTRACT_PRICE}), FEED PARSER (GET /v1/feed, $${FEED_PRICE}), LINK MAP (GET /v1/links, $${LINKS_PRICE}), SUMMARIZER (POST /v1/summarize, $${SUMMARIZE_PRICE}), SCREENSHOT & PDF RENDER (GET /v1/screenshot, $${SCREENSHOT_PRICE}), STRUCTURED EXTRACTION (POST /v1/extract/structured, $${STRUCTURED_EXTRACT_PRICE}), and BATCH QUICK INTELLIGENCE (POST /api/audit/batch, $${BATCH_PRICE} flat for up to 50 URLs) — are documented per-path below. Quick and Agent Readiness payments settle only on a successful response; Deep payment purchases a bounded compute reservation and settles when the job is accepted.`,
     contact: { name: "Santos Automation", email: "info@santosautomation.com", url: "https://www.santosautomation.com" },
   },
   servers: [{ url: PUBLIC_API_BASE_URL }],
@@ -192,9 +204,9 @@ const document = {
       get: {
         operationId: "auditWebsite",
         tags: ["Quick Intelligence"],
-        summary: "Run a Quick Intelligence Audit ($0.015 USDC via x402)",
+        summary: `Run a Quick Intelligence Audit ($${QUICK_PRICE} USDC via x402)`,
         description:
-          "Requires x402 v2 payment. An unpaid request returns HTTP 402 with machine-readable terms in the base64 `PAYMENT-REQUIRED` response header (`accepts[0]`: $0.015 USDC as amount \"15000\", network eip155:8453, scheme `exact`), including an x402 Bazaar discovery extension with input/output JSON Schemas. Sign an EIP-3009 transferWithAuthorization for the quoted amount and retry with the `PAYMENT-SIGNATURE` request header. Any x402 v2 client (e.g. @x402/fetch) automates this. Payment settles only after a successful (2xx) response — failed audits cost nothing. Rejected payments and audit failures return structured errors.",
+          `Requires x402 v2 payment. An unpaid request returns HTTP 402 with machine-readable terms in the base64 \`PAYMENT-REQUIRED\` response header (\`accepts[0]\`: $${QUICK_PRICE} USDC as amount "${QUICK_ATOMIC}", network eip155:8453, scheme \`exact\`), including an x402 Bazaar discovery extension with input/output JSON Schemas. Sign an EIP-3009 transferWithAuthorization for the quoted amount and retry with the \`PAYMENT-SIGNATURE\` request header. Any x402 v2 client (e.g. @x402/fetch) automates this. Payment settles only after a successful (2xx) response — failed audits cost nothing. Rejected payments and audit failures return structured errors.`,
         parameters: [urlParam],
         responses: {
           200: {
@@ -212,7 +224,7 @@ const document = {
             headers: {
               "PAYMENT-REQUIRED": {
                 schema: { type: "string" },
-                description: "Base64-encoded JSON: { x402Version: 2, resource, accepts: [{ scheme, network, amount, asset, payTo, maxTimeoutSeconds }], extensions }. amount \"15000\" = $0.015 USDC.",
+                description: `Base64-encoded JSON: { x402Version: 2, resource, accepts: [{ scheme, network, amount, asset, payTo, maxTimeoutSeconds }], extensions }. amount "${QUICK_ATOMIC}" = $${QUICK_PRICE} USDC.`,
               },
             },
             content: {
@@ -279,7 +291,7 @@ const document = {
       post: {
         operationId: "auditWebsiteBatch",
         tags: ["Quick Intelligence"],
-        summary: "Batch Quick Intelligence Audits ($0.50 USDC flat via x402, up to 50 URLs)",
+        summary: `Batch Quick Intelligence Audits ($${BATCH_PRICE} USDC flat via x402, up to 50 URLs)`,
         description:
           "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE). Audits up to 50 public URLs for one flat payment — the same report shape as GET /api/audit per URL, with a Website Intelligence score. Duplicates are removed; at most 8 targets are fetched concurrently. Per-URL failures are isolated and returned as error entries; payment settles only when at least one audit succeeds — a batch where every URL fails returns 502 and is never charged. Synchronous; typical batches finish in seconds, worst-case is a few minutes.",
         requestBody: {
@@ -326,7 +338,7 @@ const document = {
             },
           },
           400: { description: "Malformed body, empty urls array, or more than 50 URLs.", content: { "application/json": { schema: errorSchema } } },
-          402: { description: "Payment required. PAYMENT-REQUIRED contains x402 v2 terms for $0.50 USDC on eip155:8453." },
+          402: { description: `Payment required. PAYMENT-REQUIRED contains x402 v2 terms for $${BATCH_PRICE} USDC on eip155:8453.` },
           502: { description: "Every URL in the batch failed; no charge settled.", content: { "application/json": { schema: errorSchema } } },
         },
       },
@@ -335,7 +347,7 @@ const document = {
       get: {
         operationId: "safeFetchUrl",
         tags: ["Safe Fetch"],
-        summary: "Fetch one public URL through the hardened safe-fetcher ($0.002 USDC via x402, synchronous)",
+        summary: `Fetch one public URL through the hardened safe-fetcher ($${FETCH_PRICE} USDC via x402, synchronous)`,
         description:
           "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful fetch. Returns the raw text body plus response metadata: final URL after redirects, HTTP status, selected response headers, byte count, and timing. SSRF-guarded (private/link-local/cloud-metadata addresses blocked including via redirects), 15s timeout, 5 redirects max, 2MB cap, ports 80/443 only. Text formats only: HTML, JSON, XML, feeds, plain text, JavaScript, SVG. A POST variant with a JSON {url} body is paywalled identically. Free demo: GET /v1/fetch/demo (1/day per IP, shared quota).",
         parameters: [urlParam],
@@ -389,7 +401,7 @@ const document = {
       post: {
         operationId: "extractPageMarkdown",
         tags: ["Content Extraction"],
-        summary: "Extract one page as clean Markdown ($0.005 USDC via x402, synchronous)",
+        summary: `Extract one page as clean Markdown ($${EXTRACT_PRICE} USDC via x402, synchronous)`,
         description:
           "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful extraction. Fetches one public page (SSRF-guarded, 15s timeout, 5MB cap) and returns readability-isolated main content as Markdown plus title, description, canonical URL, outbound links (max 200), and word count. Single page only — no crawling, no JavaScript rendering. A GET variant with ?url= is also paywalled identically. Free demo: GET /v1/extract/demo (1/day per IP, shared quota with /api/audit/demo).",
         requestBody: {
@@ -541,7 +553,7 @@ const document = {
       get: {
         operationId: "parseFeed",
         tags: ["Feed Parser"],
-        summary: "Parse one public feed URL into normalized JSON ($0.003 USDC via x402, synchronous)",
+        summary: `Parse one public feed URL into normalized JSON ($${FEED_PRICE} USDC via x402, synchronous)`,
         description:
           "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful parse. Fetches one public feed URL through the same hardened SSRF-guarded fetcher as /v1/fetch (private/link-local/cloud-metadata addresses blocked including via redirects, 15s timeout, 2MB cap, ports 80/443 only), detects RSS 2.0, Atom, or JSON Feed, and returns normalized JSON: feed metadata (title, link, description, feed_url) plus up to 50 items with id, title, url, published, summary, and author. A target that is not a recognized feed returns 422 and never settles. A POST variant with a JSON {url} body is paywalled identically.",
         parameters: [urlParam],
@@ -600,7 +612,7 @@ const document = {
       get: {
         operationId: "mapPageLinks",
         tags: ["Link Map"],
-        summary: "Map one page's links into a categorized link map ($0.003 USDC via x402, synchronous)",
+        summary: `Map one page's links into a categorized link map ($${LINKS_PRICE} USDC via x402, synchronous)`,
         description:
           "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful response. Fetches one public HTML page (SSRF-guarded, 15s timeout, 5MB cap) and returns a categorized link map: every link resolved, deduped, and classified by kind (internal or external) plus topic tags (docs, pricing, api, careers, social, feed), with counts for each kind and topic — up to 200 links. Built for site-structure discovery: finding a target's docs, pricing, API, careers, social profiles, or feed URLs in one call. A POST variant with a JSON {url} body is paywalled identically.",
         parameters: [urlParam],
@@ -661,7 +673,7 @@ const document = {
       post: {
         operationId: "summarizePage",
         tags: ["Summarizer"],
-        summary: "Summarize one page into structured JSON with Claude ($0.033 USDC via x402, synchronous)",
+        summary: `Summarize one page into structured JSON with Claude ($${SUMMARIZE_PRICE} USDC via x402, synchronous)`,
         description:
           "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful summary. Fetches one public HTML page (SSRF-guarded, 15s timeout, 5MB cap) and returns a Claude-generated structured summary: title, summary, key_facts, entities, and word_count. An optional focus string steers the summary (e.g. \"pricing plans\"). Non-HTML targets return 422 and never settle. A GET variant with ?url=&focus= is paywalled identically.",
         requestBody: {
@@ -716,7 +728,7 @@ const document = {
       get: {
         operationId: "renderScreenshot",
         tags: ["Screenshot & PDF Render"],
-        summary: "Render one page as PNG/JPEG/PDF in a real browser ($0.01 USDC via x402, synchronous)",
+        summary: `Render one page as PNG/JPEG/PDF in a real browser ($${SCREENSHOT_PRICE} USDC via x402, synchronous)`,
         description:
           "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only when render bytes are returned — timeouts (504) and failures (502/503) are free. Renders in an isolated SSRF-guarded Chromium session with request/byte budgets, executing JavaScript so SPAs, client-rendered charts, and post-load layout are captured as a real visitor sees them; the binary returns directly with an X-Render-Job header. Common agent uses: verifying a deployed page renders correctly, visual change monitoring, link previews, print-rendered A4 PDF archival, and producing input for vision-capable models. Every render is a fresh anonymous visitor: no login-protected content, no cookies carried. Typical latency: seconds when a worker is warm; a cold worker wakes on demand and may 504 the first try — retry.",
         parameters: [
@@ -838,7 +850,7 @@ const document = {
       post: {
         operationId: "createDeepAudit",
         tags: ["Deep Website Intelligence"],
-        summary: "Create a Deep Website Intelligence job ($0.225 USDC via x402, asynchronous)",
+        summary: `Create a Deep Website Intelligence job ($${DEEP_PRICE} USDC via x402, asynchronous)`,
         description:
           "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE). The payment purchases one bounded compute reservation — it settles when the job is ACCEPTED (201), not when the report completes. Runs a real Chromium browser (Playwright) against the page: Lighthouse (mobile lab metrics), rendered axe-core accessibility checks (WCAG 2.x A/AA tags), browser network/console evidence, screenshots, and passive security checks. Send an Idempotency-Key header so retries return the existing job (409 IDEMPOTENT_REPLAY, not charged) instead of purchasing a duplicate. Typical completion: tens of seconds to a few minutes; poll status_url.",
         parameters: [{

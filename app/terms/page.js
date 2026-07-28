@@ -96,6 +96,14 @@ export default function TermsPage() {
         <a href="mailto:info@santosautomation.com">info@santosautomation.com</a> with your
         purchase email and we will review the request.
       </p>
+      <p>
+        Santos Monitoring is a $9 USD/month card subscription, processed by Stripe,
+        that re-audits one URL weekly with the same engine. It renews monthly until
+        canceled; you can cancel anytime via the manage link included in every
+        monitoring email, and cancellation stops future charges and weekly re-audits
+        immediately. Score-change alerts and the monthly digest are informational
+        notifications, not an SLA or a guarantee of detection or delivery timing.
+      </p>
 
       <h2>Availability and support</h2>
       <p>

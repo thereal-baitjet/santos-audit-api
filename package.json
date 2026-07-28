@@ -1,6 +1,6 @@
 {
   "name": "santos-audit-api",
-  "version": "2.10.0",
+  "version": "2.11.0",
   "description": "AI Website Intelligence and Agent Readiness API with Quick and browser-rendered audits, structured evidence, and x402 USDC payment on Base.",
   "scripts": {
     "dev": "next dev -H 127.0.0.1 -p 3000",
@@ -8,6 +8,7 @@
     "start": "next start -H 127.0.0.1 -p 3000",
     "test": "node test.js",
     "test:agent-readiness": "node --test tests/agent-readiness.test.js",
+    "test:catalog": "node --test tests/catalog-consistency.test.js",
     "test:website-intelligence": "node --test tests/website-intelligence.test.js",
     "test:extract-structured": "node --test tests/extract-structured.test.js",
     "test:summarize": "node --test tests/summarize.test.js",
