@@ -10,6 +10,7 @@ import { validateTarget } from "../../../lib/safe-fetch.js";
 import { normalizeScreenshotRequest } from "../../../lib/screenshot.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { bazaarResourceMeta } from "../../../lib/bazaar-catalog.js";
 import { getStore } from "../../../lib/deep/store.js";
 import { hasWorkerCapacity } from "../../../lib/deep/capacity.js";
 import { deepAuditGate, NO_STORE } from "../../../lib/deep/gate.js";
@@ -99,8 +100,7 @@ const routeConfig = {
   description:
     "Render one public page in real isolated Chromium and get image or PDF bytes back synchronously: png (default), jpeg, or pdf (A4 print); desktop 1366x900 or mobile 390x844; full_page for whole-page height. JavaScript executes, so SPAs and client-rendered pages are captured as a real visitor sees them. Fresh anonymous visitor every render, SSRF-guarded. Settles only when bytes are returned — failures are free.",
   mimeType: "image/png",
-  serviceName: "Santos Screenshot & PDF Render",
-  tags: ["screenshot", "pdf-render", "browser", "headless-chrome", "x402"],
+  ...bazaarResourceMeta("screenshot"),
   unpaidResponseBody: () => ({
     contentType: "application/json",
     body: {

@@ -8,6 +8,7 @@ import { extractPage, EXTRACT_SCHEMA_VERSION } from "../../../lib/extract.js";
 import { validateTarget } from "../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { bazaarResourceMeta } from "../../../lib/bazaar-catalog.js";
 import { notifyTransaction } from "../../../notify.js";
 
 const PRICE = process.env.EXTRACT_PRICE_USDC ?? "0.005";
@@ -31,13 +32,33 @@ async function handler(req) {
   }
 }
 
-const routeConfig = {
+const INPUT_SCHEMA = {
+  properties: { url: { type: "string", description: "Public HTTP or HTTPS page to extract." } },
+  required: ["url"],
+};
+const INPUT_EXAMPLE = { url: "https://example.com/article" };
+const OUTPUT = {
+  example: {
+    schema_version: EXTRACT_SCHEMA_VERSION,
+    url: "https://example.com/article",
+    final_url: "https://example.com/article",
+    http_status: 200,
+    title: "Example article",
+    markdown: "# Example article\n\nBody text…",
+    links: [{ url: "https://example.com/next", text: "Next page" }],
+    word_count: 245,
+  },
+};
+
+// Fresh config per verb: the Bazaar extension rewrites info.input.method from
+// the live request, so GET advertises query params and POST a JSON body. Both
+// pin the same canonical resource URL and stay one catalog resource.
+const buildConfig = (discovery) => ({
   accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
   description:
     "Extract one public web page as clean Markdown: main content isolated readability-style, plus title, description, canonical URL, outbound links, and word count. Read-only single-page fetch — no crawling, no JavaScript rendering.",
   mimeType: "application/json",
-  serviceName: "Santos Page-to-Markdown Extractor",
-  tags: ["content-extraction", "markdown", "web-scraping", "rag", "x402"],
+  ...bazaarResourceMeta("extract"),
   unpaidResponseBody: () => ({
     contentType: "application/json",
     body: {
@@ -46,37 +67,25 @@ const routeConfig = {
       hint: `x402 v2: decode the base64 PAYMENT-REQUIRED response header for the $${PRICE} USDC terms, sign, and retry with a PAYMENT-SIGNATURE header. Payment settles only on a successful extraction. Free demo: GET /v1/extract/demo?url=… (1/day per IP). Docs: /llms.txt and /openapi.json.`,
     },
   }),
-  extensions: {
-    ...declareDiscoveryExtension({
-      bodyType: "json",
-      input: { url: "https://example.com/article" },
-      inputSchema: {
-        properties: { url: { type: "string", description: "Public HTTP or HTTPS page to extract." } },
-        required: ["url"],
-      },
-      output: {
-        example: {
-          schema_version: EXTRACT_SCHEMA_VERSION,
-          url: "https://example.com/article",
-          final_url: "https://example.com/article",
-          http_status: 200,
-          title: "Example article",
-          markdown: "# Example article\n\nBody text…",
-          links: [{ url: "https://example.com/next", text: "Next page" }],
-          word_count: 245,
-        },
-      },
-    }),
-  },
-};
+  extensions: { ...declareDiscoveryExtension(discovery) },
+});
 
 // Verbless route key so Next's HEAD→GET mapping still hits the paywall.
-const httpServer = new x402HTTPResourceServer(resourceServer, {
-  "/v1/extract": routeConfig,
+const getServer = new x402HTTPResourceServer(resourceServer, {
+  "/v1/extract": buildConfig({ input: INPUT_EXAMPLE, inputSchema: INPUT_SCHEMA, output: OUTPUT }),
 });
-const paidHandler = withX402FromHTTPServer(handler, httpServer);
+const postServer = new x402HTTPResourceServer(resourceServer, {
+  "/v1/extract": buildConfig({
+    bodyType: "json",
+    input: INPUT_EXAMPLE,
+    inputSchema: INPUT_SCHEMA,
+    output: OUTPUT,
+  }),
+});
+const paidGET = withX402FromHTTPServer(handler, getServer);
+const paidPOST = withX402FromHTTPServer(handler, postServer);
 
-async function paidWithReceipt(req) {
+async function paidWithReceipt(req, paidHandler) {
   const res = await paidHandler(req);
   res.headers.set("Access-Control-Allow-Origin", "*");
   res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
@@ -102,11 +111,11 @@ async function paidWithReceipt(req) {
 }
 
 async function handlePOST(req) {
-  return paidWithReceipt(req);
+  return paidWithReceipt(req, paidPOST);
 }
 
 async function handleGET(req) {
-  return paidWithReceipt(req);
+  return paidWithReceipt(req, paidGET);
 }
 
 export async function OPTIONS() {

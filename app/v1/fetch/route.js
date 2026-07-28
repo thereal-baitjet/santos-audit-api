@@ -9,6 +9,7 @@ import { fetchUrl, SAFE_FETCH_SCHEMA_VERSION } from "../../../lib/fetch-product.
 import { validateTarget } from "../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { bazaarResourceMeta } from "../../../lib/bazaar-catalog.js";
 import { notifyTransaction } from "../../../notify.js";
 
 const PRICE = process.env.SAFE_FETCH_PRICE_USDC ?? "0.002";
@@ -32,13 +33,34 @@ async function handler(req) {
   }
 }
 
-const routeConfig = {
+const INPUT_SCHEMA = {
+  properties: { url: { type: "string", description: "Public HTTP or HTTPS URL to fetch (text formats only)." } },
+  required: ["url"],
+};
+const INPUT_EXAMPLE = { url: "https://example.com/data.json" };
+const OUTPUT = {
+  example: {
+    schema_version: SAFE_FETCH_SCHEMA_VERSION,
+    url: "https://example.com/data.json",
+    final_url: "https://example.com/data.json",
+    http_status: 200,
+    content_type: "application/json",
+    headers: { "content-type": "application/json" },
+    body: "{\"hello\":\"world\"}",
+    body_bytes: 17,
+  },
+};
+
+// Fresh config per verb: the Bazaar extension rewrites info.input.method from
+// the live request, so a GET must advertise query params and a POST a JSON
+// body. Both pin the same canonical resource URL, so they remain one catalog
+// resource rather than two.
+const buildConfig = (discovery) => ({
   accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
   description:
     "Fetch one public URL through a hardened safe-fetcher and get the raw text body plus response metadata (final URL after redirects, status, selected headers, byte count, timing). SSRF-guarded — private, link-local, and cloud-metadata addresses are blocked including via redirects — with a 15s timeout, 2MB cap, and ports 80/443 only. Text formats only (HTML, JSON, XML, feeds, plain text, JS, SVG); read-only, no crawling, no JavaScript rendering.",
   mimeType: "application/json",
-  serviceName: "Santos Safe Fetch",
-  tags: ["web-fetch", "http-client", "ssrf-safe", "scraping", "x402"],
+  ...bazaarResourceMeta("safe-fetch"),
   unpaidResponseBody: () => ({
     contentType: "application/json",
     body: {
@@ -47,37 +69,25 @@ const routeConfig = {
       hint: `x402 v2: decode the base64 PAYMENT-REQUIRED response header for the $${PRICE} USDC terms, sign, and retry with a PAYMENT-SIGNATURE header. Payment settles only on a successful fetch. Docs: /llms.txt and /openapi.json.`,
     },
   }),
-  extensions: {
-    ...declareDiscoveryExtension({
-      bodyType: "json",
-      input: { url: "https://example.com/data.json" },
-      inputSchema: {
-        properties: { url: { type: "string", description: "Public HTTP or HTTPS URL to fetch (text formats only)." } },
-        required: ["url"],
-      },
-      output: {
-        example: {
-          schema_version: SAFE_FETCH_SCHEMA_VERSION,
-          url: "https://example.com/data.json",
-          final_url: "https://example.com/data.json",
-          http_status: 200,
-          content_type: "application/json",
-          headers: { "content-type": "application/json" },
-          body: "{\"hello\":\"world\"}",
-          body_bytes: 17,
-        },
-      },
-    }),
-  },
-};
+  extensions: { ...declareDiscoveryExtension(discovery) },
+});
 
 // Verbless route key so Next's HEAD→GET mapping still hits the paywall.
-const httpServer = new x402HTTPResourceServer(resourceServer, {
-  "/v1/fetch": routeConfig,
+const getServer = new x402HTTPResourceServer(resourceServer, {
+  "/v1/fetch": buildConfig({ input: INPUT_EXAMPLE, inputSchema: INPUT_SCHEMA, output: OUTPUT }),
 });
-const paidHandler = withX402FromHTTPServer(handler, httpServer);
+const postServer = new x402HTTPResourceServer(resourceServer, {
+  "/v1/fetch": buildConfig({
+    bodyType: "json",
+    input: INPUT_EXAMPLE,
+    inputSchema: INPUT_SCHEMA,
+    output: OUTPUT,
+  }),
+});
+const paidGET = withX402FromHTTPServer(handler, getServer);
+const paidPOST = withX402FromHTTPServer(handler, postServer);
 
-async function paidWithReceipt(req) {
+async function paidWithReceipt(req, paidHandler) {
   const res = await paidHandler(req);
   res.headers.set("Access-Control-Allow-Origin", "*");
   res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
@@ -103,11 +113,11 @@ async function paidWithReceipt(req) {
 }
 
 async function handleGET(req) {
-  return paidWithReceipt(req);
+  return paidWithReceipt(req, paidGET);
 }
 
 async function handlePOST(req) {
-  return paidWithReceipt(req);
+  return paidWithReceipt(req, paidPOST);
 }
 
 export async function OPTIONS() {

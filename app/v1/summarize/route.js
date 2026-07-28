@@ -10,6 +10,7 @@ import { summarizeUrl, SUMMARIZE_SCHEMA_VERSION, MODEL } from "../../../lib/summ
 import { validateTarget } from "../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { bazaarResourceMeta } from "../../../lib/bazaar-catalog.js";
 import { notifyTransaction } from "../../../notify.js";
 
 export const maxDuration = 30;
@@ -46,13 +47,12 @@ async function handler(req) {
   }
 }
 
-const routeConfig = {
+const buildConfig = (bodyType) => ({
   accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
   description:
     "Summarize one public web page with Claude. Fetches the page (SSRF-guarded, readability-isolated Markdown, truncated to 8000 characters), then returns a tight JSON brief: title, ~200-word summary, up to 10 key facts, up to 15 named entities, and a word count. Pass an optional focus to prioritize information relevant to a specific topic. HTML pages only.",
   mimeType: "application/json",
-  serviceName: "Santos Summarizer",
-  tags: ["summarize", "llm", "extraction", "x402"],
+  ...bazaarResourceMeta("summarize"),
   unpaidResponseBody: () => ({
     contentType: "application/json",
     body: {
@@ -63,7 +63,7 @@ const routeConfig = {
   }),
   extensions: {
     ...declareDiscoveryExtension({
-      bodyType: "json",
+      ...(bodyType ? { bodyType } : {}),
       input: { url: "https://example.com/blog/post", focus: "pricing" },
       inputSchema: {
         properties: {
@@ -89,15 +89,21 @@ const routeConfig = {
       },
     }),
   },
-};
+});
 
 // Verbless route key so Next's HEAD→GET mapping still hits the paywall.
-const httpServer = new x402HTTPResourceServer(resourceServer, {
-  "/v1/summarize": routeConfig,
+// One server per verb: the Bazaar extension rewrites info.input.method from
+// the live request, so GET must advertise query params and POST a JSON body.
+const getServer = new x402HTTPResourceServer(resourceServer, {
+  "/v1/summarize": buildConfig(null),
 });
-const paidHandler = withX402FromHTTPServer(handler, httpServer);
+const postServer = new x402HTTPResourceServer(resourceServer, {
+  "/v1/summarize": buildConfig("json"),
+});
+const paidGET = withX402FromHTTPServer(handler, getServer);
+const paidPOST = withX402FromHTTPServer(handler, postServer);
 
-async function paidWithReceipt(req) {
+async function paidWithReceipt(req, paidHandler) {
   const res = await paidHandler(req);
   res.headers.set("Access-Control-Allow-Origin", "*");
   res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
@@ -123,11 +129,11 @@ async function paidWithReceipt(req) {
 }
 
 async function handleGET(req) {
-  return paidWithReceipt(req);
+  return paidWithReceipt(req, paidGET);
 }
 
 async function handlePOST(req) {
-  return paidWithReceipt(req);
+  return paidWithReceipt(req, paidPOST);
 }
 
 export async function OPTIONS() {
