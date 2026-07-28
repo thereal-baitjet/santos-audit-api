@@ -21,6 +21,7 @@ export default async function sitemap() {
     "/llms-txt-generator",
     "/free-token",
     "/ci",
+    "/integrations",
     "/integrations/grok",
     "/integrations/claude",
     "/verify",

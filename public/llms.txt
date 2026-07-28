@@ -17,6 +17,7 @@ Built and operated by Santos Automation. From discoverable to callable.
 - [Service manifest](https://api.santosautomation.com/api): live service description and pricing
 - [Capability manifest](https://api.santosautomation.com/capabilities.json): vendor-specific capability manifest (not a formal standard)
 - [Agent capability manifest](https://www.santosautomation.com/.well-known/agent-capabilities.json): well-known agent-capabilities document
+- [MCP integration hub](https://www.santosautomation.com/integrations): one Remote MCP endpoint, seven tools, setup for every supported client
 - [Grok & xAI integration](https://www.santosautomation.com/integrations/grok): register this MCP server as a Grok Remote MCP tool in one line — free previews, paid x402 handoff
 - [Claude integration](https://www.santosautomation.com/integrations/claude): add this MCP server to Claude as a custom connector — same endpoint as the Grok integration
 

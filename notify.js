@@ -5,24 +5,48 @@ import { redactUrl } from "./lib/redact.js";
 // Ops warning channel: loud, fire-and-forget Discord alert for failures a
 // customer would otherwise discover before we do (e.g. email delivery down).
 // Never throws, same contract as notifyTransaction.
-export async function notifyOpsAlert({ title, detail }) {
+export async function notifyOpsAlert({ title, detail, fields = [], urgent = false }) {
   const webhook = process.env.DISCORD_WEBHOOK_URL;
-  if (!webhook) return;
+  if (!webhook) {
+    // Loud in logs: an alert nobody receives is worse than no alert, because it
+    // is mistaken for silence meaning "nothing is wrong".
+    console.error(`ops alert not delivered (DISCORD_WEBHOOK_URL unset): ${title} — ${detail}`);
+    return { delivered: false, reason: "no_webhook" };
+  }
+  const body = {
+    // An urgent incident should be visually distinct from a routine warning at
+    // a glance, and content mentions surface on mobile without a role ping.
+    content: urgent ? `@here **${title}**` : undefined,
+    embeds: [{
+      title: `${urgent ? "🚨" : "⚠️"} ${title}`,
+      color: urgent ? 15158332 : 13956054, // red for incidents, orange for warnings
+      description: String(detail ?? "unknown").slice(0, 2000),
+      fields: fields.slice(0, 10).map((f) => ({
+        name: String(f.name).slice(0, 256),
+        value: String(f.value).slice(0, 1024),
+        inline: Boolean(f.inline),
+      })),
+      timestamp: new Date().toISOString(),
+    }],
+  };
   try {
-    await fetch(webhook, {
+    // A hung Discord must never hold a request open. The caller awaits this so
+    // the POST actually flushes before a serverless instance is frozen, so the
+    // timeout is what keeps that safe.
+    const res = await fetch(webhook, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        embeds: [{
-          title: `⚠️ ${title}`,
-          color: 13956054, // warning orange-red
-          fields: [{ name: "Detail", value: String(detail ?? "unknown").slice(0, 1000), inline: false }],
-          timestamp: new Date().toISOString(),
-        }],
-      }),
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(4000),
     });
+    if (!res.ok) {
+      console.error(`Discord ops alert rejected: HTTP ${res.status} — ${title}`);
+      return { delivered: false, reason: `http_${res.status}` };
+    }
+    return { delivered: true };
   } catch (e) {
-    console.error("Discord ops alert failed:", e.message);
+    console.error("Discord ops alert failed:", e.message, "—", title);
+    return { delivered: false, reason: e.name === "TimeoutError" ? "timeout" : "error" };
   }
 }
 
