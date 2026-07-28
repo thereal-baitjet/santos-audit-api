@@ -107,3 +107,27 @@ test("free-tier help names the free path before the paid one", async () => {
   assert.ok(freeAt < paidAt, "the free path must come first");
   assert.ok(INVALID_TOKEN_HELP.includes("/free-token"), "invalid-token help must link the token page");
 });
+
+// ---------------------------------------------------------------------------
+// MCP Registry namespace resolution. The registry namespaces servers by reverse
+// DNS and its search does not match dotted hostnames — searching
+// "santosautomation.com" returns nothing while "com.santosautomation" returns
+// the entry, so getting this transform wrong silently reports every published
+// server as unlisted.
+// ---------------------------------------------------------------------------
+
+import { registryNamespaceFor } from "../lib/agent-readiness/analyze.js";
+
+test("hostnames map to their reverse-DNS registry namespace", () => {
+  assert.equal(registryNamespaceFor("santosautomation.com"), "com.santosautomation");
+  assert.equal(registryNamespaceFor("www.santosautomation.com"), "com.santosautomation");
+  assert.equal(registryNamespaceFor("WWW.SantosAutomation.COM"), "com.santosautomation");
+  assert.equal(registryNamespaceFor("api.example.co.uk"), "uk.co.example.api");
+  assert.equal(registryNamespaceFor("example.com."), "com.example");
+});
+
+test("unresolvable hostnames yield no namespace rather than a bad search", () => {
+  for (const bad of ["", "   ", "localhost", null, undefined]) {
+    assert.equal(registryNamespaceFor(bad), null, `${JSON.stringify(bad)} should not produce a namespace`);
+  }
+});
