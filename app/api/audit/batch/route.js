@@ -15,6 +15,7 @@ import { auditSite } from "../../../../audit.js";
 import { validateTarget, AuditError } from "../../../../lib/safe-fetch.js";
 import { CORS } from "../../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../../lib/x402-server.js";
+import { bazaarResourceMeta } from "../../../../lib/bazaar-catalog.js";
 import { recordEvent } from "../../../../lib/analytics-store.js";
 import { notifyTransaction } from "../../../../notify.js";
 import { signReport } from "../../../../lib/report-signing.js";
@@ -97,8 +98,7 @@ const routeConfig = {
   description:
     "Batch Quick Intelligence Audits: up to 50 public URLs for one flat payment. Each URL gets the full single-page audit (performance, SEO, accessibility markup, security headers, website-intelligence score). Per-URL failures are isolated and reported; payment settles only when at least one audit succeeds.",
   mimeType: "application/json",
-  serviceName: "Santos Batch Quick Intelligence Audit",
-  tags: ["website-audit", "batch", "bulk", "seo", "accessibility", "security", "x402"],
+  ...bazaarResourceMeta("batch-audit"),
   unpaidResponseBody: () => ({
     contentType: "application/json",
     body: {

@@ -7,6 +7,7 @@ import { auditSite } from "../../../audit.js";
 import { notifyTransaction } from "../../../notify.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { bazaarResourceMeta } from "../../../lib/bazaar-catalog.js";
 import { recordEvent } from "../../../lib/analytics-store.js";
 import { signReport } from "../../../lib/report-signing.js";
 import { upsertPublicReport } from "../../../lib/public-reports.js";
@@ -57,8 +58,7 @@ const routeConfig = {
         hint: "x402 v2: decode the base64 PAYMENT-REQUIRED response header for full terms ($0.015 USDC on eip155:8453), sign, and retry with a PAYMENT-SIGNATURE header. Any x402 v2 client (e.g. @x402/fetch) automates this. Docs: /llms.txt and /openapi.json.",
       },
     }),
-    serviceName: "Santos Quick Intelligence Audit",
-    tags: ["website-audit", "seo", "accessibility", "security", "performance"],
+    ...bazaarResourceMeta("quick-audit"),
     extensions: {
       ...declareDiscoveryExtension({
         input: { url: "https://example.com" },

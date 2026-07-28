@@ -9,6 +9,7 @@ import { extractStructured, STRUCTURED_EXTRACTION_SCHEMA_VERSION, MODEL } from "
 import { validateTarget } from "../../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../../lib/x402-server.js";
+import { bazaarResourceMeta } from "../../../../lib/bazaar-catalog.js";
 import { notifyTransaction } from "../../../../notify.js";
 
 export const maxDuration = 30;
@@ -38,8 +39,7 @@ const routeConfig = {
   description:
     "Extract structured JSON from one public web page against a caller-supplied JSON Schema. Fetches and cleans the page (SSRF-guarded, readability-isolated Markdown, truncated to 8000 characters), then calls Claude with forced tool-use to populate exactly the fields the schema asks for — never fabricating values not present on the page. The extracted data is validated against the caller's own schema before it is returned.",
   mimeType: "application/json",
-  serviceName: "Santos Structured Extraction",
-  tags: ["structured-extraction", "json-schema", "llm", "content-extraction", "x402"],
+  ...bazaarResourceMeta("structured-extract"),
   unpaidResponseBody: () => ({
     contentType: "application/json",
     body: {

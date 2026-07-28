@@ -9,6 +9,7 @@ import { parseFeed, FEED_SCHEMA_VERSION } from "../../../lib/feed.js";
 import { validateTarget } from "../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { bazaarResourceMeta } from "../../../lib/bazaar-catalog.js";
 import { notifyTransaction } from "../../../notify.js";
 
 const PRICE = process.env.FEED_PRICE_USDC ?? "0.003";
@@ -32,13 +33,12 @@ async function handler(req) {
   }
 }
 
-const routeConfig = {
+const buildConfig = (bodyType) => ({
   accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
   description:
     "Parse any RSS 2.0, Atom, or JSON Feed URL into one normalized JSON object: feed metadata (title, link, description, feed URL) plus up to 50 items with id, title, url, published date, summary (500 chars max), and author. Fetched through an SSRF-guarded safe-fetcher — private, link-local, and cloud-metadata addresses are blocked — with a 15s timeout and 2MB cap. Payment settles only on a successful parse.",
   mimeType: "application/json",
-  serviceName: "Santos Feed Parser",
-  tags: ["feed", "rss", "atom", "json-feed", "x402"],
+  ...bazaarResourceMeta("feed"),
   unpaidResponseBody: () => ({
     contentType: "application/json",
     body: {
@@ -49,7 +49,7 @@ const routeConfig = {
   }),
   extensions: {
     ...declareDiscoveryExtension({
-      bodyType: "json",
+      ...(bodyType ? { bodyType } : {}),
       input: { url: "https://example.com/feed.xml" },
       inputSchema: {
         properties: { url: { type: "string", description: "Public HTTP or HTTPS URL of an RSS 2.0, Atom, or JSON feed." } },
@@ -82,15 +82,21 @@ const routeConfig = {
       },
     }),
   },
-};
+});
 
 // Verbless route key so Next's HEAD→GET mapping still hits the paywall.
-const httpServer = new x402HTTPResourceServer(resourceServer, {
-  "/v1/feed": routeConfig,
+// One server per verb: the Bazaar extension rewrites info.input.method from
+// the live request, so GET must advertise query params and POST a JSON body.
+const getServer = new x402HTTPResourceServer(resourceServer, {
+  "/v1/feed": buildConfig(null),
 });
-const paidHandler = withX402FromHTTPServer(handler, httpServer);
+const postServer = new x402HTTPResourceServer(resourceServer, {
+  "/v1/feed": buildConfig("json"),
+});
+const paidGET = withX402FromHTTPServer(handler, getServer);
+const paidPOST = withX402FromHTTPServer(handler, postServer);
 
-async function paidWithReceipt(req) {
+async function paidWithReceipt(req, paidHandler) {
   const res = await paidHandler(req);
   res.headers.set("Access-Control-Allow-Origin", "*");
   res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
@@ -116,11 +122,11 @@ async function paidWithReceipt(req) {
 }
 
 async function handleGET(req) {
-  return paidWithReceipt(req);
+  return paidWithReceipt(req, paidGET);
 }
 
 async function handlePOST(req) {
-  return paidWithReceipt(req);
+  return paidWithReceipt(req, paidPOST);
 }
 
 export async function OPTIONS() {

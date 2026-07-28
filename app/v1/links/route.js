@@ -9,6 +9,7 @@ import { mapLinks, LINKS_SCHEMA_VERSION } from "../../../lib/links.js";
 import { validateTarget } from "../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
+import { bazaarResourceMeta } from "../../../lib/bazaar-catalog.js";
 import { notifyTransaction } from "../../../notify.js";
 
 const PRICE = process.env.LINKS_PRICE_USDC ?? "0.003";
@@ -32,13 +33,12 @@ async function handler(req) {
   }
 }
 
-const routeConfig = {
+const buildConfig = (bodyType) => ({
   accepts: { scheme: "exact", price: `$${PRICE}`, network: NETWORK, payTo: SELLER },
   description:
     "Map every hyperlink on a public page: fetch one HTML URL (SSRF-guarded, 15s timeout, 2MB cap), resolve relative hrefs against the final URL, strip fragments, dedupe, and return up to 200 links with anchor text, internal/external kind, and topic tags (docs, pricing, api, careers, social, feed) plus per-category counts. Payment settles only on a successful map.",
   mimeType: "application/json",
-  serviceName: "Santos Link Map",
-  tags: ["links", "crawling", "site-map", "scraping", "x402"],
+  ...bazaarResourceMeta("links"),
   unpaidResponseBody: () => ({
     contentType: "application/json",
     body: {
@@ -49,7 +49,7 @@ const routeConfig = {
   }),
   extensions: {
     ...declareDiscoveryExtension({
-      bodyType: "json",
+      ...(bodyType ? { bodyType } : {}),
       input: { url: "https://example.com" },
       inputSchema: {
         properties: { url: { type: "string", description: "Public HTTP or HTTPS URL of an HTML page to map." } },
@@ -71,15 +71,21 @@ const routeConfig = {
       },
     }),
   },
-};
+});
 
 // Verbless route key so Next's HEAD→GET mapping still hits the paywall.
-const httpServer = new x402HTTPResourceServer(resourceServer, {
-  "/v1/links": routeConfig,
+// One server per verb: the Bazaar extension rewrites info.input.method from
+// the live request, so GET must advertise query params and POST a JSON body.
+const getServer = new x402HTTPResourceServer(resourceServer, {
+  "/v1/links": buildConfig(null),
 });
-const paidHandler = withX402FromHTTPServer(handler, httpServer);
+const postServer = new x402HTTPResourceServer(resourceServer, {
+  "/v1/links": buildConfig("json"),
+});
+const paidGET = withX402FromHTTPServer(handler, getServer);
+const paidPOST = withX402FromHTTPServer(handler, postServer);
 
-async function paidWithReceipt(req) {
+async function paidWithReceipt(req, paidHandler) {
   const res = await paidHandler(req);
   res.headers.set("Access-Control-Allow-Origin", "*");
   res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
@@ -105,11 +111,11 @@ async function paidWithReceipt(req) {
 }
 
 async function handleGET(req) {
-  return paidWithReceipt(req);
+  return paidWithReceipt(req, paidGET);
 }
 
 async function handlePOST(req) {
-  return paidWithReceipt(req);
+  return paidWithReceipt(req, paidPOST);
 }
 
 export async function OPTIONS() {
