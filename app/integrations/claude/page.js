@@ -18,12 +18,12 @@ const summarize = apiProduct("/v1/summarize").priceUsdc;
 export const metadata = {
   title: "Claude Integration — Remote MCP Website Intelligence | Santos",
   description:
-    "Add Santos to Claude as a custom connector. The same production MCP server Grok uses: free tools run directly, paid tools return an x402 handoff.",
+    "Register the Santos MCP server with Claude once — Claude.ai connector or claude mcp add. Free tools run directly; paid tools return an x402 handoff.",
   alternates: { canonical: "/integrations/claude" },
   openGraph: {
     title: "Claude Integration — Remote MCP Website Intelligence | Santos",
     description:
-      "Add Santos to Claude as a custom connector. The same production MCP server Grok uses: free tools run directly, paid tools return an x402 handoff.",
+      "Register the Santos MCP server with Claude once — Claude.ai connector or claude mcp add. Free tools run directly; paid tools return an x402 handoff.",
     url: `${SITE}/integrations/claude`,
     type: "article",
   },
@@ -72,7 +72,7 @@ const jsonLd = {
 };
 
 const SAMPLE_PROMPT =
-  "Use the Santos tools to audit https://www.santosautomation.com/integrations/grok. " +
+  "Use the Santos tools to audit https://www.santosautomation.com/integrations/claude. " +
   "Return the Website Intelligence score, the four dimension scores, and the three highest-impact fixes.";
 
 const LIST_TOOLS = `curl -X POST ${MCP} \\
@@ -103,10 +103,17 @@ export default function ClaudeIntegrationPage() {
           <p className="kicker">Integration · Remote MCP · Claude</p>
           <h1>Claude-ready website intelligence through one Remote MCP endpoint</h1>
           <p className="lede">
-            Add <code>{MCP}</code> to Claude as a custom connector and seven website-intelligence
-            tools appear. This is the <strong>same production MCP server the Grok integration
-            uses</strong> — one endpoint, one registry listing, different client setup. No account,
-            no API key, no server to run.
+            Add <code>{MCP}</code> to Claude once and seven website-intelligence tools appear in
+            every conversation. This is the <strong>same production MCP server the Grok integration
+            uses</strong> — one endpoint, one registry listing, different client setup. No API key,
+            no server to run, no OAuth.
+          </p>
+          <p className="lede">
+            One difference worth knowing up front: <strong>Claude registers the server once, Grok
+            names it per call.</strong> A Grok request carries the endpoint inline in its own
+            <code>tools</code> array, so there is nothing to install. Claude keeps a connector on
+            your account (or in your Claude Code config), so it must be added before the tools
+            exist in a conversation — and toggled on for that chat.
           </p>
           <div className="cta-row">
             <a className="btn" href={MCP}>Live MCP endpoint</a>

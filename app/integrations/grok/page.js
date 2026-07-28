@@ -161,8 +161,12 @@ export default function GrokIntegrationPage() {
           <pre className="code-sample" tabIndex={0}><code>{MCP_SNIPPET}</code></pre>
           <p className="sub wide">
             The <code>server_label</code> is how the tools are namespaced in the model&rsquo;s
-            context; <code>santos</code> keeps traces readable. Verify the same list the model
-            sees, from your own shell:
+            context; <code>santos</code> keeps traces readable. Note the endpoint travels{" "}
+            <strong>inline in each request</strong> — there is no connector to install and nothing
+            persisted on an account, which is the main way this differs from{" "}
+            <a href="/integrations/claude">the Claude setup</a>, where the server is registered
+            once and then available to every conversation. Verify the same list the model sees,
+            from your own shell:
           </p>
           <pre className="code-sample" tabIndex={0}><code>{LIST_TOOLS}</code></pre>
         </section>
