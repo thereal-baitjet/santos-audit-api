@@ -6,7 +6,7 @@ import { NextResponse, after } from "next/server";
 import { auditSite } from "../../../../audit.js";
 import { validateTarget } from "../../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../../lib/errors.js";
-import { peekKey, claimKey, hashIdentity, secondsUntilUtcMidnight } from "../../../../lib/demo-limit.js";
+import { peekKey, claimKey, dailyEmailKey, secondsUntilUtcMidnight } from "../../../../lib/demo-limit.js";
 import { verifyToken } from "../../../../lib/leads/verify.js";
 import { signReport } from "../../../../lib/report-signing.js";
 import { sendFreeReportEmail } from "../../../../lib/email/resend.js";
@@ -40,12 +40,6 @@ function notVerified() {
     },
     { status: 401, headers: CORS }
   );
-}
-
-// One claim per verified email per UTC day — same shared-quota philosophy as
-// the IP-based demo limit, keyed on the HMAC'd email instead.
-function dailyEmailKey(email) {
-  return `demo:${new Date().toISOString().slice(0, 10)}:email:${hashIdentity(email)}`;
 }
 
 async function handleGET(req) {

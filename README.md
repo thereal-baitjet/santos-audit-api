@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/AI-Website%20Intelligence-7c3aed?style=for-the-badge&logo=robot" alt="AI Website Intelligence" />
   <img src="https://img.shields.io/badge/Agent-Readiness-2563eb?style=for-the-badge&logo=lightning" alt="Agent Readiness" />
   <img src="https://img.shields.io/badge/x402-USDC%20on%20Base-0ea5e9?style=for-the-badge&logo=bitcoin" alt="x402 on Base" />
+  <a href="https://www.santosautomation.com/integrations/grok"><img src="https://img.shields.io/badge/Grok-Remote%20MCP%20ready-000000?style=for-the-badge&logo=x" alt="Grok Remote MCP ready" /></a>
   <img src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs" alt="Next.js" />
 </p>
 

@@ -1,5 +1,34 @@
 # Changelog
 
+## 2.14.0 — 2026-07-28 — Free-tier quota identity
+
+### Added
+- **The three free MCP tools accept an optional `token`.** `audit_website_preview`,
+  `extract_page_markdown`, and `extract_structured_data` now take a verified-email
+  token (the existing `/api/leads/verify/*` flow, valid 30 days) and key the daily
+  free quota on that user instead of on the caller IP.
+
+### Why
+- IP is the wrong identity for a hosted agent. Grok — and any platform calling this
+  server from its own infrastructure — egresses from a small set of shared
+  addresses, so an IP-keyed quota is **one free call per day for that platform's
+  entire user base**. Raising the per-IP limit would not have fixed it: the number
+  was never the constraint, the identity was.
+
+### Security
+- A token that does not verify is **rejected outright**, never silently downgraded
+  to the IP allowance. Falling back would have made a junk token a way to keep
+  calling after an address had spent its quota.
+- Email and IP keys live in separate namespaces, and both are HMAC-hashed before
+  they are used as storage keys — no raw identity is persisted.
+
+### Changed
+- `/integrations/grok` documents the token flow and carries a copyable sample
+  prompt; `llms.txt` and the free tool descriptions state the quota identity
+  precisely. README gains a Grok Remote MCP badge.
+- `lib/demo-limit.js` exports `dailyEmailKey` and `resolveFreeQuota`; the
+  verified-email audit route now shares that key builder instead of defining its own.
+
 ## 2.13.0 — 2026-07-28 — Grok & xAI Remote MCP integration
 
 ### Added

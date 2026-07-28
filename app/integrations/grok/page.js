@@ -74,6 +74,9 @@ tools = [
     )
 ]`;
 
+const SAMPLE_PROMPT =
+  "audit https://www.santosautomation.com/integrations/grok with the Santos tools.";
+
 const LIST_TOOLS = `curl -X POST ${API}/mcp \\
   -H 'Content-Type: application/json' \\
   -H 'Accept: application/json, text/event-stream' \\
@@ -166,6 +169,23 @@ export default function GrokIntegrationPage() {
 
         <section className="content-section">
           <p className="section-label">Step two</p>
+          <h2>Ask Grok to use it</h2>
+          <p className="sub wide">
+            Nothing else to configure. Paste this into Grok with the server registered — it audits
+            this very page, so you can check the answer against what is in front of you.
+          </p>
+          <p><CopyButton text={SAMPLE_PROMPT} label="Copy prompt" /></p>
+          <pre className="code-sample" tabIndex={0}><code>{SAMPLE_PROMPT}</code></pre>
+          <p className="sub wide">
+            Grok picks <code>audit_website_preview</code> on its own — a free tool, so no wallet is
+            involved — and returns scores across the four dimensions, the individual pass/fail
+            checks, and prioritized fixes. If that comes back, your wiring is correct and
+            everything else on this page is a variation on it.
+          </p>
+        </section>
+
+        <section className="content-section">
+          <p className="section-label">Step three</p>
           <h2>What Grok sees</h2>
           <p className="sub wide">
             Seven tools. The three free previews execute and return a full result inline. The four
@@ -194,9 +214,30 @@ export default function GrokIntegrationPage() {
           </div>
           <p className="sub wide">
             All prices are USDC on Base mainnet (<code>eip155:8453</code>). The three free previews
-            share one quota: <strong>one call per day per IP</strong>. A hosted agent shares that
-            pool with everything else calling from the same address, so treat the free tier as
-            evaluation, not capacity.
+            share one quota: <strong>one call per day per identity</strong>.
+          </p>
+          <p className="sub wide">
+            That identity matters when Grok is the caller. Without a token the quota is keyed on
+            the calling IP — and a hosted agent reaches this server from xAI infrastructure, so a
+            single daily call is shared by every Grok user at once. Pass a{" "}
+            <code>token</code> and the quota moves onto that individual user instead. Every free
+            tool accepts one:
+          </p>
+          <pre className="code-sample" tabIndex={0}><code>{`# once per user — 6-digit code by email, token valid 30 days
+curl -X POST ${API}/api/leads/verify/request \\
+  -H 'Content-Type: application/json' \\
+  -d '{"email":"you@example.com","url":"https://example.com"}'
+
+curl -X POST ${API}/api/leads/verify/confirm \\
+  -H 'Content-Type: application/json' \\
+  -d '{"email":"you@example.com","code":"123456"}'
+
+# then pass it as a tool argument
+{"name":"audit_website_preview","arguments":{"url":"https://example.com","token":"<token>"}}`}</code></pre>
+          <p className="sub wide">
+            An invalid token is rejected outright rather than silently falling back to the shared
+            IP allowance. For anything beyond evaluation, pay per call — there is no quota on the
+            paid endpoints.
           </p>
         </section>
 
@@ -224,7 +265,7 @@ export default function GrokIntegrationPage() {
         </section>
 
         <section className="content-section">
-          <p className="section-label">Step three</p>
+          <p className="section-label">Step four</p>
           <h2>The handoff pattern</h2>
           <p className="sub wide">
             This is the part worth understanding. A paid MCP tool does not settle payment. It

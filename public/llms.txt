@@ -29,7 +29,10 @@ MCP-capable client. Verified compatible with Grok / xAI Remote MCP Tools:
 
 Also usable from Claude, ChatGPT, and any custom MCP client. Free preview tools
 (audit_website_preview, extract_page_markdown, extract_structured_data) execute inline and
-require no wallet, sharing one quota of 1 call per day per IP. Paid tools
+require no wallet, sharing one quota of 1 call per day per identity. That identity is the caller
+IP unless an optional verified-email `token` argument is passed, in which case it is that user —
+hosted agents share one egress address, so a token is how an individual user gets their own
+allowance. An invalid token is rejected, never silently downgraded to the IP quota. Paid tools
 (audit_agent_readiness, feed_parse, link_map, summarize) validate the target and return the
 canonical x402 HTTP request; the calling agent settles it in USDC on Base mainnet. MCP never
 moves funds. Integration guide: https://www.santosautomation.com/integrations/grok
