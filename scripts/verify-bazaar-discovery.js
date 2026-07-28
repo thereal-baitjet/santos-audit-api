@@ -15,7 +15,12 @@
 // real payment per route so the Bazaar acknowledgement (EXTENSION-RESPONSES)
 // can be read — that costs actual USDC and needs BUYER_PRIVATE_KEY.
 
+import dotenv from "dotenv";
 import { BAZAAR_ROUTES, RESOURCE_BASE_URL, MAX_BAZAAR_TAGS } from "../lib/bazaar-catalog.js";
+
+// --paid needs BUYER_PRIVATE_KEY, which lives in .env.local alongside the other
+// local secrets. Load both; real environment variables always win.
+dotenv.config({ path: [".env.local", ".env"], quiet: true });
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => {
