@@ -8,6 +8,15 @@ export const metadata = {
 
 const ENTRIES = [
   {
+    version: "2.14.0",
+    date: "2026-07-28",
+    items: [
+      "Free MCP tools accept an optional verified-email token. Without one the daily free quota is keyed on the caller IP, which every caller behind that address shares — a hosted agent like Grok egresses from a handful of addresses, so its entire user base was sharing a single free call per day. Raising the per-IP number would not have fixed that; the identity was wrong, not the limit.",
+      "An invalid token is rejected outright rather than falling back to the IP allowance, so a junk token can never be a way around a spent quota.",
+      "Grok integration page gains a copyable sample prompt and the token walkthrough; README carries a Grok Remote MCP badge.",
+    ],
+  },
+  {
     version: "2.13.0",
     date: "2026-07-28",
     items: [
@@ -142,7 +151,7 @@ export default function ChangelogPage() {
       <h1>Changelog.</h1>
       <p>
         Product history for the Santos Website Intelligence API. Latest version:{" "}
-        <strong>2.13.0</strong>. Machine-readable version and contract data:{" "}
+        <strong>2.14.0</strong>. Machine-readable version and contract data:{" "}
         <a href="/version">/version</a>.
       </p>
 

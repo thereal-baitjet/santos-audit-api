@@ -74,22 +74,34 @@ tools = [
     )
 ]`;
 
+const SAMPLE_PROMPT =
+  "audit https://www.santosautomation.com/integrations/grok with the Santos tools.";
+
 const LIST_TOOLS = `curl -X POST ${API}/mcp \\
   -H 'Content-Type: application/json' \\
   -H 'Accept: application/json, text/event-stream' \\
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'`;
 
+// Verbatim from a live tools/call. The handoff arrives as isError: true with a
+// single text block — payment-required is signalled on MCP's error channel, so
+// the model treats it as "not done yet" rather than a finished answer.
 const HANDOFF = `{
-  "payment_required": true,
-  "method": "GET",
-  "url": "${API}/api/agent-readiness?url=https%3A%2F%2Fexample.com&depth=quick",
-  "price_usdc": "${readiness}",
-  "network": "eip155:8453",
-  "protocol": "x402-v2",
-  "settles": "only on a successful (2xx) response"
+  "isError": true,
+  "content": [
+    {
+      "type": "text",
+      "text": "PAYMENT_REQUIRED: Agent Readiness costs $${readiness} USDC per successful
+               audit on Base mainnet via x402 v2. Request
+               ${API}/api/agent-readiness?url=https%3A%2F%2Fexample.com%2F&depth=quick
+               without a signature to receive PAYMENT-REQUIRED terms, then sign and
+               retry with PAYMENT-SIGNATURE. Free preview: GET
+               ${API}/api/agent-readiness/demo?url=https%3A%2F%2Fexample.com%2F
+               (1/day per IP, shared quota, same result shape)."
+    }
+  ]
 }`;
 
-const SETTLE = `// Any x402 v2 client settles the handoff. Node example:
+const SETTLE = `// Any x402 v2 client settles the URL named in the handoff text.
 import { privateKeyToAccount } from "viem/accounts";
 import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm";
@@ -101,8 +113,11 @@ const fetchWithPay = wrapFetchWithPaymentFromConfig(fetch, {
   }],
 });
 
-// handoff.url came from the MCP tool result above.
-const res = await fetchWithPay(handoff.url);
+// Build the same URL the handoff names — the 402, signing, and retry are automatic.
+const target = "https://example.com";
+const res = await fetchWithPay(
+  \`${API}/api/agent-readiness?url=\${encodeURIComponent(target)}&depth=quick\`
+);
 const report = await res.json();
 console.log(report.website_intelligence_score);`;
 
@@ -154,6 +169,23 @@ export default function GrokIntegrationPage() {
 
         <section className="content-section">
           <p className="section-label">Step two</p>
+          <h2>Ask Grok to use it</h2>
+          <p className="sub wide">
+            Nothing else to configure. Paste this into Grok with the server registered — it audits
+            this very page, so you can check the answer against what is in front of you.
+          </p>
+          <p><CopyButton text={SAMPLE_PROMPT} label="Copy prompt" /></p>
+          <pre className="code-sample" tabIndex={0}><code>{SAMPLE_PROMPT}</code></pre>
+          <p className="sub wide">
+            Grok picks <code>audit_website_preview</code> on its own — a free tool, so no wallet is
+            involved — and returns scores across the four dimensions, the individual pass/fail
+            checks, and prioritized fixes. If that comes back, your wiring is correct and
+            everything else on this page is a variation on it.
+          </p>
+        </section>
+
+        <section className="content-section">
+          <p className="section-label">Step three</p>
           <h2>What Grok sees</h2>
           <p className="sub wide">
             Seven tools. The three free previews execute and return a full result inline. The four
@@ -182,9 +214,30 @@ export default function GrokIntegrationPage() {
           </div>
           <p className="sub wide">
             All prices are USDC on Base mainnet (<code>eip155:8453</code>). The three free previews
-            share one quota: <strong>one call per day per IP</strong>. A hosted agent shares that
-            pool with everything else calling from the same address, so treat the free tier as
-            evaluation, not capacity.
+            share one quota: <strong>one call per day per identity</strong>.
+          </p>
+          <p className="sub wide">
+            That identity matters when Grok is the caller. Without a token the quota is keyed on
+            the calling IP — and a hosted agent reaches this server from xAI infrastructure, so a
+            single daily call is shared by every Grok user at once. Pass a{" "}
+            <code>token</code> and the quota moves onto that individual user instead. Every free
+            tool accepts one:
+          </p>
+          <pre className="code-sample" tabIndex={0}><code>{`# once per user — 6-digit code by email, token valid 30 days
+curl -X POST ${API}/api/leads/verify/request \\
+  -H 'Content-Type: application/json' \\
+  -d '{"email":"you@example.com","url":"https://example.com"}'
+
+curl -X POST ${API}/api/leads/verify/confirm \\
+  -H 'Content-Type: application/json' \\
+  -d '{"email":"you@example.com","code":"123456"}'
+
+# then pass it as a tool argument
+{"name":"audit_website_preview","arguments":{"url":"https://example.com","token":"<token>"}}`}</code></pre>
+          <p className="sub wide">
+            An invalid token is rejected outright rather than silently falling back to the shared
+            IP allowance. For anything beyond evaluation, pay per call — there is no quota on the
+            paid endpoints.
           </p>
         </section>
 
@@ -212,7 +265,7 @@ export default function GrokIntegrationPage() {
         </section>
 
         <section className="content-section">
-          <p className="section-label">Step three</p>
+          <p className="section-label">Step four</p>
           <h2>The handoff pattern</h2>
           <p className="sub wide">
             This is the part worth understanding. A paid MCP tool does not settle payment. It
@@ -227,12 +280,17 @@ export default function GrokIntegrationPage() {
             → your wrapper retries that URL with a PAYMENT-SIGNATURE header<br />
             <span className="g">← 200 · versioned evidence + PAYMENT-RESPONSE receipt</span>
           </div>
-          <p className="sub wide">The tool result is shaped like this:</p>
+          <p className="sub wide">
+            The tool result comes back on MCP&rsquo;s error channel — <code>isError: true</code>{" "}
+            with one text block. That is deliberate: a payment-required result is not a finished
+            answer, and signalling it as an error keeps the model from reporting a price quote as
+            though it were an audit. The text names the price, the exact URL to pay for, and the
+            free preview:
+          </p>
           <pre className="code-sample" tabIndex={0}><code>{HANDOFF}</code></pre>
           <p className="sub wide">
-            Settling it is a single wrapped <code>fetch</code>. Any x402 v2 client works; the
-            payment step is identical to the one in the{" "}
-            <a href="/ci">CI recipe</a>.
+            Settling it is a single wrapped <code>fetch</code> against that URL. Any x402 v2 client
+            works; the payment step is identical to the one in the <a href="/ci">CI recipe</a>.
           </p>
           <p><CopyButton text={SETTLE} label="Copy settlement" /></p>
           <pre className="code-sample" tabIndex={0}><code>{SETTLE}</code></pre>

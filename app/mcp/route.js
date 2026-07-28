@@ -6,7 +6,7 @@ import { withAgentLog } from "../../lib/agent-log.js";
 import { NextResponse } from "next/server";
 import { auditSite } from "../../audit.js";
 import { AuditError, validateTarget } from "../../lib/safe-fetch.js";
-import { hasFreeAudit, markFreeAudit, ipFromRequest } from "../../lib/demo-limit.js";
+import { resolveFreeQuota, peekKey, claimKey, secondsUntilUtcMidnight, ipFromRequest } from "../../lib/demo-limit.js";
 import { PUBLIC_API_BASE_URL } from "../../lib/base-url.js";
 import { apiProduct } from "../../lib/products.js";
 
@@ -36,7 +36,7 @@ const ALLOWED_ORIGINS = new Set(
 const PREVIEW_TOOL = {
   name: "audit_website_preview",
   description:
-    "FREE PREVIEW (1 audit per day per IP) of Santos Website Intelligence. Runs a fast Quick Intelligence Audit of one public page: fetch timing, page weight, SEO, basic HTML accessibility, security headers, Website Intelligence dimensions, pass/fail checks, and remediation guidance. It audits one page only—no crawling, JavaScript rendering, Core Web Vitals, WCAG certification, or vulnerability scanning. " +
+    "FREE PREVIEW (1 audit per day — per verified-email token when one is passed, otherwise per caller IP) of Santos Website Intelligence. Runs a fast Quick Intelligence Audit of one public page: fetch timing, page weight, SEO, basic HTML accessibility, security headers, Website Intelligence dimensions, pass/fail checks, and remediation guidance. It audits one page only—no crawling, JavaScript rendering, Core Web Vitals, WCAG certification, or vulnerability scanning. " +
     `For unlimited audits, use the machine-payable production endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... — $${QUICK_PRICE} USDC per successful audit on Base mainnet (eip155:8453) via x402 v2; no account or API key required.`,
   inputSchema: {
     type: "object",
@@ -45,6 +45,11 @@ const PREVIEW_TOOL = {
         type: "string",
         format: "uri",
         description: "A publicly reachable HTTP or HTTPS page.",
+      },
+      token: {
+        type: "string",
+        description:
+          "Optional verified-email token. Without it the daily free quota is keyed on the caller IP, which every caller behind that address shares — hosted agents should pass a token so each user gets their own allowance. Obtain one via POST /api/leads/verify/request then /confirm; valid 30 days.",
       },
     },
     required: ["url"],
@@ -74,12 +79,17 @@ const EXTRACT_PRICE = process.env.EXTRACT_PRICE_USDC ?? "0.005";
 const EXTRACT_TOOL = {
   name: "extract_page_markdown",
   description:
-    "FREE PREVIEW (1 request per day per IP, quota shared with audit_website_preview) of Santos Page-to-Markdown extraction. Fetches one public page and returns its main content as clean Markdown plus title, description, outbound links, and word count. Single page only — no crawling or JavaScript rendering. " +
+    "FREE PREVIEW (1 request per day — per verified-email token when one is passed, otherwise per caller IP; quota shared with audit_website_preview) of Santos Page-to-Markdown extraction. Fetches one public page and returns its main content as clean Markdown plus title, description, outbound links, and word count. Single page only — no crawling or JavaScript rendering. " +
     `For unlimited extraction, use the machine-payable production endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract with {"url": "…"} — $${EXTRACT_PRICE} USDC per successful extraction on Base mainnet (eip155:8453) via x402 v2; no account or API key required.`,
   inputSchema: {
     type: "object",
     properties: {
       url: { type: "string", format: "uri", description: "A publicly reachable HTTP or HTTPS page." },
+      token: {
+        type: "string",
+        description:
+          "Optional verified-email token. Without it the daily free quota is keyed on the caller IP, which every caller behind that address shares — hosted agents should pass a token so each user gets their own allowance. Obtain one via POST /api/leads/verify/request then /confirm; valid 30 days.",
+      },
     },
     required: ["url"],
     additionalProperties: false,
@@ -92,13 +102,18 @@ const STRUCTURED_EXTRACT_PRICE = process.env.STRUCTURED_EXTRACT_PRICE_USDC ?? "0
 const STRUCTURED_EXTRACT_TOOL = {
   name: "extract_structured_data",
   description:
-    "FREE PREVIEW (1 request per day per IP, quota shared with audit_website_preview and extract_page_markdown) of Santos Structured Extraction. Fetches one public page and returns JSON fields extracted by an LLM against your own JSON Schema, validated against that schema before being returned. Single page only — no crawling or JavaScript rendering; page content is truncated to 8000 characters before extraction. " +
+    "FREE PREVIEW (1 request per day — per verified-email token when one is passed, otherwise per caller IP; quota shared with audit_website_preview and extract_page_markdown) of Santos Structured Extraction. Fetches one public page and returns JSON fields extracted by an LLM against your own JSON Schema, validated against that schema before being returned. Single page only — no crawling or JavaScript rendering; page content is truncated to 8000 characters before extraction. " +
     `For unlimited extraction, use the machine-payable production endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract/structured with {"url": "…", "schema": {...}} — $${STRUCTURED_EXTRACT_PRICE} USDC per successful schema-conforming extraction on Base mainnet (eip155:8453) via x402 v2; no account or API key required.`,
   inputSchema: {
     type: "object",
     properties: {
       url: { type: "string", format: "uri", description: "A publicly reachable HTTP or HTTPS page." },
       schema: { type: "object", description: "Self-contained JSON Schema (type: object, no $ref) describing the fields to extract. Max 4000 characters." },
+      token: {
+        type: "string",
+        description:
+          "Optional verified-email token. Without it the daily free quota is keyed on the caller IP, which every caller behind that address shares — hosted agents should pass a token so each user gets their own allowance. Obtain one via POST /api/leads/verify/request then /confirm; valid 30 days.",
+      },
     },
     required: ["url", "schema"],
     additionalProperties: false,
@@ -175,6 +190,44 @@ function callPaidHandoffTool(args, { name, path, price }) {
   }
 }
 
+// Free-tier gate shared by the three preview tools.
+//
+// Without a token the quota is keyed on the caller IP, which is one allowance
+// for everyone behind that address — the whole of a hosted agent's user base
+// shares a single call per day. A verified-email token moves the quota onto
+// the individual user. An invalid token is rejected outright rather than
+// falling back to the IP, so a bad token can never be a way around someone
+// else's spent quota.
+//
+// Returns { error } to return immediately, or { claim } to call after success
+// so a failed call never burns the day's allowance.
+async function openFreeQuota(args, ip, paidHint) {
+  const { key, identity } = await resolveFreeQuota({ token: args?.token, ip });
+  if (!key) {
+    return {
+      error: {
+        isError: true,
+        content: [{
+          type: "text",
+          text: `INVALID_TOKEN: that free-tier token is not valid or has expired. Get one: POST ${PUBLIC_API_BASE_URL}/api/leads/verify/request {email, url} → 6-digit code by email → POST ${PUBLIC_API_BASE_URL}/api/leads/verify/confirm {email, code} (valid 30 days). Omit "token" to use the shared per-IP quota instead.`,
+        }],
+      },
+    };
+  }
+  if (!(await peekKey(key))) {
+    const scope = identity === "email"
+      ? "this verified email has used today's free call (1/day, shared across the free preview tools)"
+      : 'the free preview is 1 request/day per IP, shared by every caller behind that address — pass a verified-email "token" for your own allowance';
+    return {
+      error: {
+        isError: true,
+        content: [{ type: "text", text: `RATE_LIMITED: ${scope}. ${paidHint}` }],
+      },
+    };
+  }
+  return { claim: () => claimKey(key, secondsUntilUtcMidnight()) };
+}
+
 async function callStructuredExtractTool(args, ip) {
   if (!args || typeof args.url !== "string" || !args.url.trim() || !args.schema || typeof args.schema !== "object") {
     return { isError: true, content: [{ type: "text", text: "INVALID_ARGUMENTS: 'url' (string) and 'schema' (object) are both required." }] };
@@ -185,18 +238,11 @@ async function callStructuredExtractTool(args, ip) {
     const code = e instanceof AuditError ? e.code : "INVALID_URL";
     return { isError: true, content: [{ type: "text", text: `${code}: ${e.message}` }] };
   }
-  if (!(await hasFreeAudit(ip))) {
-    return {
-      isError: true,
-      content: [{
-        type: "text",
-        text: `RATE_LIMITED: the free preview is 1 request/day per IP (shared quota). For unlimited extraction use the x402 endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract/structured ($${STRUCTURED_EXTRACT_PRICE} USDC on Base mainnet).`,
-      }],
-    };
-  }
+  const gate = await openFreeQuota(args, ip, `For unlimited extraction use the x402 endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract/structured ($${STRUCTURED_EXTRACT_PRICE} USDC on Base mainnet).`);
+  if (gate.error) return gate.error;
   try {
     const result = await extractStructured(args.url.trim(), args.schema);
-    await markFreeAudit(ip);
+    await gate.claim();
     return {
       content: [{ type: "text", text: JSON.stringify(result.data, null, 2) }],
       structuredContent: result,
@@ -217,18 +263,11 @@ async function callExtractTool(args, ip) {
     const code = e instanceof AuditError ? e.code : "INVALID_URL";
     return { isError: true, content: [{ type: "text", text: `${code}: ${e.message}` }] };
   }
-  if (!(await hasFreeAudit(ip))) {
-    return {
-      isError: true,
-      content: [{
-        type: "text",
-        text: `RATE_LIMITED: the free preview is 1 request/day per IP (shared quota). For unlimited extraction use the x402 endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract ($${EXTRACT_PRICE} USDC on Base mainnet).`,
-      }],
-    };
-  }
+  const gate = await openFreeQuota(args, ip, `For unlimited extraction use the x402 endpoint: POST ${PUBLIC_API_BASE_URL}/v1/extract ($${EXTRACT_PRICE} USDC on Base mainnet).`);
+  if (gate.error) return gate.error;
   try {
     const result = await extractPage(args.url.trim());
-    await markFreeAudit(ip);
+    await gate.claim();
     return {
       content: [{ type: "text", text: result.markdown ?? "" }],
       structuredContent: result,
@@ -253,18 +292,11 @@ async function callAuditTool(args, ip) {
     const code = e instanceof AuditError ? e.code : "INVALID_URL";
     return { isError: true, content: [{ type: "text", text: `${code}: ${e.message}` }] };
   }
-  if (!(await hasFreeAudit(ip))) {
-    return {
-      isError: true,
-      content: [{
-        type: "text",
-        text: `RATE_LIMITED: the free preview is 1 audit/day per IP. For unlimited audits use the x402 endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... ($${QUICK_PRICE} USDC on Base mainnet).`,
-      }],
-    };
-  }
+  const gate = await openFreeQuota(args, ip, `For unlimited audits use the x402 endpoint: GET ${PUBLIC_API_BASE_URL}/api/audit?url=... ($${QUICK_PRICE} USDC on Base mainnet).`);
+  if (gate.error) return gate.error;
   try {
     const report = await auditSite(args.url.trim());
-    await markFreeAudit(ip);
+    await gate.claim();
     return {
       content: [{ type: "text", text: JSON.stringify(report, null, 2) }],
       structuredContent: report,
@@ -330,7 +362,7 @@ async function handlePOST(req) {
       return rpcResult(id, {
         protocolVersion: negotiated,
         capabilities: { tools: {} },
-        serverInfo: { name: "santos-website-intelligence", version: "2.13.0" },
+        serverInfo: { name: "santos-website-intelligence", version: "2.14.0" },
         instructions:
           `Use audit_website_preview for a free (1/day per IP) lightweight page audit, extract_page_markdown for a free page-to-Markdown extraction, or extract_structured_data for a free schema-conforming JSON extraction (all shared quota; unlimited via x402 at POST /v1/extract, $${EXTRACT_PRICE} USDC, and POST /v1/extract/structured, $${STRUCTURED_EXTRACT_PRICE} USDC). Agent Readiness is a paid $${AGENT_READINESS_PRICE} USDC capability; audit_agent_readiness validates the target and returns its canonical x402 HTTP handoff. feed_parse, link_map, and summarize are paid handoff tools for /v1/feed ($${FEED_PRICE} USDC), /v1/links ($${LINKS_PRICE} USDC), and /v1/summarize ($${SUMMARIZE_PRICE} USDC) — each validates the target and returns the canonical x402 HTTP handoff.`,
       });
