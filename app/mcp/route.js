@@ -209,7 +209,7 @@ async function openFreeQuota(args, ip, paidHint) {
         isError: true,
         content: [{
           type: "text",
-          text: `INVALID_TOKEN: that free-tier token is not valid or has expired. Get one: POST ${PUBLIC_API_BASE_URL}/api/leads/verify/request {email, url} → 6-digit code by email → POST ${PUBLIC_API_BASE_URL}/api/leads/verify/confirm {email, code} (valid 30 days). Omit "token" to use the shared per-IP quota instead.`,
+          text: `INVALID_TOKEN: that free-tier token is not valid or has expired. Issue a new one at https://www.santosautomation.com/free-token (no card, 30 days), or omit "token" to fall back to the shared per-IP quota.`,
         }],
       },
     };
@@ -217,7 +217,7 @@ async function openFreeQuota(args, ip, paidHint) {
   if (!(await peekKey(key))) {
     const scope = identity === "email"
       ? "this verified email has used today's free call (1/day, shared across the free preview tools)"
-      : 'the free preview is 1 request/day per IP, shared by every caller behind that address — pass a verified-email "token" for your own allowance';
+      : "the free preview is 1 request/day per IP, and a hosted agent shares that address with every other user of the platform. Get your own daily quota with a free verified-email token at https://www.santosautomation.com/free-token (no card, 30 days), then pass it as the \"token\" argument";
     return {
       error: {
         isError: true,
@@ -362,7 +362,7 @@ async function handlePOST(req) {
       return rpcResult(id, {
         protocolVersion: negotiated,
         capabilities: { tools: {} },
-        serverInfo: { name: "santos-website-intelligence", version: "2.15.0" },
+        serverInfo: { name: "santos-website-intelligence", version: "2.16.0" },
         instructions:
           `Use audit_website_preview for a free (1/day per IP) lightweight page audit, extract_page_markdown for a free page-to-Markdown extraction, or extract_structured_data for a free schema-conforming JSON extraction (all shared quota; unlimited via x402 at POST /v1/extract, $${EXTRACT_PRICE} USDC, and POST /v1/extract/structured, $${STRUCTURED_EXTRACT_PRICE} USDC). Agent Readiness is a paid $${AGENT_READINESS_PRICE} USDC capability; audit_agent_readiness validates the target and returns its canonical x402 HTTP handoff. feed_parse, link_map, and summarize are paid handoff tools for /v1/feed ($${FEED_PRICE} USDC), /v1/links ($${LINKS_PRICE} USDC), and /v1/summarize ($${SUMMARIZE_PRICE} USDC) — each validates the target and returns the canonical x402 HTTP handoff.`,
       });

@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.16.0 — 2026-07-28 — Free-tier funnel
+
+### Added
+- **`/free-token`** — issues a verified-email token in about thirty seconds (no
+  card, valid 30 days) and shows it ready to paste into an MCP tool call. The
+  free tools key their daily quota on that token instead of the caller IP.
+
+### Changed
+- **Every free endpoint now accepts an optional `token`.** The five IP-keyed demo
+  routes (`/api/audit/demo`, `/api/agent-readiness/demo`, `/v1/fetch/demo`,
+  `/v1/extract/demo`, `/v1/extract/structured/demo`) join the three MCP tools and
+  `/api/audit/free` on one identity rule, via a shared `openDemoQuota` gate.
+- **Running out is no longer a dead end.** `RATE_LIMITED` responses lead with the
+  free token path before the paid one — previously they jumped straight to card
+  checkout, which offered nothing to a caller who simply wanted to keep
+  evaluating.
+
+### Security
+- A token that does not verify returns **401 `INVALID_TOKEN`** with a link to
+  issue a new one, and never falls back to the shared IP allowance — falling back
+  would make a junk token a way around a spent quota.
+
 ## 2.15.0 — 2026-07-28 — Claude custom connector
 
 ### Added

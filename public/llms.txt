@@ -66,6 +66,11 @@ moves funds. Integration guide: https://www.santosautomation.com/integrations/gr
 
 ## Free tools (no payment)
 
+Free quota is 1 call per day per identity, shared across every free tool. Without a token
+that identity is the calling IP — hosted agents share one address, so the allowance is spent
+by whoever calls first. Issue your own verified-email token (no card, valid 30 days) at
+https://www.santosautomation.com/free-token and pass it as `token`.
+
 - [Free verified-email audit](https://api.santosautomation.com/api/audit/free?url=https%3A%2F%2Fexample.com): 1/day per verified email (token from POST /api/leads/verify/request → confirm), same report shape as the paid Quick Audit, HMAC-signed; quota shared with the llms.txt generator
 - [Agent-Ready badge](https://api.santosautomation.com/v1/badge?url=https%3A%2F%2Fexample.com): free SVG shield of a site's latest public score — no quota; embed `[![badge](https://api.santosautomation.com/v1/badge?url=example.com)](https://www.santosautomation.com/reports/example.com)`
 - [Report signature verification](https://api.santosautomation.com/v1/verify): free — POST a full report JSON, get {valid, url, score, signed_at}; 30/hour per IP

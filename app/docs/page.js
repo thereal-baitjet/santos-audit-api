@@ -241,7 +241,7 @@ const ERROR_ROWS = [
   ["RESPONSE_TOO_LARGE / TOO_MANY_REDIRECTS", "422", "Target exceeded the 5 MB cap (2 MB for Safe Fetch) or 5-redirect limit"],
   ["INVALID_EXTRACTION_SCHEMA", "400", "Structured Extraction: caller schema is missing, oversized, non-object, or uncompilable"],
   ["STRUCTURED_OUTPUT_INVALID", "422", "Structured Extraction: model output did not conform to your schema (not charged)"],
-  ["RATE_LIMITED", "429", "Free demo quota exhausted (1/day per IP, shared across all demos)"],
+  ["RATE_LIMITED", "429", "Free quota exhausted (1/day per identity, shared across all free tools). Pass a token from /free-token for your own allowance"],
   ["TARGET_UNREACHABLE", "502", "Target site could not be reached (not charged)"],
   ["SERVICE_UNAVAILABLE", "503", "Deep/render tier temporarily has no worker available (not charged)"],
   ["AUDIT_TIMEOUT", "504", "Bounded operation timed out (not charged — retry renders once)"],

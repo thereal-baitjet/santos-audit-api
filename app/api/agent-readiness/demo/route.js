@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { auditAgentReadiness } from "../../../../lib/agent-readiness/analyze.js";
 import { validateTarget } from "../../../../lib/safe-fetch.js";
 import { auditErrorResponse, CORS } from "../../../../lib/errors.js";
-import { hasFreeAudit, markFreeAudit, ipFromRequest } from "../../../../lib/demo-limit.js";
+import { openDemoQuota, FREE_TIER_HELP, INVALID_TOKEN_HELP } from "../../../../lib/demo-limit.js";
 import { getAgentReadinessPriceUsdc } from "../../../../lib/agent-readiness/product-pricing.js";
 import { websiteIntelligenceSummary } from "../../../../lib/website-intelligence.js";
 import { signReport } from "../../../../lib/report-signing.js";
@@ -18,7 +18,7 @@ function rateLimited() {
     {
       error: `Free demo is 1 audit/day (shared across all demo endpoints). Agents can pay per-call at GET /api/agent-readiness (x402, $${PRICE} USDC).`,
       code: "RATE_LIMITED",
-      for_humans: "No USDC wallet? Buy a one-time human report by card ($9 Quick / $29 Deep) at /agent-readiness/buy — no account needed.",
+      for_humans: FREE_TIER_HELP,
       retry_after: retryAfter,
     },
     {
@@ -28,8 +28,14 @@ function rateLimited() {
   );
 }
 
+function invalidToken() {
+  return NextResponse.json(
+    { error: "That free-tier token is not valid or has expired.", code: "INVALID_TOKEN", for_humans: INVALID_TOKEN_HELP },
+    { status: 401, headers: CORS }
+  );
+}
+
 async function handleGET(req) {
-  const ip = ipFromRequest(req);
   const url = req.nextUrl.searchParams.get("url") ?? "";
 
   // Reject invalid/blocked targets before touching the rate limit.
@@ -39,12 +45,13 @@ async function handleGET(req) {
     return auditErrorResponse(e);
   }
 
-  if (!(await hasFreeAudit(ip))) return rateLimited();
+  const gate = await openDemoQuota(req);
+  if (!gate.ok) return gate.reason === "invalid_token" ? invalidToken() : rateLimited();
 
   try {
     const result = await auditAgentReadiness(url, { mode: "quick" });
     // Atomic claim AFTER success: failures stay free, races can't double-spend.
-    if (!(await markFreeAudit(ip))) return rateLimited();
+    if (!(await gate.claim())) return rateLimited();
     const websiteIntelligence = websiteIntelligenceSummary({ agentReadiness: result });
     return NextResponse.json(signReport({
       tier: "free-demo",
