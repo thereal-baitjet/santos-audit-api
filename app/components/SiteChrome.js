@@ -34,7 +34,6 @@ export function SiteFooter() {
         <div className="links" aria-label="Footer links">
           <a href="/docs">API docs</a>
           <a href="/reports">Leaderboard</a>
-          <a href="/llms-txt-generator">llms.txt generator</a>
           <a href="/verify">Verify a report</a>
           <a href="/ci">CI recipe</a>
           <a href="/integrations">MCP server</a>

@@ -40,15 +40,14 @@ Grok / xAI Remote MCP Tools:
     from xai_sdk.tools import mcp
     tools = [mcp(server_url="https://api.santosautomation.com/mcp", server_label="santos")]
 
-Also usable from Claude, ChatGPT, and any custom MCP client. Free preview tools
-(audit_website_preview, extract_page_markdown, extract_structured_data) execute inline and
-require no wallet, sharing one quota of 1 call per day per identity. That identity is the caller
-IP unless an optional verified-email `token` argument is passed, in which case it is that user —
-hosted agents share one egress address, so a token is how an individual user gets their own
-allowance. An invalid token is rejected, never silently downgraded to the IP quota. Paid tools
-(audit_agent_readiness, feed_parse, link_map, summarize) validate the target and return the
-canonical x402 HTTP request; the calling agent settles it in USDC on Base mainnet. MCP never
-moves funds. Integration guide: https://www.santosautomation.com/integrations/grok
+Also usable from Claude, ChatGPT, and any custom MCP client. One tool is free:
+audit_website_preview executes inline and returns a real audit, 1 call per day per calling IP
+and no wallet required. Hosted agents share one egress address between all their users, so
+treat it as a sample of the output rather than as capacity. Every other tool
+(audit_agent_readiness, extract_page_markdown, extract_structured_data, feed_parse, link_map,
+summarize) validates the target and returns the canonical x402 HTTP request; the calling agent
+settles it in USDC on Base mainnet. MCP never moves funds.
+Integration guide: https://www.santosautomation.com/integrations/grok
 
 ## API — audit modes
 
@@ -61,24 +60,22 @@ moves funds. Integration guide: https://www.santosautomation.com/integrations/gr
 - [Santos Feed Parser](https://api.santosautomation.com/v1/feed?url=https%3A%2F%2Fexample.com%2Ffeed.xml): $0.003 USDC, synchronous — one feed URL (RSS 2.0, Atom, or JSON Feed) to normalized JSON with feed metadata and up to 50 items (GET ?url= or POST {"url"}); non-feed targets return 422 and never settle
 - [Santos Link Map](https://api.santosautomation.com/v1/links?url=https%3A%2F%2Fexample.com): $0.003 USDC, synchronous — one HTML page to a categorized link map: every link (max 200) with kind internal/external plus topic tags (docs, pricing, api, careers, social, feed) and per-category counts
 - [Santos Summarizer](https://api.santosautomation.com/v1/summarize): $0.033 USDC, synchronous — POST {"url": "https://example.com", "focus": "optional steering"} (or GET ?url=); Claude-generated structured summary with key facts, entities, and word count; non-HTML targets return 422 and never settle
-- [Free demo audit](https://api.santosautomation.com/api/audit/demo?url=https%3A%2F%2Fexample.com): 1/day per IP, same report shape as the paid Quick Audit
-- [Free demo Agent Readiness](https://api.santosautomation.com/api/agent-readiness/demo?url=https%3A%2F%2Fexample.com): 1/day per IP (quota shared with all demos), same quick-pass result shape as the paid Agent Readiness audit
-- [Free demo extraction](https://api.santosautomation.com/v1/extract/demo?url=https%3A%2F%2Fexample.com): 1/day per IP (quota shared with the demo audit), same shape as paid extraction
-- [Free demo structured extraction](https://api.santosautomation.com/v1/extract/structured/demo): POST only, 1/day per IP (shared quota), same shape as paid structured extraction
 - [Screenshot & PDF Render](https://api.santosautomation.com/v1/screenshot?url=https%3A%2F%2Fexample.com): $0.01 USDC, synchronous — real-Chromium PNG/JPEG/PDF bytes (format=, device=, full_page= params)
 - [Deep Website Intelligence Audit](https://api.santosautomation.com/v1/audits): $0.225 USDC, asynchronous job — POST {"url": "https://example.com"}
 
 ## Free tools (no payment)
 
-Free quota is 1 call per day per identity, shared across every free tool. Without a token
-that identity is the calling IP — hosted agents share one address, so the allowance is spent
-by whoever calls first. Issue your own verified-email token (no card, valid 30 days) at
-https://www.santosautomation.com/free-token and pass it as `token`.
+The free HTTP tier is RETIRED. The old /demo endpoints, the verified-email token flow, and
+the llms.txt generator no longer serve results: the demo endpoints answer 402 naming the paid
+successor, its price, and the exact URL to call, so an x402 client can pay and continue without
+a human. The single remaining free surface is the MCP tool audit_website_preview, 1 call per
+day per calling IP.
 
-- [Free verified-email audit](https://api.santosautomation.com/api/audit/free?url=https%3A%2F%2Fexample.com): 1/day per verified email (token from POST /api/leads/verify/request → confirm), same report shape as the paid Quick Audit, HMAC-signed; quota shared with the llms.txt generator
+These stay free and unmetered — they cost nothing to serve and they make paid output verifiable:
+
 - [Agent-Ready badge](https://api.santosautomation.com/v1/badge?url=https%3A%2F%2Fexample.com): free SVG shield of a site's latest public score — no quota; embed `[![badge](https://api.santosautomation.com/v1/badge?url=example.com)](https://www.santosautomation.com/reports/example.com)`
 - [Report signature verification](https://api.santosautomation.com/v1/verify): free — POST a full report JSON, get {valid, url, score, signed_at}; 30/hour per IP
-- [llms.txt generator](https://api.santosautomation.com/v1/llms-txt/demo?url=https%3A%2F%2Fexample.com): 1/day per verified email (shared quota) — drafts a standards-shaped llms.txt from a one-page sample
+- [Public report archive](https://www.santosautomation.com/reports): every scored domain, full reports, no quota — read one before buying
 
 AGENT READINESS AUDIT details:
 - Capability id: `agent-readiness.quick`; result schema version: `1.0.0`.
@@ -127,8 +124,10 @@ qualification, deploy sanity checks, monitoring sweeps. Choose DEEP PAGE AUDIT
 ($0.225, asynchronous) when you need browser-rendered evidence: Lighthouse lab
 metrics (LCP/CLS/TBT), rendered axe-core accessibility findings with selectors,
 screenshots, network/console evidence, or a professional-grade report for a
-client. Both audit a single page — neither is a crawler. Use the free demo
-first to inspect the quick-tier response format without paying.
+client. Both audit a single page — neither is a crawler. To inspect the response
+format before paying, read a completed report at
+https://www.santosautomation.com/reports or call the free MCP tool
+audit_website_preview.
 
 Choose SAFE FETCH ($0.002, seconds) when you need the RAW body of a URL —
 JSON APIs, feeds, sitemaps, scripts, or unprocessed HTML — retrieved through
@@ -237,16 +236,16 @@ audit or invoke any tool advertised by the audited target.
   (including via redirects). Only ports 80 and 443; no URLs with embedded credentials.
 - 15-second fetch timeout, 5 redirects max, 5 MB response cap, 2048-char URL cap,
   HTML/XHTML/plain-text content only.
-- Free demo and MCP preview tool: 1 audit per day per IP (shared quota).
+- Free MCP preview tool (audit_website_preview): 1 audit per day per calling IP.
 - Structured Extraction truncates page content to 8000 characters and caps model
   output at 1024 tokens before extraction runs, regardless of the requested schema
   size — a very long page will be truncated before its later sections are seen.
   The caller's JSON Schema must also be self-contained (no external $ref) and
   under 4000 characters.
 - robots.txt Disallow lines under /api/ and /v1/ target search-engine crawling of
-  unlisted internals only. The audit endpoints — /api/audit, /api/audit/demo,
-  /api/agent-readiness, /v1/audits, and /mcp — are explicitly Allowed and intended
-  for direct agent/tool invocation.
+  unlisted internals only. The audit endpoints — /api/audit, /api/agent-readiness,
+  /v1/audits, and /mcp — are explicitly Allowed and intended for direct agent/tool
+  invocation.
 
 ## Roadmap
 
@@ -258,7 +257,7 @@ by x402 discovery catalogs. Capability requests: info@santosautomation.com.
 
 ## Support
 
-- [Website](https://www.santosautomation.com): product landing and free demo audit
+- [Website](https://www.santosautomation.com): product landing and the public report archive
 - [Terms, privacy, acceptable use, and retention](https://www.santosautomation.com/terms): legal and data-handling policies
 - Email: info@santosautomation.com
 - Operator: Santos Automation (Juan Santos) — custom x402 APIs, web apps,

@@ -1,13 +1,15 @@
 import { withAgentLog } from "../../../lib/agent-log.js";
 // POST /v1/verify — free report-signature verification. Body is the full
 // report JSON exactly as returned by an audit endpoint (or stored in
-// public_reports); nothing is stripped before verification. Rate-limited to
-// 30 verifications per IP per hour using the demo-limit slot pattern
-// (fixed window emulated with N slot keys, like lib/leads/verify.js).
+// public_reports); nothing is stripped before verification.
+//
+// Stays free deliberately: it costs one HMAC check, no fetch and no model call,
+// and a signature nobody can verify is worth nothing. Rate-limited to 30
+// verifications per IP per hour via the demo-limit fixed-window slot claim.
 import { NextResponse } from "next/server";
 import { CORS } from "../../../lib/errors.js";
 import { verifyReportSignature } from "../../../lib/report-signing.js";
-import { claimKey, hashIdentity, ipFromRequest } from "../../../lib/demo-limit.js";
+import { claimSlot, hashIdentity, ipFromRequest } from "../../../lib/demo-limit.js";
 
 const MAX_BODY_BYTES = 1_000_000; // ~1MB
 const VERIFICATIONS_PER_HOUR = 30;
@@ -15,14 +17,14 @@ const VERIFICATIONS_PER_HOUR = 30;
 const hourBlock = () => Math.floor(Date.now() / 3_600_000);
 
 // Consume one of the 30 hourly slots for this IP; false when the window is
-// full. Fails open on storage outage, like the rest of the limiter.
+// full. One round trip on Postgres — this used to walk the slots one query at a
+// time, which is how a burst here exhausted the connection pooler.
+// On a storage outage it falls back to the limiter's bounded emergency
+// allowance rather than failing open.
 async function consumeVerifySlot(ip) {
   const window = hourBlock();
   const ipHash = hashIdentity(ip);
-  for (let slot = 1; slot <= VERIFICATIONS_PER_HOUR; slot++) {
-    if (await claimKey(`verify-api:ip:${ipHash}:${window}:${slot}`, 3600)) return true;
-  }
-  return false;
+  return claimSlot(`verify-api:ip:${ipHash}:${window}:`, VERIFICATIONS_PER_HOUR, 3600);
 }
 
 function rateLimited() {

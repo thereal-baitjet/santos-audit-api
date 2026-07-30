@@ -18,8 +18,6 @@ export default async function sitemap() {
     "/methodology/agent-readiness",
     "/reports",
     "/reports/sample-agent-readiness",
-    "/llms-txt-generator",
-    "/free-token",
     "/ci",
     "/integrations",
     "/integrations/grok",

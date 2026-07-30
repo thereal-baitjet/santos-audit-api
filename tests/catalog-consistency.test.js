@@ -104,13 +104,9 @@ test("static public widget scripts carry current prices and no retired prices", 
   const webmcp = read("public/webmcp.js");
   assert.ok(webmcp.includes(quick.priceUsdc), "webmcp.js quick price drifted from catalog");
   assert.ok(webmcp.includes(extract.priceUsdc), "webmcp.js extract price drifted from catalog");
-  for (const path of ["public/audit-widget.js", "public/llms-txt-widget.js", "public/webmcp.js"]) {
-    assert.ok(!/\$5\b/.test(read(path)), `${path} still mentions the retired $5 human report`);
-  }
-  for (const product of humanProducts()) {
-    if (product.tier === "monitoring") continue;
-    assert.ok(read("public/audit-widget.js").includes(`$${product.priceUsd}`), `audit-widget.js missing $${product.priceUsd}`);
-  }
+  // audit-widget.js and llms-txt-widget.js were deleted with the free tier;
+  // webmcp.js is the only static script left that quotes a price.
+  assert.ok(!/\$5\b/.test(webmcp), "webmcp.js still mentions the retired $5 human report");
 });
 
 test("refactored source surfaces carry no hardcoded price literals", () => {

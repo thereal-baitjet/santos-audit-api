@@ -1,57 +1,10 @@
-import { withAgentLog } from "../../../../lib/agent-log.js";
-// GET /v1/fetch/demo — one free safe fetch per day per IP (quota shared with
-// the other free demos, so the free-tier surface stays one request a day).
+// RETIRED free endpoint. Answers 402 pointing at the paid Safe Fetch.
 import { NextResponse } from "next/server";
-import { fetchUrl } from "../../../../lib/fetch-product.js";
-import { validateTarget } from "../../../../lib/safe-fetch.js";
-import { auditErrorResponse, CORS } from "../../../../lib/errors.js";
-import { openDemoQuota, FREE_TIER_HELP, INVALID_TOKEN_HELP } from "../../../../lib/demo-limit.js";
+import { withAgentLog } from "../../../../lib/agent-log.js";
+import { CORS } from "../../../../lib/errors.js";
+import { retiredFreeTier } from "../../../../lib/retired-free-tier.js";
 
-const PRICE = process.env.SAFE_FETCH_PRICE_USDC ?? "0.002";
-
-function rateLimited() {
-  const midnight = new Date();
-  midnight.setUTCHours(24, 0, 0, 0);
-  const retryAfter = Math.ceil((midnight - Date.now()) / 1000);
-  return NextResponse.json(
-    {
-      error: `Free demo is 1 request/day (shared across all demo endpoints). Agents can pay per-call at GET /v1/fetch (x402, $${PRICE} USDC).`,
-      code: "RATE_LIMITED",
-      for_humans: FREE_TIER_HELP,
-      retry_after: retryAfter,
-    },
-    { status: 429, headers: { ...CORS, "Retry-After": String(retryAfter) } }
-  );
-}
-
-function invalidToken() {
-  return NextResponse.json(
-    { error: "That free-tier token is not valid or has expired.", code: "INVALID_TOKEN", for_humans: INVALID_TOKEN_HELP },
-    { status: 401, headers: CORS }
-  );
-}
-
-async function handleGET(req) {
-  const url = req.nextUrl.searchParams.get("url") ?? "";
-
-  try {
-    validateTarget(url);
-  } catch (e) {
-    return auditErrorResponse(e);
-  }
-
-  const gate = await openDemoQuota(req);
-  if (!gate.ok) return gate.reason === "invalid_token" ? invalidToken() : rateLimited();
-
-  try {
-    const result = await fetchUrl(url);
-    // Atomic claim AFTER success: failures stay free, races can't double-spend.
-    if (!(await gate.claim())) return rateLimited();
-    return NextResponse.json({ tier: "free-demo", ...result }, { headers: CORS });
-  } catch (e) {
-    return auditErrorResponse(e);
-  }
-}
+const handleGET = (req) => retiredFreeTier(req, "/v1/fetch");
 
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -65,4 +18,4 @@ export async function OPTIONS() {
   });
 }
 
-export const GET = withAgentLog(handleGET, "safe-fetch-demo");
+export const GET = withAgentLog(handleGET, "safe-fetch-demo-retired");

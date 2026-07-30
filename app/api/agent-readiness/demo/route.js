@@ -1,68 +1,10 @@
-import { withAgentLog } from "../../../../lib/agent-log.js";
+// RETIRED free endpoint. Answers 402 pointing at the paid Agent Readiness audit.
 import { NextResponse } from "next/server";
-import { auditAgentReadiness } from "../../../../lib/agent-readiness/analyze.js";
-import { validateTarget } from "../../../../lib/safe-fetch.js";
-import { auditErrorResponse, CORS } from "../../../../lib/errors.js";
-import { openDemoQuota, FREE_TIER_HELP, INVALID_TOKEN_HELP } from "../../../../lib/demo-limit.js";
-import { getAgentReadinessPriceUsdc } from "../../../../lib/agent-readiness/product-pricing.js";
-import { websiteIntelligenceSummary } from "../../../../lib/website-intelligence.js";
-import { signReport } from "../../../../lib/report-signing.js";
+import { withAgentLog } from "../../../../lib/agent-log.js";
+import { CORS } from "../../../../lib/errors.js";
+import { retiredFreeTier } from "../../../../lib/retired-free-tier.js";
 
-const PRICE = getAgentReadinessPriceUsdc();
-
-function rateLimited() {
-  const midnight = new Date();
-  midnight.setUTCHours(24, 0, 0, 0);
-  const retryAfter = Math.ceil((midnight - Date.now()) / 1000);
-  return NextResponse.json(
-    {
-      error: `Free demo is 1 audit/day (shared across all demo endpoints). Agents can pay per-call at GET /api/agent-readiness (x402, $${PRICE} USDC).`,
-      code: "RATE_LIMITED",
-      for_humans: FREE_TIER_HELP,
-      retry_after: retryAfter,
-    },
-    {
-      status: 429,
-      headers: { ...CORS, "Retry-After": String(retryAfter) },
-    }
-  );
-}
-
-function invalidToken() {
-  return NextResponse.json(
-    { error: "That free-tier token is not valid or has expired.", code: "INVALID_TOKEN", for_humans: INVALID_TOKEN_HELP },
-    { status: 401, headers: CORS }
-  );
-}
-
-async function handleGET(req) {
-  const url = req.nextUrl.searchParams.get("url") ?? "";
-
-  // Reject invalid/blocked targets before touching the rate limit.
-  try {
-    validateTarget(url);
-  } catch (e) {
-    return auditErrorResponse(e);
-  }
-
-  const gate = await openDemoQuota(req);
-  if (!gate.ok) return gate.reason === "invalid_token" ? invalidToken() : rateLimited();
-
-  try {
-    const result = await auditAgentReadiness(url, { mode: "quick" });
-    // Atomic claim AFTER success: failures stay free, races can't double-spend.
-    if (!(await gate.claim())) return rateLimited();
-    const websiteIntelligence = websiteIntelligenceSummary({ agentReadiness: result });
-    return NextResponse.json(signReport({
-      tier: "free-demo",
-      website_intelligence_score: websiteIntelligence.score,
-      website_intelligence: websiteIntelligence,
-      ...result,
-    }), { headers: CORS });
-  } catch (e) {
-    return auditErrorResponse(e);
-  }
-}
+const handleGET = (req) => retiredFreeTier(req, "/api/agent-readiness");
 
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -76,4 +18,4 @@ export async function OPTIONS() {
   });
 }
 
-export const GET = withAgentLog(handleGET, "agent-readiness-demo");
+export const GET = withAgentLog(handleGET, "agent-readiness-demo-retired");

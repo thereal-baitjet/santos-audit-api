@@ -17,7 +17,7 @@ export const metadata = {
   // Kept inside the 50–160 character band the Quick Audit checks for.
   title: "Grok & xAI Integration — Remote MCP Website Intelligence | Santos",
   description:
-    "Add the Santos MCP server to Grok in one line. Seven website-intelligence tools: free previews need no wallet, paid tools settle over x402.",
+    "Add the Santos MCP server to Grok in one line. Seven website-intelligence tools: a free preview needs no wallet, the rest settle over x402.",
   alternates: { canonical: "/integrations/grok" },
 };
 
@@ -36,7 +36,7 @@ const jsonLd = {
       provider: { "@id": `${SITE}/#organization` },
       serviceType: "Remote MCP server for AI website intelligence",
       description:
-        "A Remote MCP server over Streamable HTTP exposing seven website-intelligence tools to Grok and any MCP-capable client. Free previews execute inline; paid tools return a canonical x402 request settled in USDC on Base.",
+        "A Remote MCP server over Streamable HTTP exposing seven website-intelligence tools to Grok and any MCP-capable client. One free preview executes inline; paid tools return a canonical x402 request settled in USDC on Base.",
       offers: [
         { "@type": "Offer", name: "Agent Readiness audit (audit_agent_readiness)", price: readiness, priceCurrency: "USDC", url: `${API}/api/agent-readiness` },
         { "@type": "Offer", name: "Feed parse (feed_parse)", price: feed, priceCurrency: "USDC", url: `${API}/v1/feed` },
@@ -50,7 +50,7 @@ const jsonLd = {
       headline: "Grok-ready website intelligence in one line",
       url: `${SITE}/integrations/grok`,
       description:
-        "Register the Santos MCP server as a Grok Remote MCP tool, then use free previews or settle paid tools over x402.",
+        "Register the Santos MCP server as a Grok Remote MCP tool, then use the free preview or settle paid tools over x402.",
       about: { "@id": `${SITE}/integrations/grok#api` },
       provider: { "@id": `${SITE}/#organization` },
     },
@@ -94,9 +94,7 @@ const HANDOFF = `{
                audit on Base mainnet via x402 v2. Request
                ${API}/api/agent-readiness?url=https%3A%2F%2Fexample.com%2F&depth=quick
                without a signature to receive PAYMENT-REQUIRED terms, then sign and
-               retry with PAYMENT-SIGNATURE. Free preview: GET
-               ${API}/api/agent-readiness/demo?url=https%3A%2F%2Fexample.com%2F
-               (1/day per IP, shared quota, same result shape)."
+               retry with PAYMENT-SIGNATURE."
     }
   ]
 }`;
@@ -138,7 +136,7 @@ export default function GrokIntegrationPage() {
           <p className="lede">
             Grok supports Remote MCP tools. Santos publishes a public MCP server over Streamable
             HTTP. Point Grok at it and seven website-intelligence tools appear in the model&rsquo;s
-            tool list — no account, no API key, no server to run. Free previews need no wallet.
+            tool list — no account, no API key, no server to run. The free preview needs no wallet.
             Paid tools return a canonical x402 request that settles in USDC on Base, and only on
             success.
           </p>
@@ -192,9 +190,9 @@ export default function GrokIntegrationPage() {
           <p className="section-label">Step three</p>
           <h2>What Grok sees</h2>
           <p className="sub wide">
-            Seven tools. The three free previews execute and return a full result inline. The four
-            paid tools validate the target and return the canonical x402 HTTP request — they never
-            move funds themselves.
+            Seven tools. One free preview executes and returns a full result inline. The other
+            six validate the target and return the canonical x402 HTTP request — they never move
+            funds themselves.
           </p>
           <div className="table-wrap">
             <table>
@@ -206,9 +204,9 @@ export default function GrokIntegrationPage() {
                 </tr>
               </thead>
               <tbody>
-                <tr><th scope="row"><code>audit_website_preview</code></th><td>Free</td><td>Runs a Quick Intelligence Audit and returns the report inline</td></tr>
-                <tr><th scope="row"><code>extract_page_markdown</code></th><td>Free</td><td>Returns one page as clean Markdown with title, links, and word count</td></tr>
-                <tr><th scope="row"><code>extract_structured_data</code></th><td>Free</td><td>Returns JSON extracted against your own JSON Schema, re-validated before return</td></tr>
+                <tr><th scope="row"><code>audit_website_preview</code></th><td>Free</td><td>Runs a Quick Intelligence Audit and returns the report inline — 1/day per calling IP</td></tr>
+                <tr><th scope="row"><code>extract_page_markdown</code></th><td>Paid</td><td>Returns the x402 handoff for /v1/extract — one page as clean Markdown with title, links, and word count</td></tr>
+                <tr><th scope="row"><code>extract_structured_data</code></th><td>Paid</td><td>Returns the x402 handoff for POST /v1/extract/structured — JSON extracted against your own JSON Schema, re-validated before return</td></tr>
                 <tr><th scope="row"><code>audit_agent_readiness</code></th><td>${readiness}</td><td>Returns the x402 handoff for the full Agent Readiness audit</td></tr>
                 <tr><th scope="row"><code>feed_parse</code></th><td>${feed}</td><td>Returns the x402 handoff for RSS / Atom / JSON Feed normalization</td></tr>
                 <tr><th scope="row"><code>link_map</code></th><td>${links}</td><td>Returns the x402 handoff for a categorized link map</td></tr>
@@ -217,44 +215,27 @@ export default function GrokIntegrationPage() {
             </table>
           </div>
           <p className="sub wide">
-            All prices are USDC on Base mainnet (<code>eip155:8453</code>). The three free previews
-            share one quota: <strong>one call per day per identity</strong>.
+            All prices are USDC on Base mainnet (<code>eip155:8453</code>). The free preview is
+            <strong> one call per day per calling IP</strong>.
           </p>
           <p className="sub wide">
-            That identity matters when Grok is the caller. Without a token the quota is keyed on
-            the calling IP — and a hosted agent reaches this server from xAI infrastructure, so a
-            single daily call is shared by every Grok user at once. Pass a{" "}
-            <code>token</code> and the quota moves onto that individual user instead. Every free
-            tool accepts one:
-          </p>
-          <pre className="code-sample" tabIndex={0}><code>{`# once per user — 6-digit code by email, token valid 30 days
-curl -X POST ${API}/api/leads/verify/request \\
-  -H 'Content-Type: application/json' \\
-  -d '{"email":"you@example.com","url":"https://example.com"}'
-
-curl -X POST ${API}/api/leads/verify/confirm \\
-  -H 'Content-Type: application/json' \\
-  -d '{"email":"you@example.com","code":"123456"}'
-
-# then pass it as a tool argument
-{"name":"audit_website_preview","arguments":{"url":"https://example.com","token":"<token>"}}`}</code></pre>
-          <p className="sub wide">
-            An invalid token is rejected outright rather than silently falling back to the shared
-            IP allowance. For anything beyond evaluation, pay per call — there is no quota on the
-            paid endpoints.
+            That matters when Grok is the caller: a hosted agent reaches this server from xAI
+            infrastructure, so that single daily call is shared by every Grok user at once. Treat
+            the preview as a sample of the output, not as capacity — for anything beyond
+            evaluation, pay per call. There is no quota on the paid endpoints.
           </p>
         </section>
 
         <section className="content-section prose-grid">
           <div>
-            <h2>Start free, no wallet</h2>
+            <h2>Try it without a wallet</h2>
             <p>
               Ask Grok to audit a URL and it will reach for{" "}
               <code>audit_website_preview</code> on its own. That call executes end to end and
               returns scores, pass/fail checks, and remediation guidance inline — no payment, no
-              wallet, no configuration beyond the one line above. Same for{" "}
-              <code>extract_page_markdown</code> and <code>extract_structured_data</code>. This is
-              the fastest way to confirm the wiring works before a key is ever involved.
+              wallet, no configuration beyond the one line above — one audit per day per calling
+              IP. This is the fastest way to confirm the wiring works before a key is ever
+              involved.
             </p>
           </div>
           <div>
@@ -288,8 +269,7 @@ curl -X POST ${API}/api/leads/verify/confirm \\
             The tool result comes back on MCP&rsquo;s error channel — <code>isError: true</code>{" "}
             with one text block. That is deliberate: a payment-required result is not a finished
             answer, and signalling it as an error keeps the model from reporting a price quote as
-            though it were an audit. The text names the price, the exact URL to pay for, and the
-            free preview:
+            though it were an audit. The text names the price and the exact URL to pay for:
           </p>
           <pre className="code-sample" tabIndex={0}><code>{HANDOFF}</code></pre>
           <p className="sub wide">

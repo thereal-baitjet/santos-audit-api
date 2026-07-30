@@ -79,7 +79,7 @@ export default function Home() {
           <h1>Is your website ready for <em>AI agents</em>?</h1>
           <p className="lede">Test whether AI systems can discover, understand, trust, and use your website. Get a scored report with evidence and prioritized fixes for agent readiness, SEO, accessibility, performance, and security.</p>
           <div className="cta-row">
-            <a className="btn primary" href="#free-audit" data-analytics-event="hero_free_audit_clicked">Run Your Free Audit</a>
+            <a className="btn primary" href="#see-reports" data-analytics-event="hero_see_reports_clicked">See a Real Report</a>
             <a className="btn" href="/reports/sample-agent-readiness" data-analytics-event="sample_report_opened">View Sample Report</a>
           </div>
           <p className="proof-line">Quick scans in seconds · Browser-rendered deep audits · Structured JSON with evidence · HMAC-signed and verifiable</p>
@@ -91,7 +91,7 @@ export default function Home() {
       <div className="home-content">
         <ReportPreview />
 
-        <section className="content-section audit" id="free-audit"><p className="section-label">Free audit</p><h2>Run your free audit</h2><p className="sub wide">One free scan per day per verified email — confirm your address once with a 6-digit code, then it just works. Results include your AI Website Intelligence score, the four dimensions, and your top issues. Publication on the public leaderboard is optional and off unless you opt in. For unlimited audits use the <a href="/pricing">Quick API at {"$"}{quick.priceUsdc} USDC per success</a>, or the paid <a href="/agent-readiness/run">Agent Readiness audit</a> at {readiness.priceUsdc} USDC per success.</p><div className="audit-box"><AuditWidget /></div></section>
+        <section className="content-section audit" id="see-reports"><p className="section-label">See the output</p><h2>Read a real report first</h2><p className="sub wide">Every domain below was audited with the same engine you would be buying — AI Website Intelligence score, the four dimensions, evidence, and prioritized fixes. Read one in full, then decide. Agents pay per call: the <a href="/pricing">Quick API at {"$"}{quick.priceUsdc} USDC per success</a>, or the <a href="/agent-readiness/run">Agent Readiness audit</a> at {readiness.priceUsdc} USDC per success.</p><div className="audit-box"><AuditWidget /></div></section>
 
         <section className="content-section" id="index"><p className="section-label">The Santos Index · {INDEX_STATS.edition}</p><h2>The web isn't agent-ready — yet.</h2><p className="sub wide">We audited {INDEX_STATS.auditedSiteCountLabel} of the world's best-known websites with the same engine that powers this API. Average AI Website Intelligence score: <strong>{INDEX_STATS.averageScore}/100</strong>. Median: <strong>{INDEX_STATS.medianScore}</strong>. {INDEX_STATS.examples[0].domain} scores <strong>{INDEX_STATS.examples[0].score}</strong>, {INDEX_STATS.examples[1].domain} <strong>{INDEX_STATS.examples[1].score}</strong>, {INDEX_STATS.examples[2].domain} <strong>{INDEX_STATS.examples[2].score}</strong> — while {INDEX_STATS.topDomain} leads at <strong>{INDEX_STATS.topScore}</strong>. Every report is public, HMAC-signed, and independently verifiable.</p><div className="cta-row"><a className="btn" href="/reports">Browse the leaderboard</a></div></section>
 
@@ -109,7 +109,7 @@ export default function Home() {
 
         <section className="content-section" id="faq"><p className="section-label">FAQ</p><h2>Questions about AI Website Intelligence</h2><div className="faq-list">{FAQS.map((item) => <details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div></section>
 
-        <section className="content-section final-cta" id="get-started"><h2>Find out what AI agents see when they visit your site.</h2><div className="cta-row"><a className="btn primary" href="#free-audit" data-analytics-event="hero_free_audit_clicked">Run Your Free Audit</a><a className="btn" href="/pricing">View pricing</a></div></section>
+        <section className="content-section final-cta" id="get-started"><h2>Find out what AI agents see when they visit your site.</h2><div className="cta-row"><a className="btn primary" href="#see-reports" data-analytics-event="hero_see_reports_clicked">See a Real Report</a><a className="btn" href="/pricing">View pricing</a></div></section>
       </div>
     </PageShell>
   );

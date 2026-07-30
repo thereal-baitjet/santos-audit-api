@@ -141,12 +141,11 @@ export default function IntegrationsPage() {
 
         <section className="content-section prose-grid">
           <div>
-            <h2>Free tools run inline</h2>
+            <h2>One tool runs inline</h2>
             <p>
-              The three preview tools execute end to end and return the result. One call per day
-              per identity — the calling IP unless you pass a{" "}
-              <a href="/free-token">free verified-email token</a>, which matters because hosted
-              agents share one egress address between all their users.
+              <code>audit_website_preview</code> executes end to end and returns a real audit —
+              one call per day per calling IP. Hosted agents share one egress address between all
+              their users, so treat it as a sample of the output rather than as capacity.
             </p>
           </div>
           <div>
@@ -186,7 +185,7 @@ export default function IntegrationsPage() {
           <h2>Continue</h2>
           <div className="related-links">
             <a href="/docs">API documentation<span aria-hidden="true"> →</span></a>
-            <a href="/free-token">Get a free-tier token<span aria-hidden="true"> →</span></a>
+            <a href="/pricing">Pricing for every capability<span aria-hidden="true"> →</span></a>
             <a href="/ci">Gate pull requests on agent readiness<span aria-hidden="true"> →</span></a>
             <a href="/methodology/agent-readiness">Scoring methodology<span aria-hidden="true"> →</span></a>
           </div>

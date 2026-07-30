@@ -14,10 +14,10 @@
 
   const tools = [
     {
-      name: "run_quick_audit",
-      title: "Run free Quick Intelligence Audit",
+      name: "get_quick_audit_payment_terms",
+      title: "Get Quick Intelligence Audit payment terms",
       description:
-        "Run a free website intelligence audit of a public URL (1 per day per IP). Returns the AI Website Intelligence score, per-dimension scores (performance, technical SEO, accessibility, security) and prioritized issues. For unlimited machine access use GET https://api.santosautomation.com/api/audit (x402, 0.015 USDC).",
+        "Fetch the live x402 payment terms (USDC amount on Base mainnet, pay-to address, canonical endpoint) for a Quick Intelligence Audit of the given URL. Costs 0.015 USDC per successful audit. Read-only: this makes the UNSIGNED request, so the service answers 402 with its terms and no audit runs and no payment is made until an x402 client signs and retries.",
       inputSchema: {
         type: "object",
         properties: {
@@ -30,7 +30,7 @@
         additionalProperties: false,
       },
       annotations: { readOnlyHint: true },
-      execute: ({ url }) => json(`/api/audit/demo?url=${encodeURIComponent(url)}`),
+      execute: ({ url }) => json(`/api/audit?url=${encodeURIComponent(url)}`),
     },
     {
       name: "get_agent_readiness_payment_terms",
@@ -52,10 +52,10 @@
       execute: ({ url }) => json(`/agent-readiness/challenge?url=${encodeURIComponent(url)}`),
     },
     {
-      name: "extract_page_markdown",
-      title: "Extract a page as Markdown (free demo)",
+      name: "get_page_extraction_payment_terms",
+      title: "Get page-to-Markdown extraction payment terms",
       description:
-        "Convert one public web page to clean Markdown with title, links, and metadata (free, 1 request per day per IP, quota shared with run_quick_audit). For unlimited machine access use POST https://api.santosautomation.com/v1/extract (x402, 0.005 USDC).",
+        "Fetch the live x402 payment terms for converting one public web page to clean Markdown with title, links, and metadata. Costs 0.005 USDC per successful extraction. Read-only: this makes the UNSIGNED request, so the service answers 402 with its terms and nothing is extracted or paid until an x402 client signs and retries.",
       inputSchema: {
         type: "object",
         properties: {
@@ -68,7 +68,7 @@
         additionalProperties: false,
       },
       annotations: { readOnlyHint: true },
-      execute: ({ url }) => json(`/v1/extract/demo?url=${encodeURIComponent(url)}`),
+      execute: ({ url }) => json(`/v1/extract?url=${encodeURIComponent(url)}`),
     },
     {
       name: "get_service_capabilities",
