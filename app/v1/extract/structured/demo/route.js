@@ -1,76 +1,14 @@
-import { withAgentLog } from "../../../../../lib/agent-log.js";
-// POST /v1/extract/structured/demo — one free structured extraction per day per
-// IP (quota shared with every other demo, so the free-tier surface stays one
-// scan/call a day total). POST-only, matching the paid route: a JSON Schema
-// doesn't fit cleanly URL-encoded into a query string the way a plain url= does,
-// and there's no meaningful "discovery via GET" use case here either.
+// RETIRED free endpoint. Answers 402 pointing at the paid Structured Extraction.
+//
+// This is the route that was stuck returning 503 SERVICE_DEGRADED after the
+// 2026-07-30 pooler incident: the limiter latched into degraded mode and the
+// heavy free path stayed refused. It is paid-only now, so the gate is gone.
 import { NextResponse } from "next/server";
-import { extractStructured } from "../../../../../lib/extract-structured.js";
-import { validateTarget } from "../../../../../lib/safe-fetch.js";
-import { auditErrorResponse, CORS } from "../../../../../lib/errors.js";
-import { openDemoQuota, FREE_TIER_HELP, INVALID_TOKEN_HELP } from "../../../../../lib/demo-limit.js";
+import { withAgentLog } from "../../../../../lib/agent-log.js";
+import { CORS } from "../../../../../lib/errors.js";
+import { retiredFreeTier } from "../../../../../lib/retired-free-tier.js";
 
-const PRICE = process.env.STRUCTURED_EXTRACT_PRICE_USDC ?? "0.08";
-
-function rateLimited() {
-  const midnight = new Date();
-  midnight.setUTCHours(24, 0, 0, 0);
-  const retryAfter = Math.ceil((midnight - Date.now()) / 1000);
-  return NextResponse.json(
-    {
-      error: `Free demo is 1 request/day (shared across all demo endpoints). Agents can pay per-call at POST /v1/extract/structured (x402, $${PRICE} USDC).`,
-      code: "RATE_LIMITED",
-      for_humans: FREE_TIER_HELP,
-      retry_after: retryAfter,
-    },
-    { status: 429, headers: { ...CORS, "Retry-After": String(retryAfter) } }
-  );
-}
-
-function degraded() {
-  return NextResponse.json(
-    {
-      error: "Free LLM-backed extraction is paused while the free-tier limiter cannot enforce quota.",
-      code: "SERVICE_DEGRADED",
-      for_humans: "This is temporary and being alerted on. The paid endpoint is unaffected: POST /v1/extract/structured.",
-    },
-    { status: 503, headers: { ...CORS, "Retry-After": "300" } }
-  );
-}
-
-function invalidToken() {
-  return NextResponse.json(
-    { error: "That free-tier token is not valid or has expired.", code: "INVALID_TOKEN", for_humans: INVALID_TOKEN_HELP },
-    { status: 401, headers: CORS }
-  );
-}
-
-async function handlePOST(req) {
-  const body = await req.json().catch(() => ({}));
-  const url = typeof body.url === "string" ? body.url : "";
-
-  try {
-    validateTarget(url);
-  } catch (e) {
-    return auditErrorResponse(e);
-  }
-
-  const gate = await openDemoQuota(req, { heavy: true });
-  if (!gate.ok) {
-    if (gate.reason === "invalid_token") return invalidToken();
-    if (gate.reason === "degraded") return degraded();
-    return rateLimited();
-  }
-
-  try {
-    const result = await extractStructured(url, body.schema);
-    // Atomic claim AFTER success: failures stay free, races can't double-spend.
-    if (!(await gate.claim())) return rateLimited();
-    return NextResponse.json({ tier: "free-demo", ...result }, { headers: CORS });
-  } catch (e) {
-    return auditErrorResponse(e);
-  }
-}
+const handlePOST = (req) => retiredFreeTier(req, "/v1/extract/structured");
 
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -84,4 +22,4 @@ export async function OPTIONS() {
   });
 }
 
-export const POST = withAgentLog(handlePOST, "structured-extract-demo");
+export const POST = withAgentLog(handlePOST, "structured-extract-demo-retired");

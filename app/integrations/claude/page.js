@@ -18,12 +18,12 @@ const summarize = apiProduct("/v1/summarize").priceUsdc;
 export const metadata = {
   title: "Claude Integration — Remote MCP Website Intelligence | Santos",
   description:
-    "Register the Santos MCP server with Claude once — Claude.ai connector or claude mcp add. Free tools run directly; paid tools return an x402 handoff.",
+    "Register the Santos MCP server with Claude once — Claude.ai connector or claude mcp add. One free tool runs directly; the rest return an x402 handoff.",
   alternates: { canonical: "/integrations/claude" },
   openGraph: {
     title: "Claude Integration — Remote MCP Website Intelligence | Santos",
     description:
-      "Register the Santos MCP server with Claude once — Claude.ai connector or claude mcp add. Free tools run directly; paid tools return an x402 handoff.",
+      "Register the Santos MCP server with Claude once — Claude.ai connector or claude mcp add. One free tool runs directly; the rest return an x402 handoff.",
     url: `${SITE}/integrations/claude`,
     type: "article",
   },
@@ -42,7 +42,7 @@ const jsonLd = {
       provider: { "@id": `${SITE}/#organization` },
       serviceType: "Remote MCP server for AI website intelligence",
       description:
-        "A Remote MCP server over Streamable HTTP exposing seven website-intelligence tools to Claude and any MCP-capable client. Free tools execute inline; paid tools return a canonical x402 request settled in USDC on Base by a wallet-enabled wrapper.",
+        "A Remote MCP server over Streamable HTTP exposing seven website-intelligence tools to Claude and any MCP-capable client. One free tool executes inline; paid tools return a canonical x402 request settled in USDC on Base by a wallet-enabled wrapper.",
       offers: [
         { "@type": "Offer", name: "Agent Readiness audit (audit_agent_readiness)", price: readiness, priceCurrency: "USDC", url: `${API}/api/agent-readiness` },
         { "@type": "Offer", name: "Feed parse (feed_parse)", price: feed, priceCurrency: "USDC", url: `${API}/v1/feed` },
@@ -56,7 +56,7 @@ const jsonLd = {
       headline: "Claude-ready website intelligence through one Remote MCP endpoint",
       url: `${SITE}/integrations/claude`,
       description:
-        "Add the Santos MCP server to Claude as a custom connector, then use free tools directly or settle paid tools over x402.",
+        "Add the Santos MCP server to Claude as a custom connector, then use the free tool directly or settle paid tools over x402.",
       about: { "@id": `${SITE}/integrations/claude#api` },
       provider: { "@id": `${SITE}/#organization` },
     },
@@ -196,9 +196,9 @@ export default function ClaudeIntegrationPage() {
                 <tr><th scope="col">Tool</th><th scope="col">Cost</th><th scope="col">Behavior</th></tr>
               </thead>
               <tbody>
-                <tr><th scope="row"><code>audit_website_preview</code></th><td>Free</td><td>Runs a Quick Intelligence Audit and returns the report inline</td></tr>
-                <tr><th scope="row"><code>extract_page_markdown</code></th><td>Free</td><td>Returns one page as clean Markdown with title, links, and word count</td></tr>
-                <tr><th scope="row"><code>extract_structured_data</code></th><td>Free</td><td>Returns JSON extracted against your own JSON Schema, re-validated before return</td></tr>
+                <tr><th scope="row"><code>audit_website_preview</code></th><td>Free</td><td>Runs a Quick Intelligence Audit and returns the report inline — 1/day per calling IP</td></tr>
+                <tr><th scope="row"><code>extract_page_markdown</code></th><td>Paid</td><td>Returns the x402 handoff for /v1/extract — one page as clean Markdown with title, links, and word count</td></tr>
+                <tr><th scope="row"><code>extract_structured_data</code></th><td>Paid</td><td>Returns the x402 handoff for POST /v1/extract/structured — JSON extracted against your own JSON Schema, re-validated before return</td></tr>
                 <tr><th scope="row"><code>audit_agent_readiness</code></th><td>${readiness}</td><td>Returns the x402 handoff for the full Agent Readiness audit</td></tr>
                 <tr><th scope="row"><code>feed_parse</code></th><td>${feed}</td><td>Returns the x402 handoff for RSS / Atom / JSON Feed normalization</td></tr>
                 <tr><th scope="row"><code>link_map</code></th><td>${links}</td><td>Returns the x402 handoff for a categorized link map</td></tr>
@@ -207,21 +207,20 @@ export default function ClaudeIntegrationPage() {
             </table>
           </div>
           <p className="sub wide">
-            Free tools share one quota: one call per day per identity. Without a token that
-            identity is the calling IP; pass the optional <code>token</code> argument (a
-            verified-email token from <code>/api/leads/verify/*</code>) and the quota moves onto
-            that user instead.
+            The free preview is one call per day per calling IP. A hosted client reaches this
+            server from shared infrastructure, so that allowance is shared by everyone behind it —
+            treat it as a sample of the output rather than as capacity.
           </p>
         </section>
 
         <section className="content-section prose-grid">
           <div>
-            <h2>Free tools run directly</h2>
+            <h2>One tool runs directly</h2>
             <p>
-              The three preview tools execute end to end inside the connector call and return the
-              result to Claude. No wallet, no payment, no configuration beyond attaching the
-              endpoint. This is the whole experience for evaluation and for most conversational
-              use.
+              <code>audit_website_preview</code> executes end to end inside the connector call and
+              returns the result to Claude. No wallet, no payment, no configuration beyond
+              attaching the endpoint — one audit per day per calling IP, enough to judge the
+              output before paying for it.
             </p>
           </div>
           <div>

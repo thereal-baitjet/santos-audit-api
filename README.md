@@ -66,10 +66,9 @@ navigation uses the gold Santos eagle SVG emblem from `public/assets`.
 | **Summarizer** ($0.033 USDC, synchronous) | `POST /v1/summarize` `{"url": "https://example.com", "focus": "..."}` |
 | Screenshot & PDF Render ($0.01 USDC, synchronous) | `GET /v1/screenshot?url=https://example.com` |
 | **Deep Website Intelligence Audit** ($0.225 USDC, async job) | `POST /v1/audits` `{"url": "https://example.com"}` |
-| Free demos (1/day per IP, shared quota across all demos) | `GET /api/audit/demo?url=...` · `GET /api/agent-readiness/demo?url=...` |
 | OpenAPI 3.1 | [`/openapi.json`](https://api.santosautomation.com/openapi.json) |
 | llms.txt | [`/llms.txt`](https://api.santosautomation.com/llms.txt) |
-| MCP server (tools: `audit_website_preview`, `audit_agent_readiness`, `extract_page_markdown`, `extract_structured_data`, `feed_parse`, `link_map`, `summarize`) | `POST /mcp` |
+| MCP server (`audit_website_preview` is free, 1/day per IP; `audit_agent_readiness`, `extract_page_markdown`, `extract_structured_data`, `feed_parse`, `link_map`, `summarize` return x402 handoffs) | `POST /mcp` |
 | Service manifest | [`/api`](https://api.santosautomation.com/api) |
 | Capability manifest | [`/capabilities.json`](https://api.santosautomation.com/capabilities.json) |
 | Well-known capability manifest | [`/.well-known/agent-capabilities.json`](https://www.santosautomation.com/.well-known/agent-capabilities.json) |
@@ -183,35 +182,20 @@ Three synchronous content tools under the same pay-per-success contract:
   Non-HTML targets return 422 and never settle. Buyer example:
   [`buy-summarize.js`](buy-summarize.js).
 
-### Free demo first
+### See the output before paying
 
-Same report shape, no payment, 1/day per IP:
-
-```
-curl "https://api.santosautomation.com/api/audit/demo?url=example.com"
-```
+The free HTTP tier is retired — the old `/demo` endpoints answer `402` naming
+their paid successor, its price, and the exact URL to call. To judge the output
+first, read a completed report in the [public archive](https://www.santosautomation.com/reports)
+or call the free MCP tool `audit_website_preview` (1/day per calling IP).
 
 ## Free tools, badge & CI
-
-**Verified-email free audit** — one full Quick Intelligence audit per day per
-verified email (6-digit code flow, token valid 30 days), HMAC-signed report:
-
-```
-POST /api/leads/verify/request  {"email": "you@example.com", "url": "example.com"}
-POST /api/leads/verify/confirm  {"email": "you@example.com", "code": "123456"}  → token
-GET  /api/audit/free?url=example.com&token=<token>
-```
 
 **Agent-Ready badge** — embed a live SVG shield of your public score:
 
 ```markdown
 [![Agent-Ready badge](https://api.santosautomation.com/v1/badge?url=example.com)](https://www.santosautomation.com/reports/example.com)
 ```
-
-**llms.txt generator** — draft a standards-shaped `llms.txt` from a one-page
-sample (verified-email free tier, quota shared with the free audit):
-`GET /v1/llms-txt/demo?url=example.com&token=<token>` or the tool page at
-[/llms-txt-generator](https://www.santosautomation.com/llms-txt-generator).
 
 **Report verification** — every report carries an HMAC-SHA256 signature. Verify
 one free with `POST /v1/verify` (30/hour) or at

@@ -2,6 +2,7 @@ import AuditWidget from "../AuditWidget.js";
 import { PageShell } from "./SiteChrome.js";
 import StructuredData from "./StructuredData.js";
 import { SITE_URL } from "../../lib/marketing-content.js";
+import { apiProduct } from "../../lib/products.js";
 
 export default function MarketingPage({ page }) {
   const jsonLd = {
@@ -45,13 +46,13 @@ export default function MarketingPage({ page }) {
           <p className="lede">{page.intro}</p>
           <div className="cta-row">
             <a className="btn primary" href="/agent-readiness/run">Run Paid Agent Readiness Audit</a>
-            <a className="btn" href="#run-audit" data-analytics-event="free_audit_started">Run Free Quick Audit</a>
+            <a className="btn" href="#see-reports" data-analytics-event="see_reports_clicked">See a Real Report</a>
             <a className="btn" href="/reports/sample-agent-readiness" data-analytics-event="sample_report_viewed">View Sample Report</a>
             <a className="btn" href="/openapi.json" data-analytics-event="openapi_downloaded">Explore API Documentation</a>
           </div>
         </header>
 
-        <section id="run-audit" className="content-section"><h2>Free browser demo — one scan per day</h2><p className="sub">Inspect the report shape with a free daily scan (one per day per IP; a shared office, VPN, or network may share that limit). The production Quick API costs 0.015 USDC per successful audit, and the complete <a href="/agent-readiness/run">Agent Readiness audit</a> costs 0.075 USDC per successful audit.</p><div className="audit-box"><AuditWidget /></div></section>
+        <section id="see-reports" className="content-section"><h2>Read a real report first</h2><p className="sub">Every domain below was audited with the production engine — same scores, same evidence, same prioritized fixes you would be buying. The Quick API costs {apiProduct("/api/audit").priceUsdc} USDC per successful audit, and the complete <a href="/agent-readiness/run">Agent Readiness audit</a> costs {apiProduct("/api/agent-readiness").priceUsdc} USDC per successful audit.</p><div className="audit-box"><AuditWidget /></div></section>
 
         {page.highlights?.length > 0 && <section className="content-section"><h2>What the assessment covers</h2><div className="feature-grid">{page.highlights.map((item) => <div className="feature-card" key={item.name}><h3>{item.name}</h3><p>{item.text}</p></div>)}</div></section>}
 

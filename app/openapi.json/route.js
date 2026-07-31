@@ -62,7 +62,7 @@ const auditReportSchema = {
   required: ["tier", "url", "fetched_at", "http_status", "timing_ms", "overall_score", "scores", "checks", "issues"],
   properties: {
     schema_version: { type: "string", enum: ["2.1.0"] },
-    tier: { type: "string", enum: ["paid", "free-demo", "free-verified"] },
+    tier: { type: "string", enum: ["paid"] },
     url: { type: "string", format: "uri", description: "The final URL audited, after redirects." },
     fetched_at: { type: "string", format: "date-time" },
     http_status: { type: "integer", description: "HTTP status returned by the audited site." },
@@ -120,7 +120,7 @@ const errorSchema = {
       description: "Stable machine-readable error code.",
       enum: [
         "INVALID_URL", "UNSUPPORTED_SCHEME", "PRIVATE_ADDRESS_BLOCKED",
-        "RATE_LIMITED", "EMAIL_NOT_VERIFIED", "AUDIT_TIMEOUT", "TARGET_UNREACHABLE", "AUDIT_FAILED",
+        "RATE_LIMITED", "FREE_TIER_RETIRED", "AUDIT_TIMEOUT", "TARGET_UNREACHABLE", "AUDIT_FAILED",
         "INVALID_EXTRACTION_SCHEMA", "STRUCTURED_OUTPUT_INVALID",
       ],
     },
@@ -182,24 +182,6 @@ const document = {
         },
       },
     },
-    "/api/agent-readiness/demo": {
-      get: {
-        operationId: "auditAgentReadinessDemo",
-        security: [], // free endpoint — excluded from x402 registry probing
-        tags: ["Agent Readiness"],
-        summary: "Free Agent Readiness demo (1/day per IP, shared quota)",
-        description:
-          "Same quick-pass assessment and response shape as the paid endpoint (tier is \"free-demo\"), with the additive Website Intelligence presentation fields. Quota is shared across all demo endpoints — one free request per day per IP total; 429 with code RATE_LIMITED after that.",
-        parameters: [urlParam],
-        responses: {
-          200: { description: "Assessment complete.", content: { "application/json": { schema: { $ref: "#/components/schemas/AgentReadinessResult" } } } },
-          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
-          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
-          502: { description: "Target or required public interface was unreachable.", content: { "application/json": { schema: errorSchema } } },
-          504: { description: "Bounded audit timed out.", content: { "application/json": { schema: errorSchema } } },
-        },
-      },
-    },
     "/api/audit": {
       get: {
         operationId: "auditWebsite",
@@ -243,47 +225,6 @@ const document = {
           400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
           502: { description: "Target site unreachable.", content: { "application/json": { schema: errorSchema } } },
           504: { description: "Target site timed out (15s limit).", content: { "application/json": { schema: errorSchema } } },
-        },
-      },
-    },
-    "/api/audit/demo": {
-      get: {
-        operationId: "auditWebsiteDemo",
-        security: [], // free endpoint — excluded from x402 registry probing
-        tags: ["Quick Intelligence"],
-        summary: "Free Quick Intelligence demo (1/day per IP)",
-        description:
-          "Identical report shape to the paid endpoint (tier is \"free-demo\"). Use it to inspect the result format before integrating payment. Rate-limited to 1 request per IP per day; 429 with code RATE_LIMITED after that.",
-        parameters: [urlParam],
-        responses: {
-          200: { description: "Audit complete.", content: { "application/json": { schema: auditReportSchema } } },
-          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
-          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
-          502: { description: "Target site unreachable.", content: { "application/json": { schema: errorSchema } } },
-          504: { description: "Target site timed out.", content: { "application/json": { schema: errorSchema } } },
-        },
-      },
-    },
-    "/api/audit/free": {
-      get: {
-        operationId: "auditWebsiteFreeVerified",
-        security: [], // free endpoint — excluded from x402 registry probing
-        tags: ["Quick Intelligence"],
-        summary: "Free Quick Intelligence audit (1/day per verified email)",
-        description:
-          "Same report shape as the paid endpoint (tier is \"free-verified\"), plus an HMAC-SHA256 signature over the report. Requires a verified-email token: POST /api/leads/verify/request {email, url} → 6-digit code by email → POST /api/leads/verify/confirm {email, code} → token valid 30 days. One free audit per day per verified email, shared with the llms.txt generator; 429 with code RATE_LIMITED after that. Pass public=1 to list the score on the public leaderboard.",
-        parameters: [
-          urlParam,
-          { name: "token", in: "query", required: true, schema: { type: "string" }, description: "Verified-email token from the /api/leads/verify/* flow." },
-          { name: "public", in: "query", required: false, schema: { type: "string", enum: ["0", "1"], default: "0" }, description: "Set to 1 to publish the score to /reports." },
-        ],
-        responses: {
-          200: { description: "Audit complete.", content: { "application/json": { schema: auditReportSchema } } },
-          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
-          401: { description: "Missing, expired, or unverified email token (code EMAIL_NOT_VERIFIED).", content: { "application/json": { schema: errorSchema } } },
-          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
-          502: { description: "Target site unreachable.", content: { "application/json": { schema: errorSchema } } },
-          504: { description: "Target site timed out.", content: { "application/json": { schema: errorSchema } } },
         },
       },
     },
@@ -349,7 +290,7 @@ const document = {
         tags: ["Safe Fetch"],
         summary: `Fetch one public URL through the hardened safe-fetcher ($${FETCH_PRICE} USDC via x402, synchronous)`,
         description:
-          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful fetch. Returns the raw text body plus response metadata: final URL after redirects, HTTP status, selected response headers, byte count, and timing. SSRF-guarded (private/link-local/cloud-metadata addresses blocked including via redirects), 15s timeout, 5 redirects max, 2MB cap, ports 80/443 only. Text formats only: HTML, JSON, XML, feeds, plain text, JavaScript, SVG. A POST variant with a JSON {url} body is paywalled identically. Free demo: GET /v1/fetch/demo (1/day per IP, shared quota).",
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful fetch. Returns the raw text body plus response metadata: final URL after redirects, HTTP status, selected response headers, byte count, and timing. SSRF-guarded (private/link-local/cloud-metadata addresses blocked including via redirects), 15s timeout, 5 redirects max, 2MB cap, ports 80/443 only. Text formats only: HTML, JSON, XML, feeds, plain text, JavaScript, SVG. A POST variant with a JSON {url} body is paywalled identically.",
         parameters: [urlParam],
         responses: {
           200: {
@@ -382,28 +323,13 @@ const document = {
         },
       },
     },
-    "/v1/fetch/demo": {
-      get: {
-        operationId: "safeFetchUrlDemo",
-        security: [], // free endpoint — excluded from x402 registry probing
-        tags: ["Safe Fetch"],
-        summary: "Free safe-fetch demo (1/day per IP, shared quota)",
-        description: "Identical response shape to the paid endpoint (tier is \"free-demo\"). Quota is shared across all demo endpoints — one free request per day per IP total.",
-        parameters: [urlParam],
-        responses: {
-          200: { description: "Fetch complete." },
-          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
-          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
-        },
-      },
-    },
     "/v1/extract": {
       post: {
         operationId: "extractPageMarkdown",
         tags: ["Content Extraction"],
         summary: `Extract one page as clean Markdown ($${EXTRACT_PRICE} USDC via x402, synchronous)`,
         description:
-          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful extraction. Fetches one public page (SSRF-guarded, 15s timeout, 5MB cap) and returns readability-isolated main content as Markdown plus title, description, canonical URL, outbound links (max 200), and word count. Single page only — no crawling, no JavaScript rendering. A GET variant with ?url= is also paywalled identically. Free demo: GET /v1/extract/demo (1/day per IP, shared quota with /api/audit/demo).",
+          "Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only on a successful extraction. Fetches one public page (SSRF-guarded, 15s timeout, 5MB cap) and returns readability-isolated main content as Markdown plus title, description, canonical URL, outbound links (max 200), and word count. Single page only — no crawling, no JavaScript rendering. A GET variant with ?url= is also paywalled identically.",
         requestBody: {
           required: true,
           content: {
@@ -452,28 +378,13 @@ const document = {
         },
       },
     },
-    "/v1/extract/demo": {
-      get: {
-        operationId: "extractPageMarkdownDemo",
-        security: [], // free endpoint — excluded from x402 registry probing
-        tags: ["Content Extraction"],
-        summary: "Free extraction demo (1/day per IP, shared quota)",
-        description: "Identical response shape to the paid endpoint (tier is \"free-demo\"). Quota is shared with /api/audit/demo — one free request per day per IP across both.",
-        parameters: [urlParam],
-        responses: {
-          200: { description: "Extraction complete." },
-          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
-          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
-        },
-      },
-    },
     "/v1/extract/structured": {
       post: {
         operationId: "extractStructuredData",
         tags: ["Structured Extraction"],
         summary: `Extract structured JSON from one page against your JSON Schema ($${STRUCTURED_EXTRACT_PRICE} USDC via x402, synchronous)`,
         description:
-          `Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only when the extracted data validates against your schema — a schema that can't be satisfied from the page costs nothing. Fetches one public page (SSRF-guarded, 15s timeout, 5MB cap), truncates readability-isolated Markdown to 8000 characters, then calls Claude with forced tool-use against your schema (max 1024 output tokens). The caller's schema must be a self-contained JSON Schema object (type: object, no $ref, under 4000 characters) or the request 400s before any fetch or model call. No GET variant — the schema doesn't fit cleanly in query params. Free demo: POST /v1/extract/structured/demo (1/day per IP, shared quota).`,
+          `Requires x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE); settles only when the extracted data validates against your schema — a schema that can't be satisfied from the page costs nothing. Fetches one public page (SSRF-guarded, 15s timeout, 5MB cap), truncates readability-isolated Markdown to 8000 characters, then calls Claude with forced tool-use against your schema (max 1024 output tokens). The caller's schema must be a self-contained JSON Schema object (type: object, no $ref, under 4000 characters) or the request 400s before any fetch or model call. No GET variant — the schema doesn't fit cleanly in query params.`,
         requestBody: {
           required: true,
           content: {
@@ -516,36 +427,6 @@ const document = {
           422: { description: "Model output did not validate against the caller's schema (not charged).", content: { "application/json": { schema: errorSchema } } },
           502: { description: "Target site unreachable (not charged).", content: { "application/json": { schema: errorSchema } } },
           504: { description: "Target site timed out (not charged).", content: { "application/json": { schema: errorSchema } } },
-        },
-      },
-    },
-    "/v1/extract/structured/demo": {
-      post: {
-        operationId: "extractStructuredDataDemo",
-        security: [], // free endpoint — excluded from x402 registry probing
-        tags: ["Structured Extraction"],
-        summary: "Free structured-extraction demo (1/day per IP, shared quota)",
-        description: "Identical response shape to the paid endpoint (tier is \"free-demo\"). Quota is shared across all demo endpoints — one free request per day per IP total.",
-        requestBody: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                required: ["url", "schema"],
-                properties: {
-                  url: { type: "string", format: "uri" },
-                  schema: { type: "object" },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          200: { description: "Extraction complete." },
-          400: { description: "Invalid target URL or caller schema.", content: { "application/json": { schema: errorSchema } } },
-          422: { description: "Model output did not validate against the caller's schema.", content: { "application/json": { schema: errorSchema } } },
-          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
         },
       },
     },
@@ -805,44 +686,6 @@ const document = {
           },
           400: { description: "Malformed body or missing signature fields.", content: { "application/json": { schema: errorSchema } } },
           429: { description: "Hourly verification limit reached.", content: { "application/json": { schema: errorSchema } } },
-        },
-      },
-    },
-    "/v1/llms-txt/demo": {
-      get: {
-        operationId: "generateLlmsTxtDemo",
-        security: [], // free endpoint — excluded from x402 registry probing
-        tags: ["Free Tools"],
-        summary: "Free llms.txt draft generator (1/day per verified email)",
-        description:
-          "Samples one public page (title, meta description, h1/h2 outline, up to 20 same-origin internal links) and returns a draft llms.txt following the llmstxt.org convention. Requires a verified-email token (same /api/leads/verify/* flow as GET /api/audit/free); one call per day per verified email, shared across the verified free tools. The draft is a starting point — review before publishing.",
-        parameters: [
-          urlParam,
-          { name: "token", in: "query", required: true, schema: { type: "string" }, description: "Verified-email token from the /api/leads/verify/* flow." },
-        ],
-        responses: {
-          200: {
-            description: "Draft generated.",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  required: ["tier", "url", "llms_txt", "notes"],
-                  properties: {
-                    tier: { type: "string", enum: ["free-verified"] },
-                    url: { type: "string", format: "uri" },
-                    llms_txt: { type: "string", description: "Draft llms.txt markdown (llmstxt.org convention)." },
-                    notes: { type: "array", items: { type: "string" }, description: "Caveats, e.g. \"Draft — review before publishing\", \"1 page sampled\"." },
-                  },
-                },
-              },
-            },
-          },
-          400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
-          401: { description: "Missing, expired, or unverified email token (code EMAIL_NOT_VERIFIED).", content: { "application/json": { schema: errorSchema } } },
-          429: { description: "Daily free limit reached.", content: { "application/json": { schema: errorSchema } } },
-          502: { description: "Target site unreachable.", content: { "application/json": { schema: errorSchema } } },
-          504: { description: "Target site timed out.", content: { "application/json": { schema: errorSchema } } },
         },
       },
     },

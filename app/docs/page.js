@@ -9,7 +9,7 @@ const PAGE = {
   path: "/docs",
   title: "API Documentation — Santos Website Intelligence",
   description:
-    "Complete developer documentation for the Santos Website Intelligence API: eleven x402-payable capabilities on Base, free daily demos, MCP, OpenAPI, errors, and limits.",
+    "Complete developer documentation for the Santos Website Intelligence API: eleven x402-payable capabilities on Base, MCP, OpenAPI, errors, and limits.",
 };
 
 export const metadata = pageMetadata(PAGE);
@@ -61,7 +61,6 @@ const CAPABILITIES = [
       "One URL in, raw text body out through a hardened SSRF-guarded fetcher — final URL after redirects, HTTP status, selected headers, byte count, and timing included. Text formats only: HTML, JSON, XML, feeds, plain text, JavaScript, SVG. A POST variant accepts a JSON {\"url\"} body.",
     params: [["url", "required — public HTTP/HTTPS URL, max 2048 chars"]],
     curl: `curl '${API}/v1/fetch?url=https%3A%2F%2Fexample.com%2Ffeed.xml'`,
-    demo: "GET /v1/fetch/demo",
   },
   {
     id: "extract",
@@ -76,7 +75,6 @@ const CAPABILITIES = [
     curl: `curl -X POST ${API}/v1/extract \\
   -H 'Content-Type: application/json' \\
   -d '{"url": "https://example.com/article"}'`,
-    demo: "GET /v1/extract/demo",
   },
   {
     id: "screenshot",
@@ -107,7 +105,6 @@ const CAPABILITIES = [
       "Fast fetch-and-parse audit of a single public page: 0–100 scores for performance, SEO, accessibility markup, and security headers, an additive website_intelligence_score across Discoverable / Understandable / Callable / Trustworthy, every individual check with pass/fail detail, and a flat issues list of plain-English fixes safe to show a user or another agent.",
     params: [["url", "required — public HTTP/HTTPS page"]],
     curl: `curl '${API}/api/audit?url=https%3A%2F%2Fexample.com'`,
-    demo: "GET /api/audit/demo",
   },
   {
     id: "batch",
@@ -164,7 +161,6 @@ const CAPABILITIES = [
       "required": ["product"]
     }
   }'`,
-    demo: "POST /v1/extract/structured/demo",
   },
   {
     id: "feed",
@@ -241,7 +237,8 @@ const ERROR_ROWS = [
   ["RESPONSE_TOO_LARGE / TOO_MANY_REDIRECTS", "422", "Target exceeded the 5 MB cap (2 MB for Safe Fetch) or 5-redirect limit"],
   ["INVALID_EXTRACTION_SCHEMA", "400", "Structured Extraction: caller schema is missing, oversized, non-object, or uncompilable"],
   ["STRUCTURED_OUTPUT_INVALID", "422", "Structured Extraction: model output did not conform to your schema (not charged)"],
-  ["RATE_LIMITED", "429", "Free quota exhausted (1/day per identity, shared across all free tools). Pass a token from /free-token for your own allowance"],
+  ["RATE_LIMITED", "429", "Free MCP preview quota exhausted (1/day per IP). Pay per call via x402 — no account needed"],
+  ["FREE_TIER_RETIRED", "402", "A retired free endpoint. The response names the paid successor, its price, and the exact URL to call"],
   ["TARGET_UNREACHABLE", "502", "Target site could not be reached (not charged)"],
   ["SERVICE_UNAVAILABLE", "503", "Deep/render tier temporarily has no worker available (not charged)"],
   ["AUDIT_TIMEOUT", "504", "Bounded operation timed out (not charged — retry renders once)"],
@@ -273,7 +270,6 @@ function CapabilityCard({ cap }) {
         ))}
       </dl>
       <pre className="code-sample" tabIndex={0}><code>{cap.curl}</code></pre>
-      {cap.demo && <p className="doc-demo-note">Free demo: <code>{cap.demo}</code> — same response shape, 1/day per IP (quota shared across all demos).</p>}
     </article>
   );
 }
@@ -306,14 +302,12 @@ export default function DocsPage() {
         <p className="section-label">01 · Quickstart</p>
         <h2>First call in 30 seconds</h2>
         <p className="sub wide">
-          Every paid capability has a free demo sharing one daily quota (1 request per day per IP),
-          returning the exact same response shape as the paid tier — inspect the format before
-          integrating payment.
+          Every capability is pay-per-call with no account and no API key. To see the exact
+          response shape before integrating payment, read a completed report in the
+          <a href="/reports">public archive</a> or call the free MCP tool
+          <code>audit_website_preview</code>.
         </p>
-        <pre className="code-sample" tabIndex={0}><code>{`# Free demo — no payment, no account (1/day per IP)
-curl '${API}/api/audit/demo?url=https%3A%2F%2Fexample.com'
-
-# Paid tier — any x402 v2 client automates payment:
+        <pre className="code-sample" tabIndex={0}><code>{`# Any x402 v2 client automates payment — no account, no API key:
 npm install @x402/fetch @x402/evm viem`}</code></pre>
         <pre className="code-sample" tabIndex={0}><code>{`import { wrapFetchWithPayment } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm";
@@ -395,17 +389,17 @@ const report = await res.json(); // paid, settled, done`}</code></pre>
         <h2>Remote MCP server</h2>
         <p className="sub wide">
           Agent-native discovery and invocation over Streamable HTTP at <code>{API}/mcp</code> —
-          published in the MCP Registry as <code>com.santosautomation/site-audit</code>. Free tools
-          share the daily demo quota; paid tools return the canonical x402 HTTP handoff.
+          published in the MCP Registry as <code>com.santosautomation/site-audit</code>. One tool is
+          free (1/day per IP); every other tool returns the canonical x402 HTTP handoff.
         </p>
         <div className="table-wrap">
           <table>
             <thead><tr><th scope="col">Tool</th><th scope="col">What it does</th></tr></thead>
             <tbody>
-              <tr><th scope="row"><code>audit_website_preview</code></th><td>Free Quick Audit preview (shares the 1/day demo quota)</td></tr>
+              <tr><th scope="row"><code>audit_website_preview</code></th><td>Free Quick Audit preview — the only free tool, 1/day per calling IP</td></tr>
               <tr><th scope="row"><code>audit_agent_readiness</code></th><td>Validates the target and returns the paid x402 handoff terms</td></tr>
-              <tr><th scope="row"><code>extract_page_markdown</code></th><td>Free page-to-Markdown extraction (shared demo quota)</td></tr>
-              <tr><th scope="row"><code>extract_structured_data</code></th><td>Free structured extraction against your JSON Schema (shared demo quota)</td></tr>
+              <tr><th scope="row"><code>extract_page_markdown</code></th><td>Validates the target and returns the paid x402 handoff for /v1/extract</td></tr>
+              <tr><th scope="row"><code>extract_structured_data</code></th><td>Validates the target and returns the paid x402 handoff for POST /v1/extract/structured</td></tr>
               <tr><th scope="row"><code>feed_parse</code></th><td>Validates the feed URL and returns the paid x402 handoff for /v1/feed</td></tr>
               <tr><th scope="row"><code>link_map</code></th><td>Validates the target and returns the paid x402 handoff for /v1/links</td></tr>
               <tr><th scope="row"><code>summarize</code></th><td>Validates the target and returns the paid x402 handoff for /v1/summarize</td></tr>
@@ -487,7 +481,7 @@ tools = [
         <ul className="check-list doc-limits">
           <li>Targets: public HTTP/HTTPS only, ports 80/443; localhost, private-network, link-local, and cloud-metadata addresses rejected — including via redirects</li>
           <li>15-second fetch timeout · 5 redirects max · 5 MB response cap (2 MB for Safe Fetch) · 2048-character URL cap</li>
-          <li>Free demos: 1 request per day per IP, shared across all demo endpoints</li>
+          <li>Free MCP preview (<code>audit_website_preview</code>): 1 request per day per calling IP</li>
           <li>Platform rate limit: 240 requests/minute per IP across all API routes</li>
           <li>Quick tiers do not execute JavaScript; Screenshot and Deep tiers use a real browser</li>
         </ul>
