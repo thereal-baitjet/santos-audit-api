@@ -1,0 +1,25 @@
+# Unpaid seller-contract integrity check for GET /api/audit.
+# Manual only. This workflow becomes meaningful only after the declaration is deployed; it is not a PR-time deployment gate.
+# The Action audits the live origin https://api.santosautomation.com, not the pull-request tree.
+# Credential-free. No secrets, wallet, payment, or mutation.
+
+name: seller-contract-integrity
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: epistemedeus/agent-payment-integrity@ef519956505b195454aa670230b0936258b451fb
+        with:
+          origin: https://api.santosautomation.com
+          route: /api/audit
+          method: GET
+          max-routes: "1"
+          upload-sarif: "false"

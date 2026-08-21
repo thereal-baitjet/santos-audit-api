@@ -1,0 +1,8 @@
+epistemedeus/agent-payment-integrity
+commit ef519956505b195454aa670230b0936258b451fb
+tag v0.1.0-candidate.9
+file integrity.mjs
+sha256 8929e9a42849d4290949993a3f48820321b24bbfbb374a71bf995df7ae7e1deb
+
+Byte-identical copy of the Marketplace Action evaluator for hermetic
+consumer tests. Not a fork, not a pin of @main, and not an npm publish.

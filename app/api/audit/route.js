@@ -2,12 +2,12 @@ import { withAgentLog } from "../../../lib/agent-log.js";
 import { after } from "next/server";
 import { NextResponse } from "next/server";
 import { withX402FromHTTPServer, x402HTTPResourceServer } from "@x402/next";
-import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { auditSite } from "../../../audit.js";
 import { notifyTransaction } from "../../../notify.js";
 import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
 import { bazaarResourceMeta } from "../../../lib/bazaar-catalog.js";
+import { quickAuditDiscoveryExtensions } from "../../../lib/quick-audit-discovery.js";
 import { recordEvent } from "../../../lib/analytics-store.js";
 import { signReport } from "../../../lib/report-signing.js";
 import { upsertPublicReport } from "../../../lib/public-reports.js";
@@ -58,27 +58,9 @@ const routeConfig = {
         hint: "x402 v2: decode the base64 PAYMENT-REQUIRED response header for full terms ($0.015 USDC on eip155:8453), sign, and retry with a PAYMENT-SIGNATURE header. Any x402 v2 client (e.g. @x402/fetch) automates this. Docs: /llms.txt and /openapi.json.",
       },
     }),
-    ...bazaarResourceMeta("quick-audit"),
+    ...bazaarResourceMeta("quick-audit", { pinResource: false }),
     extensions: {
-      ...declareDiscoveryExtension({
-        input: { url: "https://example.com" },
-        inputSchema: {
-          properties: {
-            url: { type: "string", description: "The public HTTP or HTTPS website URL to audit." },
-          },
-          required: ["url"],
-        },
-        output: {
-          example: {
-            tier: "paid",
-            url: "https://example.com/",
-            http_status: 200,
-            overall_score: 68,
-            scores: { performance: 100, seo: 40, accessibility: 100, security: 33 },
-            issues: ["Missing canonical link", "Missing Content-Security-Policy header"],
-          },
-        },
-      }),
+      ...quickAuditDiscoveryExtensions(),
     },
 };
 

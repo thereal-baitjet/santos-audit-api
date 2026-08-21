@@ -207,6 +207,12 @@ agent-readiness threshold (~$0.075 USDC per run via x402):
 Actions) and [`examples/agent-readiness-ci.sh`](examples/agent-readiness-ci.sh)
 (any CI). Guide: [/ci](https://www.santosautomation.com/ci).
 
+**Unpaid contract CI** — after the OpenAPI `x-payment-info` declaration for
+`GET /api/audit` is deployed, maintainers can run
+[`.github/workflows/seller-contract-integrity.yml`](.github/workflows/seller-contract-integrity.yml)
+manually. It pins `epistemedeus/agent-payment-integrity` and audits the live
+origin without a wallet. It is not a pull-request deployment gate.
+
 ## Deep Website Intelligence (browser-rendered tier)
 
 Real Chromium via Playwright in an isolated Fly.io worker: Lighthouse lab

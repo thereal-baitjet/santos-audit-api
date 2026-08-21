@@ -54,11 +54,15 @@ resources. Each route spreads `bazaarResourceMeta("<id>")` into its config,
 which supplies:
 
 - `resource` — the canonical, **query-free** URL, pinned so identity no longer
-  varies per caller
+  varies per caller (except GET `/api/audit`, which omits the pin)
 - `serviceName` — `Santos Website Intelligence`
 - `iconUrl` — `https://www.santosautomation.com/apple-icon.png`
 - `tags` — 2–5 specific ASCII tags, within the Bazaar cap, returned as a fresh
   array per call so no route can mutate another's listing
+
+GET `/api/audit` leaves `resource` unpinned so the x402 v2 challenge
+`resource.url` is the full invocation. Catalog identity stays the query-free
+path through the official `@x402/extensions` Bazaar `routeTemplate` `/api/audit`.
 
 Routes serving both `GET` and `POST` now register **one resource server per
 verb** — query-param discovery for `GET`, JSON-body discovery for `POST` — both
@@ -81,7 +85,7 @@ instead of polluting the production catalog.
 | GET, POST | `/v1/links` | `https://api.santosautomation.com/v1/links` |
 | GET, POST | `/v1/summarize` | `https://api.santosautomation.com/v1/summarize` |
 | POST | `/v1/audits` | `https://api.santosautomation.com/v1/audits` |
-| GET | `/api/audit` | `https://api.santosautomation.com/api/audit` |
+| GET | `/api/audit` | Catalog identity `https://api.santosautomation.com/api/audit` via official Bazaar `routeTemplate` `/api/audit`. The x402 challenge `resource.url` is the full invocation (`?url=...`) so full-request binding holds. |
 | POST | `/api/audit/batch` | `https://api.santosautomation.com/api/audit/batch` |
 | GET | `/api/agent-readiness` | `https://api.santosautomation.com/api/agent-readiness` |
 

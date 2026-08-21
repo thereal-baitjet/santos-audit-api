@@ -15,6 +15,15 @@ import {
 } from "../lib/products.js";
 import { capabilityManifest } from "../lib/capabilities.js";
 import { INDEX_STATS } from "../lib/index-stats.js";
+import { SELLER, NETWORK, USDC_ASSET } from "../lib/x402-server.js";
+import { resourceUrl } from "../lib/bazaar-catalog.js";
+import {
+  QUICK_AUDIT_BAZAAR_ID,
+  QUICK_AUDIT_METHOD,
+  QUICK_AUDIT_ROUTE,
+  QUICK_AUDIT_SCHEME,
+  quickAuditPaymentInfo,
+} from "../lib/openapi-payment-info.js";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -116,6 +125,10 @@ test("refactored source surfaces carry no hardcoded price literals", () => {
     ["app/docs/page.js", [/\$\d+\.\d+/, /0\.0(?:0[235]|15|33|75)|0\.225|0\.50/]],
     ["app/api/route.js", [/0\.015|15000/]],
     ["app/openapi.json/route.js", [/0\.015|0\.08[^0-9]|0\.50|0\.225|0\.0(?:02|05|03|33)|\$0\.01/]],
+    ["lib/openapi-document.js", [/0\.015|0\.08[^0-9]|0\.50|0\.225|0\.0(?:02|05|03|33)|\$0\.01/]],
+    ["lib/openapi-payment-info.js", [/0\.015|15000/]],
+    ["lib/audit-report-schema.js", [/0\.015|15000/]],
+    ["lib/quick-audit-discovery.js", [/0\.015|15000/]],
     ["app/mcp/route.js", [/\$0\.015/]],
     ["app/page.js", [/\$0\.0|0\.015|0\.225|Union City/]],
   ];
@@ -137,6 +150,58 @@ test("index statistics claims match the canonical index stats", () => {
   assert.ok(!/google\.com[^.]*\b37\b/.test(marketing), "marketing content still claims the stale google.com score of 37");
   const homepage = read("app/page.js");
   assert.ok(!/median[^<]*57/i.test(homepage), "homepage still claims the stale median of 57");
+});
+
+test("GET /api/audit x-payment-info matches catalog, x402 rail, Bazaar, and route config", () => {
+  const product = apiProduct(QUICK_AUDIT_ROUTE);
+  assert.ok(product, "catalog missing GET /api/audit");
+  assert.equal(product.method, QUICK_AUDIT_METHOD);
+  assert.equal(product.defaultPriceUsdc, "0.015");
+  assert.equal(product.priceUsdc, "0.015");
+
+  const info = quickAuditPaymentInfo();
+  assert.equal(info.price.amount, product.priceUsdc);
+  assert.equal(info.price.currency, "USDC");
+  assert.equal(info.price.mode, "fixed");
+  assert.equal(info.protocols.length, 1);
+  const x402 = info.protocols[0].x402;
+  assert.equal(x402.scheme, QUICK_AUDIT_SCHEME);
+  assert.equal(x402.network, NETWORK);
+  assert.equal(x402.network, "eip155:8453");
+  assert.equal(x402.asset, USDC_ASSET);
+  assert.equal(x402.payTo, SELLER);
+  assert.equal(x402.resource, resourceUrl(QUICK_AUDIT_BAZAAR_ID));
+  assert.equal(x402.resource, "https://api.santosautomation.com/api/audit");
+
+  const routeSrc = read("app/api/audit/route.js");
+  assert.ok(routeSrc.includes(`price: "$${product.priceUsdc}"`), "audit routeConfig price drifted from catalog");
+  assert.ok(routeSrc.includes("network: NETWORK"), "audit routeConfig network drifted from x402-server");
+  assert.ok(routeSrc.includes("payTo: SELLER"), "audit routeConfig payTo drifted from x402-server");
+  assert.ok(routeSrc.includes(`scheme: "${QUICK_AUDIT_SCHEME}"`), "audit routeConfig scheme drifted");
+  assert.ok(
+    routeSrc.includes(`bazaarResourceMeta("${QUICK_AUDIT_BAZAAR_ID}", { pinResource: false })`),
+    "audit route must omit the query-free resource pin"
+  );
+  assert.ok(
+    routeSrc.includes("quickAuditDiscoveryExtensions()"),
+    "audit route Bazaar declaration drifted"
+  );
+
+  const openapiSrc = read("lib/openapi-document.js");
+  assert.match(openapiSrc, /from "\.\/openapi-payment-info\.js"/);
+  assert.ok(
+    openapiSrc.includes('"x-payment-info": quickAuditPaymentInfo()'),
+    "OpenAPI GET /api/audit must attach quickAuditPaymentInfo()"
+  );
+  assert.equal(
+    (openapiSrc.match(/"x-payment-info"/g) || []).length,
+    1,
+    "only GET /api/audit may declare x-payment-info"
+  );
+
+  const llms = read("public/llms.txt");
+  assert.ok(llms.includes(USDC_ASSET), "llms.txt USDC asset drifted from x402-server");
+  assert.ok(llms.includes(NETWORK), "llms.txt network drifted from x402-server");
 });
 
 test("the README advertises no hardcoded API version", () => {

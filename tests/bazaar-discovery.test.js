@@ -15,14 +15,20 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
+  extractDiscoveryInfo,
+  isValidRouteTemplate,
+} from "@x402/extensions/bazaar";
+import {
   BAZAAR_ROUTES,
   BAZAAR_ICON_URL,
   BAZAAR_SERVICE_NAME,
   MAX_BAZAAR_TAGS,
   RESOURCE_BASE_URL,
   bazaarResourceMeta,
+  bazaarRouteTemplate,
   resourceUrl,
 } from "../lib/bazaar-catalog.js";
+import { quickAuditDiscoveryExtensions } from "../lib/quick-audit-discovery.js";
 
 // The eleven canonical resource URLs. Anything that changes this list changes
 // what the marketplace indexes, so it is pinned literally rather than derived.
@@ -129,10 +135,18 @@ test("each route file pins its own catalog entry", () => {
     const src = readFileSync(new URL(`../${file}`, import.meta.url), "utf-8");
 
     assert.match(src, /from "(?:\.\.\/)+lib\/bazaar-catalog\.js"/, `${file} must import the catalog`);
-    assert.ok(
-      src.includes(`bazaarResourceMeta("${route.id}")`),
-      `${file} must pin bazaarResourceMeta("${route.id}")`
-    );
+    if (route.id === "quick-audit") {
+      assert.ok(
+        src.includes(`bazaarResourceMeta("${route.id}", { pinResource: false })`),
+        `${file} must omit the query-free resource pin so the challenge binds the invocation`
+      );
+    } else {
+      assert.ok(
+        src.includes(`bazaarResourceMeta("${route.id}")`),
+        `${file} must pin bazaarResourceMeta("${route.id}")`
+      );
+      assert.equal(src.includes("pinResource: false"), false, `${file} must keep its resource pin`);
+    }
     // The verbless route key must match the path the resource URL is built from,
     // or the paywall and the catalog identity drift apart.
     assert.ok(
@@ -142,6 +156,30 @@ test("each route file pins its own catalog entry", () => {
     // A stale hardcoded serviceName/tags pair means the route bypassed the catalog.
     assert.ok(!/^\s*serviceName: "/m.test(src), `${file} still hardcodes serviceName`);
   }
+});
+
+test("GET /api/audit catalog identity stays query-free through official routeTemplate", () => {
+  const template = bazaarRouteTemplate("quick-audit");
+  assert.equal(template, "/api/audit");
+  assert.equal(isValidRouteTemplate(template), true);
+  assert.equal(quickAuditDiscoveryExtensions().bazaar.routeTemplate, template);
+
+  const unpinned = bazaarResourceMeta("quick-audit", { pinResource: false });
+  assert.equal("resource" in unpinned, false);
+  const pinned = bazaarResourceMeta("quick-audit");
+  assert.equal(pinned.resource, resourceUrl("quick-audit"));
+  assert.equal(new URL(pinned.resource).search, "");
+
+  const invocation = "https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com";
+  const discovered = extractDiscoveryInfo({
+    x402Version: 2,
+    resource: { url: invocation },
+    accepts: [],
+    extensions: quickAuditDiscoveryExtensions(),
+  }, {}, false);
+  assert.equal(discovered.resourceUrl, resourceUrl("quick-audit"));
+  assert.equal(discovered.routeTemplate, template);
+  assert.notEqual(invocation, discovered.resourceUrl);
 });
 
 test("dual-method routes declare a request shape per verb", () => {
@@ -186,11 +224,23 @@ test("live: every paid route 402s with its own canonical Bazaar resource", { ski
       assert.ok(header, "402 must carry a PAYMENT-REQUIRED header");
       const challenge = JSON.parse(Buffer.from(header, "base64").toString("utf-8"));
 
-      assert.equal(
-        challenge.resource?.url,
-        resourceUrl(route.id),
-        "resource.url must equal this route's canonical URL"
-      );
+      if (route.id === "quick-audit") {
+        assert.equal(
+          new URL(challenge.resource?.url).toString(),
+          url.toString(),
+          "quick-audit resource.url must bind the full invocation"
+        );
+        const discovered = extractDiscoveryInfo(challenge, {}, false);
+        assert.equal(discovered.resourceUrl, resourceUrl(route.id));
+        assert.equal(discovered.routeTemplate, route.path);
+        assert.equal(new URL(discovered.resourceUrl).search, "");
+      } else {
+        assert.equal(
+          challenge.resource?.url,
+          resourceUrl(route.id),
+          "resource.url must equal this route's canonical URL"
+        );
+      }
       assert.equal(challenge.resource?.serviceName, BAZAAR_SERVICE_NAME);
       assert.ok(challenge.resource?.iconUrl, "resource.iconUrl must be set");
 
