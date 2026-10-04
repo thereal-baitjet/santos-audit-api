@@ -2,6 +2,16 @@
 // Never throws — a notification failure must never affect the paid response.
 import { redactUrl } from "./lib/redact.js";
 
+// Wallets we pay ourselves from (smoke tests, buy-*.js, CI). They settle real
+// USDC on Base, so without this they post to Discord indistinguishable from
+// customer revenue. Comma-separated addresses, case-insensitive.
+const TEST_PAYERS = new Set(
+  (process.env.TEST_PAYER_ADDRESSES ?? "")
+    .split(",")
+    .map((a) => a.trim().toLowerCase())
+    .filter(Boolean),
+);
+
 // Ops warning channel: loud, fire-and-forget Discord alert for failures a
 // customer would otherwise discover before we do (e.g. email delivery down).
 // Never throws, same contract as notifyTransaction.
@@ -55,6 +65,12 @@ export async function notifyTransaction({ url, payer, transaction, network, amou
   if (!webhook) return;
   url = redactUrl(url); // never forward customer query strings/tokens to Discord
 
+  // A test payment is still a real settlement, so it cannot be suppressed — but
+  // it must not read as demand. Between 2026-07-20 and 2026-07-28, 35 local
+  // buy-*.js runs posted here against 1 genuine external sale; the feed looked
+  // like a sales streak, and the service was paused on the strength of it.
+  const isTest = rail !== "stripe" && typeof payer === "string" && TEST_PAYERS.has(payer.toLowerCase());
+
   const isCard = rail === "stripe";
   const isMainnet = network === "base" || network === "eip155:8453";
   const explorer = isMainnet ? "https://basescan.org/tx/" : "https://sepolia.basescan.org/tx/";
@@ -71,9 +87,11 @@ export async function notifyTransaction({ url, payer, transaction, network, amou
         timestamp: new Date().toISOString(),
       }
     : {
-        title: `💰 Audit API — $${amount} USDC received`,
+        title: isTest
+          ? `🧪 Test payment — $${amount} USDC (own wallet, NOT revenue)`
+          : `💰 Audit API — $${amount} USDC received`,
         url: transaction ? `${explorer}${transaction}` : undefined,
-        color: 13935182, // brass, matches the site accent
+        color: isTest ? 9807270 : 13935182, // grey for self-tests, brass for revenue
         fields: [
           { name: "Audited", value: `\`${url}\``, inline: false },
           { name: "Payer", value: `\`${payer}\``, inline: true },

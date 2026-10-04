@@ -3,11 +3,19 @@
 import { privateKeyToAccount } from "viem/accounts";
 import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm";
+import { validateUrlForPurchase, ValidationError } from "./lib/validate-url.js";
 import dotenv from "dotenv";
 dotenv.config();
 
 const BASE = process.env.BASE ?? "https://api.santosautomation.com";
 const target = process.argv[2] ?? "https://example.com/feed.xml";
+
+try {
+  validateUrlForPurchase(target);
+} catch (e) {
+  console.error(`❌ ${e.code}: ${e.message}`);
+  process.exit(1);
+}
 
 const account = privateKeyToAccount(process.env.BUYER_PRIVATE_KEY);
 const fetchWithPay = wrapFetchWithPaymentFromConfig(fetch, {
