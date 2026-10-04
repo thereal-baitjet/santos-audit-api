@@ -1,0 +1,103 @@
+🚀 Santos API Performance Measurement
+   Base URL: https://api.santosautomation.com
+   Time: 2026-10-04T15:34:01.307Z
+
+📊 Quick Audit
+──────────────────────────────────────────────────────────────────────
+   1.   240ms ✗ (403)
+      Error: <!DOCTYPE html><html lang="en" data-astro-cid-4wdtffzm><head><meta charset="utf-8"><meta name="viewport" content="width=
+   2.    41ms ✗ (403)
+   3.   112ms ✗ (403)
+   4.    37ms ✗ (403)
+   5.    31ms ✗ (403)
+   6.    30ms ✗ (403)
+   7.    45ms ✗ (403)
+   8.    40ms ✗ (403)
+   9.    46ms ✗ (403)
+  10.    62ms ✗ (403)
+
+  Results:
+    min:  30ms
+    p50:  45ms
+    p95:  240ms
+    p99:  240ms
+    max:  240ms
+    avg:  68ms
+
+📊 Agent Readiness (quick)
+──────────────────────────────────────────────────────────────────────
+   1.    32ms ✗ (403)
+      Error: <!DOCTYPE html><html lang="en" data-astro-cid-4wdtffzm><head><meta charset="utf-8"><meta name="viewport" content="width=
+   2.    34ms ✗ (403)
+   3.    41ms ✗ (403)
+   4.    33ms ✗ (403)
+   5.    34ms ✗ (403)
+   6.    50ms ✗ (403)
+   7.    34ms ✗ (403)
+   8.    33ms ✗ (403)
+   9.    42ms ✗ (403)
+  10.    33ms ✗ (403)
+
+  Results:
+    min:  32ms
+    p50:  34ms
+    p95:  50ms
+    p99:  50ms
+    max:  50ms
+    avg:  37ms
+
+📊 Extract
+──────────────────────────────────────────────────────────────────────
+   1.    31ms ✗ (403)
+      Error: <!DOCTYPE html><html lang="en" data-astro-cid-4wdtffzm><head><meta charset="utf-8"><meta name="viewport" content="width=
+   2.    33ms ✗ (403)
+   3.    35ms ✗ (403)
+   4.    40ms ✗ (403)
+   5.    30ms ✗ (403)
+   6.    39ms ✗ (403)
+   7.    33ms ✗ (403)
+   8.    35ms ✗ (403)
+   9.    40ms ✗ (403)
+  10.    29ms ✗ (403)
+
+  Results:
+    min:  29ms
+    p50:  35ms
+    p95:  40ms
+    p99:  40ms
+    max:  40ms
+    avg:  35ms
+
+📊 Fetch
+──────────────────────────────────────────────────────────────────────
+   1.    32ms ✗ (403)
+      Error: <!DOCTYPE html><html lang="en" data-astro-cid-4wdtffzm><head><meta charset="utf-8"><meta name="viewport" content="width=
+   2.    35ms ✗ (403)
+   3.    38ms ✗ (403)
+   4.    28ms ✗ (403)
+   5.    32ms ✗ (403)
+   6.    29ms ✗ (403)
+   7.    32ms ✗ (403)
+   8.    31ms ✗ (403)
+   9.    30ms ✗ (403)
+  10.    39ms ✗ (403)
+
+  Results:
+    min:  28ms
+    p50:  32ms
+    p95:  39ms
+    p99:  39ms
+    max:  39ms
+    avg:  33ms
+
+✅ Results saved to: /Users/juansantos/santos-audit-api/results-2026-10-04T15-34-03-051Z.json
+
+📋 Summary:
+┌─────────────────────────┬─────┬─────┬─────┬─────┐
+│ Endpoint                │ p50 │ p95 │ p99 │ max │
+├─────────────────────────┼─────┼─────┼─────┼─────┤
+│ Quick Audit             │   45│  240│  240│  240│
+│ Agent Readiness (quick) │   34│   50│   50│   50│
+│ Extract                 │   35│   40│   40│   40│
+│ Fetch                   │   32│   39│   39│   39│
+└─────────────────────────┴─────┴─────┴─────┴─────┘

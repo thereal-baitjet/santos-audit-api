@@ -1,0 +1,87 @@
+🚀 Santos API Concurrent Load Test
+   Base URL: https://api.santosautomation.com
+   Endpoint: GET /api/audit?url=https://example.com
+   Time: 2026-10-04T15:34:39.356Z
+
+⚡ Running 1 concurrent requests for 30s
+──────────────────────────────────────────────────────────────────────
+  Total requests: 866
+  Errors: 866 (100.0%)
+  Throughput: 28.87 req/s
+
+  Latency:
+    min:  23ms
+    p50:  33ms
+    p95:  45ms
+    p99:  63ms
+    max:  226ms
+    avg:  35ms
+
+⚡ Running 5 concurrent requests for 30s
+──────────────────────────────────────────────────────────────────────
+  Total requests: 3845
+  Errors: 3845 (100.0%)
+  Throughput: 128.17 req/s
+
+  Latency:
+    min:  21ms
+    p50:  36ms
+    p95:  52ms
+    p99:  128ms
+    max:  225ms
+    avg:  39ms
+
+⚡ Running 10 concurrent requests for 30s
+──────────────────────────────────────────────────────────────────────
+  Total requests: 6078
+  Errors: 6078 (100.0%)
+  Throughput: 202.60 req/s
+
+  Latency:
+    min:  21ms
+    p50:  40ms
+    p95:  85ms
+    p99:  201ms
+    max:  1064ms
+    avg:  49ms
+
+⚡ Running 20 concurrent requests for 30s
+──────────────────────────────────────────────────────────────────────
+  Total requests: 11780
+  Errors: 11780 (100.0%)
+  Throughput: 392.67 req/s
+
+  Latency:
+    min:  22ms
+    p50:  46ms
+    p95:  82ms
+    p99:  125ms
+    max:  579ms
+    avg:  51ms
+
+⚡ Running 50 concurrent requests for 30s
+──────────────────────────────────────────────────────────────────────
+  Total requests: 29973
+  Errors: 29973 (100.0%)
+  Throughput: 999.10 req/s
+
+  Latency:
+    min:  21ms
+    p50:  44ms
+    p95:  77ms
+    p99:  150ms
+    max:  918ms
+    avg:  50ms
+
+✅ Results saved to: /Users/juansantos/santos-audit-api/concurrent-results-2026-10-04T15-37-09-665Z.json
+
+📋 Concurrency Summary:
+┌────┬────────┬────────┬────────┬────────┬────────┐
+│ #  │  p50   │  p95   │  p99   │  avg   │  rps   │
+├────┼────────┼────────┼────────┼────────┼────────┤
+│  1 │     33│     45│     63│     35│  28.87│
+│  5 │     36│     52│    128│     39│ 128.17│
+│ 10 │     40│     85│    201│     49│ 202.60│
+│ 20 │     46│     82│    125│     51│ 392.67│
+│ 50 │     44│     77│    150│     50│ 999.10│
+└────┴────────┴────────┴────────┴────────┴────────┘
