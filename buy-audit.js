@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const target = process.argv[2] ?? "example.com";
+const BASE = process.env.BASE ?? "https://api.santosautomation.com";
 
 try {
   validateUrlForPurchase(target);
@@ -20,8 +21,14 @@ const fetchWithPay = wrapFetchWithPaymentFromConfig(fetch, {
   schemes: [{ network: "eip155:8453", client: new ExactEvmScheme(account) }],
 });
 
-const res = await fetchWithPay(`http://localhost:3000/api/audit?url=${encodeURIComponent(target)}`);
+const res = await fetchWithPay(`${BASE}/api/audit?url=${encodeURIComponent(target)}`);
 const data = await res.json();
+
+console.log("\n⏱️  TIMING DATA:");
+console.log("X-Response-Time:", res.headers.get("X-Response-Time"));
+console.log("X-Stage-Timings:", res.headers.get("X-Stage-Timings"));
+
+console.log("\n📊 AUDIT RESULTS:");
 console.log("Status:", res.status);
 console.log("Tier:", data.tier, "| Overall:", data.overall_score, "| Scores:", JSON.stringify(data.scores));
 console.log("Issues:", JSON.stringify(data.issues, null, 2));
