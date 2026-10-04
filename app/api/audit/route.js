@@ -128,7 +128,7 @@ const paidHandler = withX402FromHTTPServer(handler, httpServer);
 
 // Add cache-control configuration
 // Public reports can be cached, but payment exchanges must never be cached
-const CACHE_CONTROL_PAID = 'public, max-age=3600'; // 1 hour for successful audits
+const CACHE_CONTROL_PAID = 'no-store'; // paid responses must never be CDN-cached: a cached 200 is served to unpaid callers
 const CACHE_CONTROL_UNPAID = 'no-store'; // Never cache payment challenges
 
 export async function OPTIONS() {

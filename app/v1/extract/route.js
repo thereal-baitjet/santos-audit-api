@@ -13,7 +13,7 @@ import { notifyTransaction } from "../../../notify.js";
 import { timedStage, TimingTracker } from "../../../lib/timing.js";
 
 const PRICE = process.env.EXTRACT_PRICE_USDC ?? "0.005";
-const CACHE_CONTROL_PAID = 'public, max-age=3600'; // 1 hour for successful extractions
+const CACHE_CONTROL_PAID = 'no-store'; // paid responses must never be CDN-cached: a cached 200 is served to unpaid callers
 const CACHE_CONTROL_UNPAID = 'no-store'; // Never cache payment challenges
 
 async function targetFrom(req) {
