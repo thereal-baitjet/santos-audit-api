@@ -15,7 +15,7 @@ import { upsertPublicReport } from "../../../lib/public-reports.js";
 import { timedStage, TimingTracker } from "../../../lib/timing.js";
 
 const PRICE = getAgentReadinessPriceUsdc();
-const CACHE_CONTROL_PAID = 'public, max-age=3600'; // 1 hour
+const CACHE_CONTROL_PAID = 'no-store'; // paid responses must never be CDN-cached: a cached 200 is served to unpaid callers
 const CACHE_CONTROL_UNPAID = 'no-store';
 
 async function handler(req) {
