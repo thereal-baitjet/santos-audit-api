@@ -7,3 +7,8 @@ mcp-registry-key.pem
 .DS_Store
 __pycache__/
 scripts/seed-results.jsonl
+
+# Browser verification output
+test-results/
+playwright-report/
+docs/screenshots/frontend-full.png

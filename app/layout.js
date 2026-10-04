@@ -1,4 +1,7 @@
 import "./globals.css";
+import "./santos-design.css";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { headers } from "next/headers";
 import { CookieConsent } from "./components/CookieConsent.js";
 
@@ -10,7 +13,8 @@ export const metadata = {
   alternates: { canonical: "/" },
   openGraph: {
     title: "AI Website Intelligence & Agent Readiness API | Santos",
-    description: "Measure whether a website can be discovered, understood, trusted, and used by AI agents.",
+    description:
+      "Measure whether a website can be discovered, understood, trusted, and used by AI agents.",
     type: "website",
     url: "/",
     images: [
@@ -25,7 +29,8 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
     title: "AI Website Intelligence & Agent Readiness API | Santos",
-    description: "From discoverable to callable: structured website intelligence with evidence and prioritized fixes.",
+    description:
+      "From discoverable to callable: structured website intelligence with evidence and prioritized fixes.",
     images: [
       {
         url: "/assets/santos-og.png",
@@ -54,20 +59,35 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "ProfessionalService", "@id": "https://www.santosautomation.com/#organization",
-      name: "Santos Automation", url: "https://www.santosautomation.com", email: "info@santosautomation.com",
+      "@type": "ProfessionalService",
+      "@id": "https://www.santosautomation.com/#organization",
+      name: "Santos Automation",
+      url: "https://www.santosautomation.com",
+      email: "info@santosautomation.com",
       image: "https://www.santosautomation.com/assets/santos-og.png",
-      founder: { "@type": "Person", name: "Juan Santos" }, areaServed: "US",
-      description: "Operator of Santos Website Intelligence, an evidence-based AI Website Intelligence and Agent Readiness API.",
-      sameAs: ["https://github.com/thereal-baitjet", "https://instagram.com/mr.j.c.santos"],
-      contactPoint: { "@type": "ContactPoint", contactType: "customer support", email: "info@santosautomation.com" },
+      founder: { "@type": "Person", name: "Juan Santos" },
+      areaServed: "US",
+      description:
+        "Operator of Santos Website Intelligence, an evidence-based AI Website Intelligence and Agent Readiness API.",
+      sameAs: [
+        "https://github.com/thereal-baitjet",
+        "https://instagram.com/mr.j.c.santos",
+      ],
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        email: "info@santosautomation.com",
+      },
     },
     {
-      "@type": "WebSite", "@id": "https://www.santosautomation.com/#website",
-      name: "Santos Website Intelligence", alternateName: "Santos Automation",
+      "@type": "WebSite",
+      "@id": "https://www.santosautomation.com/#website",
+      name: "Santos Website Intelligence",
+      alternateName: "Santos Automation",
       url: "https://www.santosautomation.com",
       publisher: { "@id": "https://www.santosautomation.com/#organization" },
-      description: "Website intelligence for the agentic web—from discoverable to callable.",
+      description:
+        "Website intelligence for the agentic web—from discoverable to callable.",
     },
   ],
 };
@@ -78,14 +98,35 @@ export default async function RootLayout({ children }) {
   // matching nonce onto its inline scripts (a static render would ship a stale
   // nonce and get blocked by strict-dynamic). The nonce is also handed to the
   // JSON-LD script below so it isn't blocked.
-  const nonce = (await headers()).get("content-security-policy")?.match(/'nonce-([^']+)'/)?.[1];
+  const nonce = (await headers())
+    .get("content-security-policy")
+    ?.match(/'nonce-([^']+)'/)?.[1];
   return (
-    <html lang="en">
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
-        <link rel="service-desc" type="application/vnd.oai.openapi+json" href="https://api.santosautomation.com/openapi.json" />
-        <link rel="alternate" type="text/plain" href="https://api.santosautomation.com/llms.txt" title="Agent-readable service guide" />
-        <link rel="alternate" type="application/json" href="https://api.santosautomation.com/capabilities.json" title="Vendor-specific capability manifest" />
-        <link rel="alternate" type="application/json" href="https://www.santosautomation.com/.well-known/agent-capabilities.json" title="Agent capability manifest" />
+        <link
+          rel="service-desc"
+          type="application/vnd.oai.openapi+json"
+          href="https://api.santosautomation.com/openapi.json"
+        />
+        <link
+          rel="alternate"
+          type="text/plain"
+          href="https://api.santosautomation.com/llms.txt"
+          title="Agent-readable service guide"
+        />
+        <link
+          rel="alternate"
+          type="application/json"
+          href="https://api.santosautomation.com/capabilities.json"
+          title="Vendor-specific capability manifest"
+        />
+        <link
+          rel="alternate"
+          type="application/json"
+          href="https://www.santosautomation.com/.well-known/agent-capabilities.json"
+          title="Agent capability manifest"
+        />
       </head>
       <body>
         <script

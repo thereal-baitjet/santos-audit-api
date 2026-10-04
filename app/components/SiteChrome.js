@@ -1,82 +1,113 @@
+import Image from "./CspImage.js";
+import { ArrowUpRight } from "lucide-react";
 import { AnalyticsBoot } from "./AnalyticsBoot.js";
+import Navigation from "./Navigation.js";
 
 export function SiteNav() {
-  return (
-    <nav className="site-nav" aria-label="Primary navigation">
-      {/* Short alt keeps automated audits green; the visible "Santos
-          Intelligence" text still names the link for screen readers. */}
-      <a className="brand" href="/">
-        <img src="/assets/santos-eagle.svg" alt="Santos Intelligence eagle emblem" width="1254" height="1254" />
-        <span>Santos Intelligence</span>
-      </a>
-      <ul>
-        <li><a href="/ai-website-intelligence">Platform</a></li>
-        <li><a href="/agent-readiness-audit">Agent Readiness</a></li>
-        <li><a href="/website-intelligence-api">API</a></li>
-        <li><a href="/docs">Docs</a></li>
-        <li><a href="/integrations">MCP</a></li>
-        <li><a href="/methodology/agent-readiness">Methodology</a></li>
-        <li><a href="/#pricing">Pricing</a></li>
-        <li><a className="nav-cta" href="/agent-readiness/buy">Get a Report</a></li>
-      </ul>
-    </nav>
-  );
+  return <Navigation />;
 }
+
+const footerGroups = [
+  {
+    title: "Platform",
+    links: [
+      ["Website intelligence", "/ai-website-intelligence"],
+      ["Agent readiness", "/agent-readiness-audit"],
+      ["Public reports", "/reports"],
+      ["Get a report", "/agent-readiness/buy"],
+      ["Monitoring", "/monitoring"],
+      ["Pricing", "/pricing"],
+    ],
+  },
+  {
+    title: "Developers",
+    links: [
+      ["API documentation", "/docs"],
+      ["MCP integrations", "/integrations"],
+      ["OpenAPI specification", "/openapi.json"],
+      ["llms.txt", "/llms.txt"],
+      ["CI recipe", "/ci"],
+      ["GitHub", "https://github.com/thereal-baitjet/santos-audit-api"],
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      ["Methodology", "/methodology/agent-readiness"],
+      ["Sample report", "/reports/sample-agent-readiness"],
+      ["Verify a report", "/verify"],
+      ["Learning center", "/learn/what-is-ai-website-intelligence"],
+      ["Changelog", "/changelog"],
+      ["Service status", "/status"],
+    ],
+  },
+];
 
 export function SiteFooter() {
   return (
-    <footer id="contact">
-      <div className="footer-grid">
-        <div>
-          <h2>From discoverable to callable.</h2>
-          <p className="sub">Evidence-based website intelligence for humans, developers, and AI agents.</p>
+    <footer className="chrome-footer" id="contact">
+      <div className="chrome-footer-main">
+        <div className="chrome-footer-about">
+          <a className="chrome-brand" href="/">
+            <Image
+              src="/assets/santos-eagle.svg"
+              alt=""
+              width={36}
+              height={36}
+            />
+            <span>
+              SANTOS<span className="chrome-brand-sub">INTELLIGENCE</span>
+            </span>
+          </a>
+          <p>
+            A clearer picture of your place
+            <br />
+            in the agentic web.
+          </p>
+          <a
+            className="chrome-email"
+            href="mailto:info@santosautomation.com"
+            data-analytics-event="contact_clicked"
+          >
+            Talk to the builder <ArrowUpRight size={15} aria-hidden="true" />
+          </a>
         </div>
-        <div className="links" aria-label="Footer links">
-          <a href="/docs">API docs</a>
-          <a href="/reports">Leaderboard</a>
-          <a href="/verify">Verify a report</a>
-          <a href="/ci">CI recipe</a>
-          <a href="/integrations">MCP server</a>
-          <a href="/integrations/grok">Grok &amp; xAI</a>
-          <a href="/integrations/claude">Claude connector</a>
-          <a href="/reports/sample-agent-readiness">Sample report</a>
-          <a href="/agent-readiness/buy">Get a report</a>
-          <a href="/monitoring">Monitoring</a>
-          <a href="/learn/what-is-ai-website-intelligence">Learn</a>
-          <a href="/openapi.json" data-analytics-event="openapi_downloaded">OpenAPI</a>
-          <a href="/llms.txt">llms.txt</a>
-          <a href="/status">Status</a>
-          <a href="/changelog">Changelog</a>
+        {footerGroups.map((group) => (
+          <div className="chrome-footer-group" key={group.title}>
+            <h2>{group.title}</h2>
+            {group.links.map(([label, href]) => (
+              <a key={href} href={href}>
+                {label}
+              </a>
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className="chrome-footer-bottom">
+        <span>© {new Date().getFullYear()} Santos Automation</span>
+        <span className="chrome-footer-location">
+          Independently built in Charlotte, NC.
+        </span>
+        <div>
           <a href="/terms">Terms &amp; privacy</a>
-          <button type="button" data-cookie-settings>Cookie settings</button>
+          <button type="button" data-cookie-settings>
+            Cookie settings
+          </button>
         </div>
       </div>
-
-      <section className="footer-support" aria-labelledby="support-h">
-        <h2 id="support-h">Contact &amp; support</h2>
-        <p className="sub">
-          Questions, integration help, or a billing issue? Email{" "}
-          <a href="mailto:info@santosautomation.com" data-analytics-event="contact_clicked">info@santosautomation.com</a>.
-        </p>
-        <p className="fine">
-          Payments &amp; retries: audits settle only after a successful response, so a failed
-          or blocked audit is not charged. If our infrastructure fails a paid Deep audit after
-          its retries, email us for a replacement run. We do not process automated on-chain
-          refunds; billing questions are handled by email.
-        </p>
-      </section>
-
-      <p className="fine">Santos Website Intelligence · x402 payments settle in USDC on Base</p>
       <AnalyticsBoot />
     </footer>
   );
 }
 
-export function PageShell({ children }) {
+export function PageShell({ children, className = "" }) {
   return (
-    <div className="wrap">
+    <div className={`wrap site-shell ${className}`}>
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <SiteNav />
-      <main>{children}</main>
+      <main id="main-content">{children}</main>
       <SiteFooter />
     </div>
   );

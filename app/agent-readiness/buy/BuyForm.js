@@ -3,25 +3,10 @@
 import { useId, useState } from "react";
 import { track } from "../../../lib/analytics-client.js";
 
-// Marketing copy only — the charged amount is enforced server-side in
-// lib/stripe/client.js (REPORT_TIERS) and never trusted from the client.
-const TIERS = [
-  {
-    key: "quick",
-    name: "Quick",
-    price: "$9",
-    blurb: "Agent Readiness Report — quick fetch-based evidence, emailed same-day.",
-  },
-  {
-    key: "deep",
-    name: "Deep",
-    price: "$29",
-    blurb: "Website Intelligence Report — browser-rendered Lighthouse + axe-core + screenshots, emailed when ready — typically minutes.",
-  },
-];
-
-export default function BuyForm() {
-  const [tier, setTier] = useState("quick");
+// Presentation receives canonical prices from the server. The checkout route
+// continues to enforce the price and validate the tier independently.
+export default function BuyForm({ initialTier = "quick", tiers }) {
+  const [tier, setTier] = useState(initialTier === "deep" ? "deep" : "quick");
   const [url, setUrl] = useState("");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -29,7 +14,7 @@ export default function BuyForm() {
   const urlId = useId();
   const emailId = useId();
   const errId = useId();
-  const selected = TIERS.find((t) => t.key === tier) ?? TIERS[0];
+  const selected = tiers.find((t) => t.key === tier) ?? tiers[0];
 
   async function submit(e) {
     e.preventDefault();
@@ -59,12 +44,15 @@ export default function BuyForm() {
     <form
       className="ar-form buy-form"
       onSubmit={submit}
-      noValidate
       toolname="buyAgentReadinessReportForm"
-      tooldescription="Buy a human-readable website report for a website: $9 Quick (Agent Readiness, fetch-based) or $29 Deep (Website Intelligence, browser-rendered). Starts a hosted Stripe checkout; the report is emailed after payment. Requires explicit user confirmation — this initiates a purchase."
+      tooldescription="Buy a human-readable website report: Quick (fetch-based) or Deep (browser-rendered). See the displayed price for each tier. Starts hosted Stripe checkout; the report is emailed after payment. Requires explicit user confirmation — this initiates a purchase."
     >
-      <div className="track-grid" role="group" aria-label="Choose a report tier">
-        {TIERS.map((t) => (
+      <div
+        className="track-grid"
+        role="group"
+        aria-label="Choose a report tier"
+      >
+        {tiers.map((t) => (
           <button
             key={t.key}
             type="button"
@@ -74,30 +62,60 @@ export default function BuyForm() {
             toolparamdescription={`Select the ${t.name} report tier (${t.price})`}
           >
             <h3>{t.name}</h3>
-            <p className="track-price">{t.price} <span>one-time report</span></p>
+            <p className="track-price">
+              {t.price} <span>one-time report</span>
+            </p>
             <p>{t.blurb}</p>
           </button>
         ))}
       </div>
 
       <label htmlFor={urlId}>Website URL to audit</label>
-      <input id={urlId} name="url" type="url" inputMode="url" autoComplete="url" placeholder="https://example.com"
-        value={url} onChange={(e) => setUrl(e.target.value)}
+      <input
+        id={urlId}
+        name="url"
+        type="url"
+        inputMode="url"
+        autoComplete="url"
+        placeholder="https://example.com"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
         toolparamdescription="Website URL to audit, e.g. https://example.com"
-        aria-describedby={error ? errId : undefined} required />
+        aria-describedby={error ? errId : undefined}
+        required
+      />
 
       <label htmlFor={emailId}>Where should we email your report?</label>
-      <input id={emailId} name="email" type="email" inputMode="email" autoComplete="email" placeholder="you@company.com"
-        value={email} onChange={(e) => setEmail(e.target.value)}
+      <input
+        id={emailId}
+        name="email"
+        type="email"
+        inputMode="email"
+        autoComplete="email"
+        placeholder="you@company.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
         toolparamdescription="Email address to send the finished report to"
-        aria-describedby={error ? errId : undefined} required />
-
+        aria-describedby={error ? errId : undefined}
+        required
+      />
 
       <button className="btn primary" type="submit" disabled={busy}>
-        {busy ? "Starting checkout…" : `Buy ${selected.name.toLowerCase()} report — ${selected.price}`}
+        {busy
+          ? "Starting checkout…"
+          : `Buy ${selected.name.toLowerCase()} report — ${selected.price}`}
       </button>
-      {error && <p className="ar-error" id={errId} role="alert">{error}</p>}
-      <p className="fine">Secure card payment via Stripe. No account needed. One-time {selected.price} USD — you'll get an emailed link to your report{tier === "deep" ? " when the browser-rendered audit finishes" : ""}, usually within a few minutes.</p>
+      {error && (
+        <p className="ar-error" id={errId} role="alert">
+          {error}
+        </p>
+      )}
+      <p className="fine">
+        Secure card payment via Stripe. No account needed. One-time{" "}
+        {selected.price} USD — you'll get an emailed link to your report
+        {tier === "deep" ? " when the browser-rendered audit finishes" : ""},
+        usually within a few minutes.
+      </p>
     </form>
   );
 }
