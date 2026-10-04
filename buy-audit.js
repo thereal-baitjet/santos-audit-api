@@ -2,10 +2,19 @@
 import { privateKeyToAccount } from "viem/accounts";
 import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm";
+import { validateUrlForPurchase, ValidationError } from "./lib/validate-url.js";
 import dotenv from "dotenv";
 dotenv.config();
 
 const target = process.argv[2] ?? "example.com";
+
+try {
+  validateUrlForPurchase(target);
+} catch (e) {
+  console.error(`❌ ${e.code}: ${e.message}`);
+  process.exit(1);
+}
+
 const account = privateKeyToAccount(process.env.BUYER_PRIVATE_KEY);
 const fetchWithPay = wrapFetchWithPaymentFromConfig(fetch, {
   schemes: [{ network: "eip155:8453", client: new ExactEvmScheme(account) }],
