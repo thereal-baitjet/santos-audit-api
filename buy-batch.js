@@ -2,6 +2,7 @@
 import { privateKeyToAccount } from "viem/accounts";
 import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm";
+import { validateUrlForPurchase, ValidationError } from "./lib/validate-url.js";
 
 process.loadEnvFile(".env.local");
 const account = privateKeyToAccount(process.env.BUYER_PRIVATE_KEY);
@@ -22,6 +23,21 @@ const urls = [
   "https://www.w3.org",
   "https://news.ycombinator.com",
 ];
+
+// Validate all URLs before payment
+const errors = [];
+for (const url of urls) {
+  try {
+    validateUrlForPurchase(url);
+  } catch (e) {
+    errors.push(`${url}: ${e.code} — ${e.message}`);
+  }
+}
+if (errors.length > 0) {
+  console.error("❌ Invalid URLs in batch:");
+  errors.forEach(err => console.error(`  ${err}`));
+  process.exit(1);
+}
 
 const res = await fetchWithPay("https://api.santosautomation.com/api/audit/batch", {
   method: "POST",
