@@ -2,6 +2,7 @@ import { PageShell } from "../components/SiteChrome.js";
 import StructuredData from "../components/StructuredData.js";
 import { pageMetadata } from "../../lib/marketing-content.js";
 import { apiProduct } from "../../lib/products.js";
+import { docsQuickstart } from "../../lib/docs-quickstart.js";
 
 const API = "https://api.santosautomation.com";
 
@@ -307,19 +308,23 @@ export default function DocsPage() {
           <a href="/reports">public archive</a> or call the free MCP tool
           <code>audit_website_preview</code>.
         </p>
-        <pre className="code-sample" tabIndex={0}><code>{`# Any x402 v2 client automates payment — no account, no API key:
+        <p className="sub wide">
+          Use Node.js 22 or newer and a dedicated wallet funded with USDC on Base mainnet.
+          Running this example automatically signs the x402 payment; a successful Quick Audit
+          costs ${apiProduct("/api/audit").priceUsdc} USDC. Keep the wallet private key on your
+          server or local machine, never in browser code or version control.
+        </p>
+        <pre className="code-sample" tabIndex={0}><code>{`# Install the client dependencies:
 npm install @x402/fetch @x402/evm viem`}</code></pre>
-        <pre className="code-sample" tabIndex={0}><code>{`import { wrapFetchWithPayment } from "@x402/fetch";
-import { ExactEvmScheme } from "@x402/evm";
-import { privateKeyToAccount } from "viem/accounts";
-
-const account = privateKeyToAccount(process.env.PRIVATE_KEY); // holds USDC on Base
-const fetchWithPay = wrapFetchWithPayment(fetch, [new ExactEvmScheme(account)]);
-
-const res = await fetchWithPay(
-  "${API}/api/audit?url=https%3A%2F%2Fexample.com"
-);
-const report = await res.json(); // paid, settled, done`}</code></pre>
+        <p className="sub wide">
+          Save the following as <code>quickstart.mjs</code>. Set <code>BUYER_PRIVATE_KEY</code> in
+          a local <code>.env</code> file that is excluded from version control, replacing the
+          placeholder with your wallet&apos;s private key. Do not share this file.
+        </p>
+        <pre className="code-sample" tabIndex={0}><code>{docsQuickstart}</code></pre>
+        <pre className="code-sample" tabIndex={0}><code>{`# .env (private; do not commit)
+BUYER_PRIVATE_KEY=0xYOUR_PRIVATE_KEY`}</code></pre>
+        <pre className="code-sample" tabIndex={0}><code>{`node --env-file=.env quickstart.mjs`}</code></pre>
       </section>
 
       <section className="content-section" id="payment">
