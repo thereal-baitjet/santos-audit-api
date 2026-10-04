@@ -111,12 +111,16 @@ test("mobile navigation closes with Escape and returns keyboard focus", async ({
   await expect(page.locator("#mobile-navigation")).toBeHidden();
   await expect(toggle).toBeFocused();
   await toggle.click();
+  const pricingResponse = page.waitForResponse((response) =>
+    new URL(response.url()).pathname === "/pricing" && response.request().isNavigationRequest(),
+  );
   await page
     .locator("#mobile-navigation")
     .getByRole("link", { name: "Pricing", exact: true })
     .click();
+  expect((await pricingResponse).status()).toBe(200);
   await expect(page).toHaveURL(/\/pricing$/);
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Clear pricing.Better decisions.");
 });
 
 test("FAQ and cookie choices remain usable", async ({ page }) => {
