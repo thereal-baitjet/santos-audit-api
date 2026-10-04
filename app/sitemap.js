@@ -13,6 +13,7 @@ export default async function sitemap() {
     "/",
     ...Object.values(PRODUCT_PAGES).map((page) => page.path),
     "/docs",
+    "/pricing",
     "/agent-readiness/run",
     "/agent-readiness/buy",
     "/methodology/agent-readiness",
