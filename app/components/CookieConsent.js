@@ -13,14 +13,22 @@ const MAX_AGE = 60 * 60 * 24 * 365;
 
 export function readConsent() {
   if (typeof document === "undefined") return null;
-  const m = document.cookie.match(new RegExp(`(?:^|; )${COOKIE}=(all|essential)(?:;|$)`));
+  const m = document.cookie.match(
+    new RegExp(`(?:^|; )${COOKIE}=(all|essential)(?:;|$)`),
+  );
   return m ? m[1] : null;
 }
 
 function writeConsent(value) {
   document.cookie = `${COOKIE}=${value}; max-age=${MAX_AGE}; path=/; samesite=lax`;
-  try { localStorage.setItem(COOKIE, value); } catch { /* private mode */ }
-  window.dispatchEvent(new CustomEvent("santos:consent", { detail: { consent: value } }));
+  try {
+    localStorage.setItem(COOKIE, value);
+  } catch {
+    /* private mode */
+  }
+  window.dispatchEvent(
+    new CustomEvent("santos:consent", { detail: { consent: value } }),
+  );
 }
 
 export function CookieConsent() {
@@ -33,9 +41,11 @@ export function CookieConsent() {
       setVisible(true);
     };
     // Delegated binding so server-rendered markup (footer link) works too.
-    document.addEventListener("click", (e) => {
+    const onClick = (e) => {
       if (e.target?.closest?.("[data-cookie-settings]")) open(e);
-    });
+    };
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
   }, []);
 
   if (!visible) return null;
@@ -46,18 +56,31 @@ export function CookieConsent() {
   };
 
   return (
-    <div className="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie consent">
+    <div
+      className="cookie-banner"
+      role="dialog"
+      aria-live="polite"
+      aria-label="Cookie consent"
+    >
       <p>
         We use one essential cookie to remember this choice, and privacy-safe,
-        first-party analytics (no third-party trackers, no personal data) only if
-        you accept. Details in our{" "}
+        first-party analytics (no third-party trackers, no personal data) only
+        if you accept. Details in our{" "}
         <a href="/terms#cookies">privacy &amp; cookie notice</a>.
       </p>
       <div className="cookie-actions">
-        <button type="button" className="btn primary small" onClick={() => choose("all")}>
+        <button
+          type="button"
+          className="btn primary small"
+          onClick={() => choose("all")}
+        >
           Accept analytics
         </button>
-        <button type="button" className="btn small" onClick={() => choose("essential")}>
+        <button
+          type="button"
+          className="btn small"
+          onClick={() => choose("essential")}
+        >
           Essential only
         </button>
       </div>
