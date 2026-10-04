@@ -12,7 +12,6 @@ import { recordEvent } from "../../../lib/analytics-store.js";
 import { signReport } from "../../../lib/report-signing.js";
 import { upsertPublicReport } from "../../../lib/public-reports.js";
 import { timedStage, TimingTracker } from "../../../lib/timing.js";
-import { auditCache } from "../../../lib/audit-cache.js";
 
 async function handler(req) {
   const url = req.nextUrl.searchParams.get("url") ?? "";
@@ -20,20 +19,7 @@ async function handler(req) {
   const timing = req.timing;
 
   try {
-    // Check cache first
-    let report = await auditCache.get(url);
-    let fromCache = false;
-
-    if (!report) {
-      report = await timedStage(timing, 'audit', () => auditSite(url));
-      // Store in cache for 1 hour (fire-and-forget)
-      auditCache.set(url, report, 3600000).catch(e =>
-        console.warn('Cache set failed:', e.message)
-      );
-    } else {
-      fromCache = true;
-      timing.stages.cache_hit = { ms: 0 };
-    }
+    const report = await timedStage(timing, 'audit', () => auditSite(url));
 
     const signed = await timedStage(timing, 'sign', () =>
       Promise.resolve(signReport({ tier: "paid", ...report }))
@@ -57,14 +43,6 @@ async function handler(req) {
     }
 
     const response = NextResponse.json(signed, { headers: CORS });
-
-    // Add cache status header
-    if (fromCache) {
-      response.headers.set('X-Cache', 'HIT');
-    } else {
-      response.headers.set('X-Cache', 'MISS');
-    }
-
     timing.addHeaders(response);
     return response;
   } catch (e) {
