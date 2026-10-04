@@ -25,12 +25,12 @@ vercel deploy --prod
 ### Step 3: Test Caching (Verify It Works)
 ```bash
 # First run - cache MISS (418ms)
-BUYER_PRIVATE_KEY="0xcee9fde51e1fdd8e8f156091c8819da87eb57fbe7d4a1a046167af2abd1aa371" \
+BUYER_PRIVATE_KEY="$BUYER_PRIVATE_KEY" \
 BASE="https://api.santosautomation.com" \
 node buy-audit.js https://developer.mozilla.org
 
 # Second run immediately after - cache HIT (~50ms, 88% faster!)
-BUYER_PRIVATE_KEY="0xcee9fde51e1fdd8e8f156091c8819da87eb57fbe7d4a1a046167af2abd1aa371" \
+BUYER_PRIVATE_KEY="$BUYER_PRIVATE_KEY" \
 BASE="https://api.santosautomation.com" \
 node buy-audit.js https://developer.mozilla.org
 ```
