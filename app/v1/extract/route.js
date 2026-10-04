@@ -10,8 +10,11 @@ import { auditErrorResponse, CORS } from "../../../lib/errors.js";
 import { resourceServer, SELLER, NETWORK } from "../../../lib/x402-server.js";
 import { bazaarResourceMeta } from "../../../lib/bazaar-catalog.js";
 import { notifyTransaction } from "../../../notify.js";
+import { timedStage, TimingTracker } from "../../../lib/timing.js";
 
 const PRICE = process.env.EXTRACT_PRICE_USDC ?? "0.005";
+const CACHE_CONTROL_PAID = 'public, max-age=3600'; // 1 hour for successful extractions
+const CACHE_CONTROL_UNPAID = 'no-store'; // Never cache payment challenges
 
 async function targetFrom(req) {
   if (req.method === "GET") return req.nextUrl.searchParams.get("url") ?? "";
@@ -20,15 +23,25 @@ async function targetFrom(req) {
 }
 
 async function handler(req) {
+  const timing = new TimingTracker();
+  req.timing = timing;
+
   try {
-    const url = await targetFrom(req);
+    const url = await timedStage(timing, 'parse_request', () => targetFrom(req));
+
     // Validation runs AFTER the paywall so unpaid discovery probes get the 402
     // challenge; a paid-but-invalid request 400s here and never settles.
     validateTarget(url);
-    const result = await extractPage(url);
-    return NextResponse.json(result, { headers: CORS });
+
+    const result = await timedStage(timing, 'extract', () => extractPage(url));
+
+    const response = NextResponse.json(result, { headers: CORS });
+    timing.addHeaders(response);
+    return response;
   } catch (error) {
-    return auditErrorResponse(error);
+    const response = auditErrorResponse(error);
+    timing.addHeaders(response);
+    return response;
   }
 }
 
@@ -86,10 +99,24 @@ const paidGET = withX402FromHTTPServer(handler, getServer);
 const paidPOST = withX402FromHTTPServer(handler, postServer);
 
 async function paidWithReceipt(req, paidHandler) {
+  const timing = new TimingTracker();
+  req.timing = timing;
+
+  timing.mark('x402');
   const res = await paidHandler(req);
+  timing.end('x402');
+
   res.headers.set("Access-Control-Allow-Origin", "*");
-  res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
-  res.headers.set("Cache-Control", "no-store");
+  res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Response-Time, X-Stage-Timings");
+
+  // Cache control: successful extractions can be cached for 1 hour at edge
+  // Payment challenges must never be cached
+  if (res.status < 400 && res.headers.get("PAYMENT-RESPONSE")) {
+    res.headers.set("Cache-Control", CACHE_CONTROL_PAID);
+  } else {
+    res.headers.set("Cache-Control", CACHE_CONTROL_UNPAID);
+  }
+
   const receipt = res.headers.get("PAYMENT-RESPONSE");
   if (receipt && res.status < 400) {
     try {

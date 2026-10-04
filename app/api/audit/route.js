@@ -11,32 +11,46 @@ import { bazaarResourceMeta } from "../../../lib/bazaar-catalog.js";
 import { recordEvent } from "../../../lib/analytics-store.js";
 import { signReport } from "../../../lib/report-signing.js";
 import { upsertPublicReport } from "../../../lib/public-reports.js";
+import { timedStage, TimingTracker } from "../../../lib/timing.js";
 
 async function handler(req) {
   const url = req.nextUrl.searchParams.get("url") ?? "";
   const isPublic = req.nextUrl.searchParams.get("public") === "1";
+  const timing = req.timing;
+
   try {
-    const report = await auditSite(url);
-    const signed = signReport({ tier: "paid", ...report });
+    const report = await timedStage(timing, 'audit', () => auditSite(url));
+
+    const signed = await timedStage(timing, 'sign', () =>
+      Promise.resolve(signReport({ tier: "paid", ...report }))
+    );
+
     // Opt-in public listing. Fail-soft: a listing failure never breaks a
     // paid response, and only the report JSON is stored — never the payer.
     if (isPublic) {
       try {
-        await upsertPublicReport({
-          url: report.url,
-          score: report.website_intelligence_score ?? report.overall_score ?? null,
-          report: signed,
-          source: "quick-paid",
-        });
+        await timedStage(timing, 'public_listing', () =>
+          upsertPublicReport({
+            url: report.url,
+            score: report.website_intelligence_score ?? report.overall_score ?? null,
+            report: signed,
+            source: "quick-paid",
+          })
+        );
       } catch (e) {
         console.warn("public report upsert failed:", e.message);
       }
     }
-    return NextResponse.json(signed, { headers: CORS });
+
+    const response = NextResponse.json(signed, { headers: CORS });
+    timing.addHeaders(response);
+    return response;
   } catch (e) {
     // withX402 only settles payment for responses under 400, so a failed
     // audit here costs the agent nothing.
-    return auditErrorResponse(e);
+    const response = auditErrorResponse(e);
+    timing.addHeaders(response);
+    return response;
   }
 }
 
@@ -90,6 +104,11 @@ const httpServer = new x402HTTPResourceServer(resourceServer, {
 });
 const paidHandler = withX402FromHTTPServer(handler, httpServer);
 
+// Add cache-control configuration
+// Public reports can be cached, but payment exchanges must never be cached
+const CACHE_CONTROL_PAID = 'public, max-age=3600'; // 1 hour for successful audits
+const CACHE_CONTROL_UNPAID = 'no-store'; // Never cache payment challenges
+
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
@@ -104,12 +123,27 @@ export async function OPTIONS() {
 }
 
 async function handleGET(req) {
+  // Initialize timing tracker for this request
+  const timing = new TimingTracker();
+  req.timing = timing;
+
+  timing.mark('x402');
   const res = await paidHandler(req);
+  timing.end('x402');
+
   // Browser agents must be able to read the challenge and receipt headers,
   // and payment exchanges must never be cached.
   res.headers.set("Access-Control-Allow-Origin", "*");
-  res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
-  res.headers.set("Cache-Control", "no-store");
+  res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Response-Time, X-Stage-Timings");
+
+  // Cache control: successful audits can be cached for 1 hour at edge
+  // Payment challenges must never be cached
+  if (res.status < 400 && res.headers.get("PAYMENT-RESPONSE")) {
+    res.headers.set("Cache-Control", CACHE_CONTROL_PAID);
+  } else {
+    res.headers.set("Cache-Control", CACHE_CONTROL_UNPAID);
+  }
+
   const receipt = res.headers.get("PAYMENT-RESPONSE");
   if (receipt && res.status < 400) {
     try {

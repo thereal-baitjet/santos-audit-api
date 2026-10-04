@@ -12,44 +12,66 @@ import { getAgentReadinessPriceUsdc } from "../../../lib/agent-readiness/product
 import { websiteIntelligenceSummary } from "../../../lib/website-intelligence.js";
 import { signReport } from "../../../lib/report-signing.js";
 import { upsertPublicReport } from "../../../lib/public-reports.js";
+import { timedStage, TimingTracker } from "../../../lib/timing.js";
 
 const PRICE = getAgentReadinessPriceUsdc();
+const CACHE_CONTROL_PAID = 'public, max-age=3600'; // 1 hour
+const CACHE_CONTROL_UNPAID = 'no-store';
 
 async function handler(req) {
+  const timing = new TimingTracker();
+  req.timing = timing;
+
   try {
     const url = req.nextUrl.searchParams.get("url") ?? "";
     const depth = req.nextUrl.searchParams.get("depth") ?? "quick";
     const isPublic = req.nextUrl.searchParams.get("public") === "1";
+
     // Target validation runs AFTER the paywall so unpaid discovery probes get
     // the 402 challenge; a paid-but-invalid request 400s here, which does not
     // settle (settlement only happens on <400).
     validateTarget(url);
     if (depth !== "quick") return NextResponse.json({ error: "depth must be 'quick'", code: "INVALID_REQUEST" }, { status: 400, headers: CORS });
-    const result = await auditAgentReadiness(url, { mode: "quick" });
+
+    const result = await timedStage(timing, 'audit', () =>
+      auditAgentReadiness(url, { mode: "quick" })
+    );
+
     const websiteIntelligence = websiteIntelligenceSummary({ agentReadiness: result });
     const report = {
       website_intelligence_score: websiteIntelligence.score,
       website_intelligence: websiteIntelligence,
       ...result,
     };
-    const signed = signReport(report);
+
+    const signed = await timedStage(timing, 'sign', () =>
+      Promise.resolve(signReport(report))
+    );
+
     // Opt-in public listing. Fail-soft: never breaks a paid response, and
     // only the report JSON is stored — never the payer identity.
     if (isPublic) {
       try {
-        await upsertPublicReport({
-          url: result.target?.final_url ?? url,
-          score: websiteIntelligence.score ?? result.score ?? null,
-          report: signed,
-          source: "agent-readiness-paid",
-        });
+        await timedStage(timing, 'public_listing', () =>
+          upsertPublicReport({
+            url: result.target?.final_url ?? url,
+            score: websiteIntelligence.score ?? result.score ?? null,
+            report: signed,
+            source: "agent-readiness-paid",
+          })
+        );
       } catch (e) {
         console.warn("public report upsert failed:", e.message);
       }
     }
-    return NextResponse.json(signed, { headers: CORS });
+
+    const response = NextResponse.json(signed, { headers: CORS });
+    timing.addHeaders(response);
+    return response;
   } catch (error) {
-    return auditErrorResponse(error);
+    const response = auditErrorResponse(error);
+    timing.addHeaders(response);
+    return response;
   }
 }
 
@@ -111,10 +133,24 @@ export async function OPTIONS() {
 }
 
 async function handleGET(req) {
+  const timing = new TimingTracker();
+  req.timing = timing;
+
+  timing.mark('x402');
   const response = await paidHandler(req);
+  timing.end('x402');
+
   response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
-  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Response-Time, X-Stage-Timings");
+
+  // Cache control: successful audits can be cached for 1 hour at edge
+  // Payment challenges must never be cached
+  if (response.status < 400 && response.headers.get("PAYMENT-RESPONSE")) {
+    response.headers.set("Cache-Control", CACHE_CONTROL_PAID);
+  } else {
+    response.headers.set("Cache-Control", CACHE_CONTROL_UNPAID);
+  }
+
   const receipt = response.headers.get("PAYMENT-RESPONSE");
   if (receipt && response.status < 400) {
     try {
