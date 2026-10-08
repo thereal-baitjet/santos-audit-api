@@ -4,6 +4,7 @@
 import { PageShell } from "../../../components/SiteChrome.js";
 import { verifyAccessToken } from "../../../../lib/deep/ids.js";
 import { getReportById } from "../../../../lib/stripe/store.js";
+import { ExecutiveSummary } from "../../../components/ExecutiveSummary.js";
 
 export const metadata = {
   title: "Your Agent Readiness Report | Santos Website Intelligence",
@@ -52,7 +53,7 @@ export default async function ReportPage({ params, searchParams }) {
           <p className="kicker">Agent Readiness Report</p>
           <h1>{r.target?.final_url ?? row.target_url}</h1>
           <p className="lede">
-            Readiness level: <strong>{r.readiness_level ?? "—"}</strong>
+            Readiness level: <strong>{r.readiness_level?.name ?? r.readiness_level ?? "—"}</strong>
             {r.grade ? <> · Grade <strong>{r.grade}</strong></> : null}
             {typeof r.score === "number" ? <> · Score <strong>{pct(r.score)}/100</strong></> : null}
           </p>
@@ -71,6 +72,8 @@ export default async function ReportPage({ params, searchParams }) {
             </div>
           </section>
         )}
+
+        <ExecutiveSummary report={r} className="ar-section" />
 
         {Object.keys(sub).length > 0 && (
           <section className="ar-section" aria-labelledby="sub-h">
