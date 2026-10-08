@@ -1,5 +1,6 @@
 import { PageShell } from "../../components/SiteChrome.js";
 import { getPublicReport } from "../../../lib/public-reports.js";
+import { ExecutiveSummary } from "../../components/ExecutiveSummary.js";
 
 // Public, opt-in audit report. One page per listed domain; the latest audit
 // wins. Unknown domains get a friendly "not audited yet" page (still 200) —
@@ -131,6 +132,8 @@ export default async function PublicReportPage({ params }) {
           </div>
           {report.signature ? <p className="sub sub--tight">This report is cryptographically signed (<code>{report.signature_alg}</code>, signed {dateOf(report.signed_at) ?? "—"}). Paste the JSON into the <a href="/verify">verifier</a> to confirm it’s unmodified.</p> : null}
         </section>
+
+        <ExecutiveSummary report={report} />
 
         {issues.length ? (
           <section className="content-section">
