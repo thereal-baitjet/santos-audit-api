@@ -1,8 +1,24 @@
-# Santos Website Intelligence API
+<!-- Santos Automation brand header: repository-local assets, no scripts or remote fonts. -->
+<a href="https://www.santosautomation.com/">
+  <picture>
+    <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="docs/readme-assets/santos-hero-dark-mobile.svg">
+    <source media="(max-width: 600px)" srcset="docs/readme-assets/santos-hero-light-mobile.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/santos-hero-dark.svg">
+    <img src="docs/readme-assets/santos-hero-light.svg" alt="Santos Automation — Automate. Build. Elevate. Practical software. Connected systems." width="100%">
+  </picture>
+</a>
 
 <p align="center">
-  <img src="public/assets/santos-eagle.svg" width="140" alt="Santos gold eagle emblem" />
+  <a href="https://www.santosautomation.com/"><b>Explore&nbsp;Santos&nbsp;↗</b></a>
+  &nbsp; · &nbsp;
+  <a href="https://api.santosautomation.com/openapi.json">API&nbsp;reference</a>
+  &nbsp; · &nbsp;
+  <a href="#for-humans-card-no-crypto">Get&nbsp;a&nbsp;report</a>
+  &nbsp; · &nbsp;
+  <a href="#development">Quickstart</a>
 </p>
+
+# Santos Website Intelligence API
 
 <p align="center">
   <img src="https://img.shields.io/badge/AI-Website%20Intelligence-7c3aed?style=for-the-badge&logo=robot" alt="AI Website Intelligence" />
@@ -16,14 +32,10 @@
   <strong>Measure whether a public website is discoverable, understandable, callable, and trustworthy for agents.</strong>
 </p>
 
-<div align="center">
-<pre>
-┌──────────────────────────────────────────────────────────────┐
-│    SANTOS WEBSITE INTELLIGENCE • AI-READY WEB EVALUATION     │
-│             Discover • Understand • Call • Trust             │
-└──────────────────────────────────────────────────────────────┘
-</pre>
-</div>
+<p align="center">
+  <sub>SANTOS WEBSITE INTELLIGENCE • AI-READY WEB EVALUATION<br>
+  Discover · Understand · Call · Trust</sub>
+</p>
 
 **AI Website Intelligence and Agent Readiness for the agentic web** — Quick,
 Agent Readiness, and browser-rendered Deep audits return structured evidence and
