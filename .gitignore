@@ -12,3 +12,7 @@ scripts/seed-results.jsonl
 test-results/
 playwright-report/
 docs/screenshots/frontend-full.png
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
