@@ -11,7 +11,7 @@ import { notifyTransaction } from "../../../notify.js";
 import { getAgentReadinessPriceUsdc } from "../../../lib/agent-readiness/product-pricing.js";
 import { websiteIntelligenceSummary } from "../../../lib/website-intelligence.js";
 import { signReport } from "../../../lib/report-signing.js";
-import { upsertPublicReport } from "../../../lib/public-reports.js";
+import { markReportPublished, upsertPublicReport } from "../../../lib/public-reports.js";
 import { timedStage, TimingTracker } from "../../../lib/timing.js";
 
 const PRICE = getAgentReadinessPriceUsdc();
@@ -52,6 +52,7 @@ async function handler(req) {
     // only the report JSON is stored — never the payer identity.
     if (isPublic) {
       try {
+        await markReportPublished(signed);
         await timedStage(timing, 'public_listing', () =>
           upsertPublicReport({
             url: result.target?.final_url ?? url,
