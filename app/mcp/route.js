@@ -361,7 +361,7 @@ async function handlePOST(req) {
       return rpcResult(id, {
         protocolVersion: negotiated,
         capabilities: { tools: {} },
-        serverInfo: { name: "santos-website-intelligence", version: "2.16.0" },
+        serverInfo: { name: "santos-website-intelligence", version: "2.17.0" },
         instructions:
           `audit_website_preview is the ONE free tool: a real Quick Intelligence Audit, 1/day per caller IP, meant as a sample of the output rather than as capacity. Every other tool is paid via x402 v2 on Base mainnet and returns a canonical HTTP handoff rather than data — the MCP call validates the target and tells you exactly where to pay: audit_agent_readiness ($${AGENT_READINESS_PRICE} USDC), extract_page_markdown (/v1/extract, $${EXTRACT_PRICE}), extract_structured_data (POST /v1/extract/structured, $${STRUCTURED_EXTRACT_PRICE}), feed_parse (/v1/feed, $${FEED_PRICE}), link_map (/v1/links, $${LINKS_PRICE}), summarize (/v1/summarize, $${SUMMARIZE_PRICE}). No account or API key is required for any of them. Humans without a USDC wallet can buy a report by card at ${PUBLIC_API_BASE_URL}/agent-readiness/buy.`,
       });

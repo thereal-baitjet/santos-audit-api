@@ -8,6 +8,17 @@ export const metadata = {
 
 const ENTRIES = [
   {
+    version: "2.17.0",
+    date: "2026-10-09",
+    items: [
+      "Agent Readiness reports, public and purchased, now open with a \"What this costs you\" executive summary that pairs every engineering finding with its business consequence.",
+      "Audits whose homepage returned a bot wall, challenge, or other non-2xx response are marked unreliable and get no summary, since their findings describe an error page.",
+      "The purchased report page no longer renders readiness_level as a raw object.",
+      "Dependency update: source-map-js 1.2.2 (GHSA-68fv-2mgg-jv7q).",
+      "No endpoint, tool name, schema, free-quota, or x402 pricing change.",
+    ],
+  },
+  {
     version: "2.16.0",
     date: "2026-07-28",
     items: [
@@ -170,7 +181,7 @@ export default function ChangelogPage() {
       <h1>Changelog.</h1>
       <p>
         Product history for the Santos Website Intelligence API. Latest version:{" "}
-        <strong>2.16.0</strong>. Machine-readable version and contract data:{" "}
+        <strong>2.17.0</strong>. Machine-readable version and contract data:{" "}
         <a href="/version">/version</a>.
       </p>
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.17.0 — 2026-10-09 — Business-impact reports
+
+### Added
+- **Executive summary on Agent Readiness reports.** Public and purchased report
+  pages render a "What this costs you" section; every finding is paired with its
+  business consequence (`lib/growth/executive-summary.js`, `impact-copy.js`).
+- **Fix-it kit groundwork** — `GET/POST /v1/fix-it` returns the summary, a
+  publish-ready llms.txt and an RFC 9309 robots.txt patch from one audit. It is
+  dark until `FIX_IT_ENABLED=true` and is not yet in the catalog, OpenAPI or Bazaar.
+- **`scripts/santos-index-teasers.mjs`** drafts Santos Index posts from stored
+  audits, worst-first, flagging stale audits for re-run.
+
+### Fixed
+- Audits whose homepage returned non-2xx (bot walls, 202 challenges, 429s) are
+  treated as unreliable: no summary and no teaser.
+- The purchased report page no longer renders `readiness_level` as an object.
+
+### Security
+- `source-map-js` bumped to 1.2.2 for GHSA-68fv-2mgg-jv7q.
+
 ## 2.16.0 — 2026-07-28 — Free-tier funnel
 
 ### Added
