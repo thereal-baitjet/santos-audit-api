@@ -8,6 +8,16 @@ export const metadata = {
 
 const ENTRIES = [
   {
+    version: "2.18.0",
+    date: "2026-10-09",
+    items: [
+      "New paid capability: AI Readiness Remediation (POST /api/audit/remediate, $0.02 USDC via x402). Send the failed layers and get a publish-ready llms.txt (Discoverable/Callable) and Organization JSON-LD (Understandable), generated without fetching the site.",
+      "Free with your audit: include your signed /api/agent-readiness report for the same domain and remediation costs nothing, 5 uses per report. Published (public) reports do not qualify, since anyone can download them.",
+      "Report signature verification now rejects pathologically nested bodies cleanly; /v1/verify previously returned 500 for them.",
+      "Twelve paid capabilities: the catalog, capability manifest, OpenAPI, llms.txt and Bazaar discovery listing all carry the new endpoint.",
+    ],
+  },
+  {
     version: "2.17.0",
     date: "2026-10-09",
     items: [
@@ -181,7 +191,7 @@ export default function ChangelogPage() {
       <h1>Changelog.</h1>
       <p>
         Product history for the Santos Website Intelligence API. Latest version:{" "}
-        <strong>2.17.0</strong>. Machine-readable version and contract data:{" "}
+        <strong>2.18.0</strong>. Machine-readable version and contract data:{" "}
         <a href="/version">/version</a>.
       </p>
 

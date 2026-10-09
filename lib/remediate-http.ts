@@ -12,15 +12,19 @@
 //   2. otherwise x402: $REMEDIATE_PRICE_USDC (default 0.02), settled only on a
 //      successful response.
 //
-// Dark until REMEDIATE_ENABLED=true, same launch pattern as /v1/fix-it: the
-// price isn't in lib/products.js, llms.txt, OpenAPI or the Bazaar catalog yet,
-// so it must not be reachable or indexable before launch.
+// Gated by REMEDIATE_ENABLED=true (503 otherwise), so the listing in
+// lib/products.js, llms.txt, OpenAPI and the Bazaar catalog only goes live
+// together with the env flag.
 //
-// Built by createRemediateHandler(resourceServer) so tests can run the whole
-// x402 flow against a fake facilitator; the route passes the CDP one.
+// Built by createRemediateHandler(resourceServer, catalog) so tests can run the
+// whole x402 flow against a fake facilitator; the route passes the CDP one and
+// its Bazaar block (resource pin + discovery schema), which stays in the route
+// file so tests/bazaar-discovery.test.js can prove the route owns its listing.
 import { after, NextResponse, type NextRequest } from "next/server";
 import { withX402FromHTTPServer, x402HTTPResourceServer } from "@x402/next";
 import type { RouteConfig, x402ResourceServer } from "@x402/core/server";
+
+export const REMEDIATE_PATH = "/api/audit/remediate";
 import { RemediationError, buildRemediation, parseRemediateRequest } from "./remediate.ts";
 import { REPORT_ALLOWANCE_TTL_SECS, REPORT_FREE_USES, assertReportUnpublished, checkReportForSite } from "./remediate-report.ts";
 import { claimSlot, hashIdentity, ipFromRequest } from "./demo-limit.js";
@@ -52,7 +56,7 @@ async function readJsonBody(req: NextRequest): Promise<unknown> {
     throw new RemediationError("UNSUPPORTED_MEDIA_TYPE", "Content-Type must be application/json.");
   }
   const tooLarge = () =>
-    new RemediationError("PAYLOAD_TOO_LARGE", `Request body must be at most ${MAX_BODY_BYTES} bytes.`);
+    new RemediationError("BODY_TOO_LARGE", `Request body must be at most ${MAX_BODY_BYTES} bytes.`);
 
   // Content-Length is a cheap early reject; the streaming cap below is the
   // real bound, since chunked requests carry no length at all.
@@ -163,9 +167,16 @@ async function viaReport(req: NextRequest, body: Record<string, unknown>): Promi
   }
 }
 
-export function createRemediateHandler(server: x402ResourceServer): (req: NextRequest) => Promise<NextResponse> {
+export function createRemediateHandler(
+  server: x402ResourceServer,
+  catalog: Record<string, Partial<RouteConfig>> = {}
+): (req: NextRequest) => Promise<NextResponse> {
+  const unknown = Object.keys(catalog).filter((key) => key !== REMEDIATE_PATH);
+  if (unknown.length) throw new Error(`catalog keys must be "${REMEDIATE_PATH}", got ${unknown.join(", ")}`);
   // Verbless route key so the paywall applies whatever the method.
-  const httpServer = new x402HTTPResourceServer(server, { "/api/audit/remediate": config });
+  const httpServer = new x402HTTPResourceServer(server, {
+    [REMEDIATE_PATH]: { ...config, ...catalog[REMEDIATE_PATH] } as RouteConfig,
+  });
   const paid = withX402FromHTTPServer(paidHandler, httpServer);
 
   return async function handle(req: NextRequest): Promise<NextResponse> {

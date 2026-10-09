@@ -19,6 +19,7 @@ const LINKS_PRICE = priceFor("/v1/links");
 const SUMMARIZE_PRICE = priceFor("/v1/summarize");
 const SCREENSHOT_PRICE = priceFor("/v1/screenshot");
 const STRUCTURED_EXTRACT_PRICE = priceFor("/v1/extract/structured");
+const REMEDIATE_PRICE = priceFor("/api/audit/remediate");
 const AGENT_READINESS_ATOMIC_PRICE = usdcAtomicAmount(AGENT_READINESS_PRICE);
 
 const scoreSchema = { type: "integer", minimum: 0, maximum: 100 };
@@ -159,9 +160,9 @@ const document = {
   openapi: "3.1.0",
   info: {
     title: "Santos Website Intelligence API",
-    version: "2.17.0",
+    version: "2.18.0",
     description:
-      `AI Website Intelligence for determining whether public websites can be discovered, understood, trusted, and used by agents. Eleven paid capabilities use USDC on Base mainnet (eip155:8453) via x402 v2 with no account or traditional API key. QUICK INTELLIGENCE (GET /api/audit, $${QUICK_PRICE}, synchronous): lightweight single-page fetch-and-parse audit. AGENT READINESS (GET /api/agent-readiness, $${AGENT_READINESS_PRICE}, synchronous): bounded passive discovery and applicability-aware assessment of agent-facing interfaces. DEEP WEBSITE INTELLIGENCE (POST /v1/audits, $${DEEP_PRICE}, asynchronous): real Chromium via Playwright, Lighthouse, rendered axe-core, browser evidence, screenshots, and passive security checks. The other eight paid capabilities — SAFE FETCH (GET /v1/fetch, $${FETCH_PRICE}), CONTENT EXTRACTION (POST /v1/extract, $${EXTRACT_PRICE}), FEED PARSER (GET /v1/feed, $${FEED_PRICE}), LINK MAP (GET /v1/links, $${LINKS_PRICE}), SUMMARIZER (POST /v1/summarize, $${SUMMARIZE_PRICE}), SCREENSHOT & PDF RENDER (GET /v1/screenshot, $${SCREENSHOT_PRICE}), STRUCTURED EXTRACTION (POST /v1/extract/structured, $${STRUCTURED_EXTRACT_PRICE}), and BATCH QUICK INTELLIGENCE (POST /api/audit/batch, $${BATCH_PRICE} flat for up to 50 URLs) — are documented per-path below. Quick and Agent Readiness payments settle only on a successful response; Deep payment purchases a bounded compute reservation and settles when the job is accepted.`,
+      `AI Website Intelligence for determining whether public websites can be discovered, understood, trusted, and used by agents. Twelve paid capabilities use USDC on Base mainnet (eip155:8453) via x402 v2 with no account or traditional API key. QUICK INTELLIGENCE (GET /api/audit, $${QUICK_PRICE}, synchronous): lightweight single-page fetch-and-parse audit. AGENT READINESS (GET /api/agent-readiness, $${AGENT_READINESS_PRICE}, synchronous): bounded passive discovery and applicability-aware assessment of agent-facing interfaces. DEEP WEBSITE INTELLIGENCE (POST /v1/audits, $${DEEP_PRICE}, asynchronous): real Chromium via Playwright, Lighthouse, rendered axe-core, browser evidence, screenshots, and passive security checks. The other eight paid capabilities — SAFE FETCH (GET /v1/fetch, $${FETCH_PRICE}), CONTENT EXTRACTION (POST /v1/extract, $${EXTRACT_PRICE}), FEED PARSER (GET /v1/feed, $${FEED_PRICE}), LINK MAP (GET /v1/links, $${LINKS_PRICE}), SUMMARIZER (POST /v1/summarize, $${SUMMARIZE_PRICE}), SCREENSHOT & PDF RENDER (GET /v1/screenshot, $${SCREENSHOT_PRICE}), STRUCTURED EXTRACTION (POST /v1/extract/structured, $${STRUCTURED_EXTRACT_PRICE}), and BATCH QUICK INTELLIGENCE (POST /api/audit/batch, $${BATCH_PRICE} flat for up to 50 URLs) — are documented per-path below. Quick and Agent Readiness payments settle only on a successful response; Deep payment purchases a bounded compute reservation and settles when the job is accepted.`,
     contact: { name: "Santos Automation", email: "info@santosautomation.com", url: "https://www.santosautomation.com" },
   },
   servers: [{ url: PUBLIC_API_BASE_URL }],
@@ -281,6 +282,78 @@ const document = {
           400: { description: "Malformed body, empty urls array, or more than 50 URLs.", content: { "application/json": { schema: errorSchema } } },
           402: { description: `Payment required. PAYMENT-REQUIRED contains x402 v2 terms for $${BATCH_PRICE} USDC on eip155:8453.` },
           502: { description: "Every URL in the batch failed; no charge settled.", content: { "application/json": { schema: errorSchema } } },
+        },
+      },
+    },
+    "/api/audit/remediate": {
+      post: {
+        operationId: "remediateAiReadiness",
+        tags: ["Agent Readiness"],
+        summary: `Generate llms.txt and Organization JSON-LD for failed AI Readiness layers ($${REMEDIATE_PRICE} USDC via x402, or free with a signed private report)`,
+        description:
+          "Pure generation: the target domain is never fetched. llms.txt is returned when discoverable or callable failed, Organization JSON-LD when understandable failed. Access: include `report` (a signed, never-published /api/agent-readiness report for the same domain) for free use, 5 uses per report and 30 report attempts per IP per hour; otherwise x402 v2 payment (base64 PAYMENT-REQUIRED challenge header; retry with PAYMENT-SIGNATURE), settled only on a successful response. Unpaid requests always receive the 402 challenge before validation.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["domain", "siteDescription", "failedLayers"],
+                properties: {
+                  domain: { type: "string", maxLength: 253, description: "Bare domain or origin (https://example.com). IPs, paths and credentials are rejected." },
+                  siteDescription: { type: "string", minLength: 1, maxLength: 1000 },
+                  failedLayers: { type: "array", minItems: 1, items: { type: "string", enum: ["discoverable", "understandable", "callable"] } },
+                  existingEndpoints: {
+                    type: "array",
+                    maxItems: 100,
+                    items: {
+                      type: "object",
+                      required: ["path", "method", "desc"],
+                      properties: {
+                        path: { type: "string", maxLength: 512, description: "Absolute path starting with /; no query, fragment, spaces or brackets." },
+                        method: { type: "string", enum: ["GET", "POST"] },
+                        desc: { type: "string", maxLength: 300 },
+                      },
+                    },
+                  },
+                  report: { type: "object", description: "Optional signed, unpublished /api/agent-readiness report for the same domain." },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Remediation generated. On the x402 path the PAYMENT-RESPONSE header carries the settlement receipt.",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    domain: { type: "string" },
+                    origin: { type: "string" },
+                    failedLayers: { type: "array", items: { type: "string" } },
+                    artifacts: {
+                      type: "object",
+                      properties: {
+                        llmsTxt: { type: ["object", "null"], properties: { addresses: { type: "array", items: { type: "string" } }, path: { type: "string", const: "/llms.txt" }, contentType: { type: "string" }, content: { type: "string" } } },
+                        jsonLd: { type: ["object", "null"], properties: { addresses: { type: "array", items: { type: "string" } }, placement: { type: "string", const: "head" }, content: { type: "string" }, data: { type: "object" } } },
+                      },
+                    },
+                    warnings: { type: "array", items: { type: "string" } },
+                    access: { type: "object", properties: { mode: { type: "string", enum: ["x402", "report"] } } },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Invalid JSON or request (INVALID_JSON, INVALID_REQUEST with per-field details).", content: { "application/json": { schema: errorSchema } } },
+          402: { description: `Payment required. PAYMENT-REQUIRED contains x402 v2 terms for $${REMEDIATE_PRICE} USDC on eip155:8453.` },
+          403: { description: "Report rejected: INVALID_REPORT, REPORT_DOMAIN_MISMATCH, REPORT_PUBLISHED, or REPORT_ALLOWANCE_USED.", content: { "application/json": { schema: errorSchema } } },
+          413: { description: "Body over 1 MB (BODY_TOO_LARGE).", content: { "application/json": { schema: errorSchema } } },
+          415: { description: "Content-Type must be application/json (UNSUPPORTED_MEDIA_TYPE).", content: { "application/json": { schema: errorSchema } } },
+          429: { description: "Report path limited to 30 attempts per IP per hour (RATE_LIMITED).", content: { "application/json": { schema: errorSchema } } },
+          503: { description: "Report check unavailable (REPORT_CHECK_UNAVAILABLE) or route not enabled (SERVICE_UNAVAILABLE).", content: { "application/json": { schema: errorSchema } } },
         },
       },
     },

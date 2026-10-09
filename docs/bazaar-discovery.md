@@ -49,7 +49,7 @@ limit (longest: `/v1/fetch` at 445), so that was not a contributing factor.
 
 ## The fix
 
-`lib/bazaar-catalog.js` is the single source of truth for all eleven paid
+`lib/bazaar-catalog.js` is the single source of truth for all twelve paid
 resources. Each route spreads `bazaarResourceMeta("<id>")` into its config,
 which supplies:
 
@@ -69,7 +69,7 @@ The base host is overridable via `X402_RESOURCE_BASE_URL` (default
 `https://api.santosautomation.com`) so preview deploys can advertise themselves
 instead of polluting the production catalog.
 
-### The eleven canonical resources
+### The twelve canonical resources
 
 | Method(s) | Route | `resource.url` |
 | --- | --- | --- |
@@ -91,7 +91,7 @@ instead of polluting the production catalog.
 carry no x402 paywall — they are token-gated retrieval of work already paid for
 via `POST /v1/audits`. They do not independently return payment requirements, so
 they are not registered as purchasable Bazaar products. No dynamic-route
-discovery is declared anywhere; all eleven paid products are static paths.
+discovery is declared anywhere; all twelve paid products are static paths.
 
 ### Facilitator
 
@@ -108,11 +108,11 @@ facilitator.
 node --test tests/bazaar-discovery.test.js
 ```
 
-Runs static invariants offline: eleven routes, eleven unique query-free
+Runs static invariants offline: twelve routes, twelve unique query-free
 canonical URLs, tag limits, per-verb input shapes, no shared mutable metadata,
 and a source check that every route file pins its own catalog entry.
 
-Add a base URL to also send an unpaid-but-valid request to all eleven routes and
+Add a base URL to also send an unpaid-but-valid request to all twelve routes and
 assert the live 402 challenge:
 
 ```bash
@@ -129,7 +129,7 @@ node scripts/verify-bazaar-discovery.js --paid          # REAL USDC settlements
 ```
 
 Prints a table of method, route, `resource.url`, Bazaar input method/shape, and
-Bazaar status, then asserts all eleven `resource.url` values are distinct. Exits
+Bazaar status, then asserts all twelve `resource.url` values are distinct. Exits
 non-zero on any failure. `--paid` additionally settles a real payment per route
 and decodes the `EXTENSION-RESPONSES` header to report the Bazaar
 acknowledgement (`success` / `processing` / `rejected` plus `rejectedReason`);

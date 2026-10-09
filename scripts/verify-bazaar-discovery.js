@@ -209,7 +209,7 @@ async function main() {
     rows.push(row);
   }
 
-  // The acceptance criterion: eleven endpoints, eleven distinct resource URLs.
+  // The acceptance criterion: twelve endpoints, twelve distinct resource URLs.
   const seen = new Map();
   for (const row of rows) {
     if (!row.resourceUrl) continue;

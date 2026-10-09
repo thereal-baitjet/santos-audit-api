@@ -52,6 +52,7 @@ Integration guide: https://www.santosautomation.com/integrations/grok
 ## API — audit modes
 
 - [Agent Readiness Audit](https://api.santosautomation.com/api/agent-readiness?url=https%3A%2F%2Fexample.com&depth=quick): $0.075 USDC per successful audit, synchronous, bounded passive public-interface assessment
+- [AI Readiness Remediation](https://api.santosautomation.com/api/audit/remediate): $0.02 USDC per successful remediation, synchronous — POST {"domain", "siteDescription", "failedLayers": ["discoverable"|"understandable"|"callable"], "existingEndpoints"?}; returns a publish-ready llms.txt and Organization JSON-LD without fetching the site. Free (5 uses) when you include "report": your signed, unpublished /api/agent-readiness report for the same domain
 - [Quick Intelligence Audit](https://api.santosautomation.com/api/audit?url=https%3A%2F%2Fexample.com): $0.015 USDC, synchronous (seconds), fetch-and-parse engine
 - [Batch Quick Intelligence Audit](https://api.santosautomation.com/api/audit/batch): $0.50 USDC flat per batch, synchronous — POST {"urls": ["https://example.com", ...]} with up to 50 URLs ($0.01/URL at full capacity); settles only when at least one audit succeeds
 - [Safe Fetch](https://api.santosautomation.com/v1/fetch?url=https%3A%2F%2Fexample.com): $0.002 USDC, synchronous — raw text body via a hardened SSRF-guarded fetcher (GET ?url= or POST {"url"}); text formats only
