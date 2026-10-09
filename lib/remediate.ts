@@ -49,7 +49,7 @@ export type RemediationErrorCode =
   | "REPORT_ALLOWANCE_USED"
   | "REPORT_PUBLISHED"
   | "REPORT_CHECK_UNAVAILABLE"
-  | "PAYLOAD_TOO_LARGE"
+  | "BODY_TOO_LARGE"
   | "UNSUPPORTED_MEDIA_TYPE";
 
 const STATUS_BY_CODE: Record<RemediationErrorCode, number> = {
@@ -60,7 +60,7 @@ const STATUS_BY_CODE: Record<RemediationErrorCode, number> = {
   REPORT_ALLOWANCE_USED: 403,
   REPORT_PUBLISHED: 403,
   REPORT_CHECK_UNAVAILABLE: 503,
-  PAYLOAD_TOO_LARGE: 413,
+  BODY_TOO_LARGE: 413,
   UNSUPPORTED_MEDIA_TYPE: 415,
 };
 

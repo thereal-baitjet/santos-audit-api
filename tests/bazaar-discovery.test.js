@@ -6,7 +6,7 @@
 //   1. Static — always runs, no network. Checks the catalog's invariants and
 //      that every route file actually pins its canonical resource.
 //   2. Live — runs only when BAZAAR_VERIFY_BASE_URL is set, so `npm test` stays
-//      hermetic. Sends an unpaid but valid request to all eleven routes and
+//      hermetic. Sends an unpaid but valid request to all twelve routes and
 //      asserts the 402 challenge advertises the right identity.
 //      e.g. BAZAAR_VERIFY_BASE_URL=https://api.santosautomation.com \
 //             node --test tests/bazaar-discovery.test.js
@@ -24,7 +24,7 @@ import {
   resourceUrl,
 } from "../lib/bazaar-catalog.js";
 
-// The eleven canonical resource URLs. Anything that changes this list changes
+// The twelve canonical resource URLs. Anything that changes this list changes
 // what the marketplace indexes, so it is pinned literally rather than derived.
 const CANONICAL_RESOURCE_URLS = [
   "https://api.santosautomation.com/v1/fetch",
@@ -38,6 +38,7 @@ const CANONICAL_RESOURCE_URLS = [
   "https://api.santosautomation.com/v1/links",
   "https://api.santosautomation.com/v1/summarize",
   "https://api.santosautomation.com/v1/audits",
+  "https://api.santosautomation.com/api/audit/remediate",
 ];
 
 // Route id -> source file, so the static suite can prove each route pins its
@@ -54,18 +55,19 @@ const ROUTE_FILES = {
   "quick-audit": "app/api/audit/route.js",
   "batch-audit": "app/api/audit/batch/route.js",
   "agent-readiness": "app/api/agent-readiness/route.js",
+  remediate: "app/api/audit/remediate/route.ts",
 };
 
-test("catalog covers exactly the eleven canonical paid resources", () => {
-  assert.equal(BAZAAR_ROUTES.length, 11);
+test("catalog covers exactly the twelve canonical paid resources", () => {
+  assert.equal(BAZAAR_ROUTES.length, 12);
   const urls = BAZAAR_ROUTES.map((r) => resourceUrl(r.id));
   assert.deepEqual([...urls].sort(), [...CANONICAL_RESOURCE_URLS].sort());
 });
 
 test("every resource URL is unique, canonical, and query-free", () => {
   const urls = BAZAAR_ROUTES.map((r) => resourceUrl(r.id));
-  // Uniqueness is the acceptance criterion: eleven endpoints, eleven resources.
-  assert.equal(new Set(urls).size, 11, "resource URLs must be distinct");
+  // Uniqueness is the acceptance criterion: twelve endpoints, twelve resources.
+  assert.equal(new Set(urls).size, 12, "resource URLs must be distinct");
 
   for (const url of urls) {
     const parsed = new URL(url);
@@ -213,7 +215,7 @@ test("live: every paid route 402s with its own canonical Bazaar resource", { ski
     });
   }
 
-  assert.equal(seen.size, 11, "the eleven routes must emit eleven distinct resource URLs");
+  assert.equal(seen.size, 12, "the twelve routes must emit twelve distinct resource URLs");
 });
 
 test("live: resource base matches the catalog", { skip: !LIVE_BASE }, () => {

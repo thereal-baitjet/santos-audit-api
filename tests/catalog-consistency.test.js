@@ -27,6 +27,7 @@ const EXPECTED_API = [
   ["Link Map", "/v1/links", "0.003"],
   ["Quick Intelligence Audit", "/api/audit", "0.015"],
   ["Agent Readiness Audit", "/api/agent-readiness", "0.075"],
+  ["AI Readiness Remediation", "/api/audit/remediate", "0.02"],
   ["Screenshot & PDF Render", "/v1/screenshot", "0.01"],
   ["Summarizer", "/v1/summarize", "0.033"],
   ["Structured Extraction", "/v1/extract/structured", "0.08"],
@@ -40,8 +41,8 @@ const EXPECTED_HUMAN = [
   ["Monitoring", 9, "monthly"],
 ];
 
-test("catalog contains exactly the eleven canonical paid capabilities", () => {
-  assert.equal(PAID_CAPABILITY_COUNT, 11);
+test("catalog contains exactly the twelve canonical paid capabilities", () => {
+  assert.equal(PAID_CAPABILITY_COUNT, 12);
   assert.equal(API_PRODUCTS.length, EXPECTED_API.length);
   const resolved = apiProducts();
   for (const [name, route, price] of EXPECTED_API) {

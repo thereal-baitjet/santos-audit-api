@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.18.0 — 2026-10-09 — AI Readiness Remediation
+
+### Added
+- **`POST /api/audit/remediate`** — $0.02 USDC via x402 (`REMEDIATE_PRICE_USDC`).
+  From a domain, a site description, the failed layers and optional endpoints,
+  returns a publish-ready llms.txt (discoverable/callable) and Organization
+  JSON-LD (understandable). Pure generation; the target is never fetched.
+- **Free with a signed private report:** include `report`, your signed
+  `/api/agent-readiness` report for the same domain, for 5 free uses per report.
+  Reports published with `public=1` never qualify; `/api/agent-readiness` now
+  marks a report as published before listing it.
+- Listed in `lib/products.js`, the capability manifest, OpenAPI, llms.txt and
+  the Bazaar catalog (twelve paid capabilities).
+
+### Fixed
+- `verifyReportSignature` rejects bodies nested past 64 levels or 200k nodes
+  instead of overflowing the stack; `/v1/verify` returned 500 for them.
+
 ## 2.17.0 — 2026-10-09 — Business-impact reports
 
 ### Added

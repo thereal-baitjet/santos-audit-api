@@ -42,7 +42,7 @@ current CDP Bazaar listing UI) for the resource URL.
 ## 2. x402scan / x402 ecosystem directory — **LIVE**
 
 - Site: https://www.x402scan.com (and the ecosystem list at https://www.x402.org/ecosystem)
-- Listing carries all 11 paid endpoints plus the public demo and discovery
+- Listing carries all 12 paid endpoints plus the public demo and discovery
   endpoints. Submitted with the canonical listing copy above: resource URL,
   description, category, and a signature from the receiving wallet
   (`0x3F8173bbb64ffAcA8793C9c46518Ba2369277E8B`) to prove ownership.
@@ -59,7 +59,7 @@ current CDP Bazaar listing UI) for the resource URL.
 
 ## 4. GitHub repository settings **[manual]**
 
-- Description: `x402 website intelligence API for AI agents: 11 machine-payable capabilities ($0.002–$0.50 USDC on Base) with no account or traditional API key.`
+- Description: `x402 website intelligence API for AI agents: 12 machine-payable capabilities ($0.002–$0.50 USDC on Base) with no account or traditional API key.`
 - Topics: `x402`, `ai-agents`, `website-audit`, `seo-api`, `accessibility`, `web-security`, `openapi`, `mcp-server`, `base`, `usdc`
 - Note: the repo is currently **private**; listings that link to it should
   either omit the repo link or the repo should be made public first.
