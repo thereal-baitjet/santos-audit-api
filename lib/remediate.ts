@@ -104,6 +104,15 @@ function escapeLinkText(text: string): string {
 }
 
 /**
+ * Escape free text for llms.txt prose. Backslash-escaping "[" "]" means no
+ * caller text can form a link (e.g. a javascript: URL), and "<" ">" means no
+ * raw HTML survives a Markdown renderer. Readers still see the literal text.
+ */
+function escapeProse(text: string): string {
+  return text.replace(/([\\[\]<>])/g, "\\$1");
+}
+
+/**
  * Serialise for embedding inside <script type="application/ld+json">.
  * "<" is escaped so a description containing "</script>" cannot close the tag;
  * ">" and "&" likewise so the HTML parser never sees markup. U+2028/2029 are
@@ -123,7 +132,8 @@ function jsonForScript(value: unknown): string {
 const HOSTNAME = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})$/;
 // RFC 3986 path characters plus "{}" for templated paths. Excludes "()[]<>",
 // whitespace, "?" and "#", so a path can never break the Markdown link grammar.
-const PATH = /^\/(?!\/)[A-Za-z0-9\-._~!$&'*+,;=:@%/{}]*$/;
+// "%" only as a complete percent-escape, so every emitted URL is well-formed.
+const PATH = /^\/(?!\/)(?:[A-Za-z0-9\-._~!$&'*+,;=:@/{}]|%[0-9A-Fa-f]{2})*$/;
 
 /** Accepts "example.com" or "https://example.com[/]"; rejects IPs, paths, credentials. */
 export function normalizeDomain(raw: string): Site {
@@ -260,7 +270,7 @@ export function parseRemediateRequest(body: unknown): { request: RemediateReques
  */
 export function generateLlmsText(domain: string, siteDescription: string, endpoints: readonly EndpointInput[]): string {
   const site = normalizeDomain(domain);
-  const summary = cleanText(siteDescription);
+  const summary = escapeProse(cleanText(siteDescription));
   const lines: string[] = [`# ${site.name}`, ""];
   if (summary) lines.push(`> ${summary}`, "");
   lines.push(`All URLs below are absolute; the canonical origin is ${site.origin}.`, "");
@@ -271,7 +281,7 @@ export function generateLlmsText(domain: string, siteDescription: string, endpoi
   if (callable.length) {
     lines.push("## API", "");
     for (const ep of callable) {
-      const note = cleanText(ep.desc);
+      const note = escapeProse(cleanText(ep.desc));
       const title = escapeLinkText(`${ep.method} ${ep.path}`);
       lines.push(`- [${title}](${site.origin}${ep.path})${note ? `: ${note}` : ""}`);
     }

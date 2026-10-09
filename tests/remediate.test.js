@@ -256,3 +256,30 @@ test("the agent-readiness route marks a report before listing it", async () => {
   assert.ok(mark > 0, "public listing must mark the report as published");
   assert.ok(mark < src.indexOf("upsertPublicReport({"), "mark must precede the listing so a failure cannot leave it unmarked");
 });
+
+// ── Gauntlet round 1 regressions ────────────────────────────────────────────
+
+const { verifyReportSignature } = await import("../lib/report-signing.js");
+
+test("a deeply nested report fails verification instead of overflowing the stack", () => {
+  const deep = JSON.parse("[".repeat(200000) + "]".repeat(200000));
+  assert.deepEqual(verifyReportSignature({ signature: "x", payload: deep }), { valid: false });
+  // Genuine reports stay verifiable.
+  assert.equal(verifyReportSignature(readinessReport()).valid, true);
+});
+
+test("caller prose cannot form links or raw HTML in llms.txt", () => {
+  const txt = generateLlmsText("acme.com", "Click [here](javascript:alert(1)) <img src=x onerror=alert(1)>", [
+    { path: "/a", method: "GET", desc: "see [x](javascript:void 0) <b>" },
+  ]);
+  assert.match(txt, /^> Click \\\[here\\\]\(javascript:alert\(1\)\) \\<img src=x onerror=alert\(1\)\\>$/m);
+  assert.match(txt, /: see \\\[x\\\]\(javascript:void 0\) \\<b\\>$/m);
+  // Only the generator's own links remain.
+  assert.deepEqual(txt.match(/(?<!\\)\]\(/g)?.length, 2);
+});
+
+test("endpoint paths accept only complete percent-escapes", () => {
+  assert.ok(parseRemediateRequest(valid({ existingEndpoints: [{ path: "/caf%C3%A9/{id}", method: "GET", desc: "" }] })));
+  rejects(valid({ existingEndpoints: [{ path: "/a%zz", method: "GET", desc: "" }] }), "existingEndpoints[0].path");
+  rejects(valid({ existingEndpoints: [{ path: "/a%2", method: "GET", desc: "" }] }), "existingEndpoints[0].path");
+});

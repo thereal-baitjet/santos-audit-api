@@ -14,11 +14,15 @@
 // they prove nothing about who paid.
 import { verifyReportSignature } from "./report-signing.js";
 import { wasReportPublished } from "./public-reports.js";
+import { limiterStatus } from "./demo-limit.js";
 import { RemediationError, normalizeDomain, type Site } from "./remediate.ts";
 
 /** Free remediations one paid report grants, across its whole lifetime. */
 export const REPORT_FREE_USES = 5;
-export const REPORT_ALLOWANCE_TTL_SECS = 365 * 24 * 60 * 60;
+// The allowance must outlive any realistic use of a report: when its claims
+// expire, the same report would quietly earn REPORT_FREE_USES more. Matches
+// the published-report mark TTL in lib/public-reports.js.
+export const REPORT_ALLOWANCE_TTL_SECS = 10 * 365 * 24 * 60 * 60;
 
 export interface ReportGrant {
   /** Stable identity for the allowance: the report's HMAC signature. */
@@ -65,6 +69,9 @@ export function checkReportForSite(report: unknown, site: Site): ReportGrant {
 export async function assertReportUnpublished(report: unknown): Promise<void> {
   let published: boolean;
   try {
+    // A degraded store answers "never marked" for every key, which would let
+    // a replaced published report through. Treat it as unverifiable.
+    if (limiterStatus().degraded) throw new Error("limiter storage is degraded");
     published = await wasReportPublished(report);
   } catch (e) {
     console.error("[remediate] published-report check failed:", (e as Error).message);
