@@ -18,6 +18,43 @@ function finding({ id, engine, category, severity, confidence = "high", status, 
   return { id, engine, category, severity, confidence, status, title, description, evidence, standards, recommendation };
 }
 
+// Why axe could not decide, per node. Without this a "needs review" finding is
+// just a count; with it, "91 on gradients, 47 behind pseudo-elements" tells the
+// reader where to look. Keys are axe-core check messageKeys (color-contrast).
+const INCOMPLETE_REASONS = {
+  bgImage: "text sits on a background image",
+  bgGradient: "text sits on a gradient background",
+  imgNode: "text sits inside or over an image element",
+  bgOverlap: "another element overlaps the text",
+  fgAlpha: "the text color is semi-transparent",
+  elmPartiallyObscured: "the text is partially covered by another element",
+  elmPartiallyObscuring: "the element partially covers other content",
+  outsideViewport: "the element was outside the viewport when tested",
+  equalRatio: "text and background resolve to the same color",
+  shortTextContent: "too little text to judge (e.g. a single glyph)",
+  nonBmp: "the text is icon or emoji characters",
+  pseudoContent: "a ::before/::after pseudo-element sits behind the text",
+  colorParse: "a color value could not be parsed",
+};
+
+function incompleteReasons(nodes) {
+  const tally = new Map();
+  for (const node of nodes ?? []) {
+    const check = [...(node.any ?? []), ...(node.all ?? []), ...(node.none ?? [])].find((c) => c.data?.messageKey || c.message);
+    const key = check?.data?.messageKey ?? check?.id ?? "unknown";
+    const entry = tally.get(key) ?? {
+      reason: key,
+      explanation: INCOMPLETE_REASONS[key] ?? check?.message?.slice(0, 160) ?? "axe gave no reason",
+      count: 0,
+      examples: [],
+    };
+    entry.count++;
+    if (entry.examples.length < 3 && node.target) entry.examples.push(node.target.join(" "));
+    tally.set(key, entry);
+  }
+  return [...tally.values()].sort((a, b) => b.count - a.count);
+}
+
 export function normalizeAxe(axeResults) {
   const findings = [];
   if (!axeResults || axeResults.error) return { findings, error: axeResults?.error };
@@ -39,21 +76,49 @@ export function normalizeAxe(axeResults) {
     }));
   }
   for (const inc of axeResults.incomplete ?? []) {
+    const count = inc.nodes?.length ?? 0;
+    const reasons = incompleteReasons(inc.nodes);
+    const top = reasons[0];
     findings.push(finding({
       id: `a11y.${inc.id}`,
       engine: "axe-core",
       category: "accessibility",
-      severity: AXE_SEVERITY[inc.impact] ?? "moderate",
+      // Undecided is not failed: "info" keeps these from reading as serious
+      // problems next to confirmed violations. axe's own impact is kept below.
+      severity: "info",
       confidence: "low",
       status: "needs_manual_review",
       title: inc.help,
-      description: `Automated analysis could not determine pass/fail: ${inc.description}`,
-      evidence: { affected_count: inc.nodes?.length ?? 0 },
+      description: `${count} element${count === 1 ? "" : "s"} need${count === 1 ? "s" : ""} manual review: automated analysis could not determine pass/fail, so these are not confirmed failures. ${inc.description}`,
+      evidence: {
+        needs_review_count: count,
+        affected_count: count, // kept for existing consumers; same as needs_review_count
+        axe_impact: inc.impact ?? null,
+        reasons,
+        nodes: (inc.nodes ?? []).slice(0, 5).map((n) => ({ selector: n.target?.join(" ") })),
+      },
       standards: (inc.tags ?? []).filter((t) => t.startsWith("wcag")),
-      recommendation: "Review manually; automated tooling could not decide this check.",
+      recommendation: top
+        ? `Review manually, starting with the most common reason: ${top.explanation} (${top.count} of ${count}; e.g. ${top.examples[0]}).`
+        : "Review manually; automated tooling could not decide this check.",
     }));
   }
   return { findings, passes: axeResults.passes?.length ?? 0 };
+}
+
+// Estimated savings in ms: the larger of overall and the LCP/FCP metric savings.
+function savingsMs(audit) {
+  const metric = audit.metricSavings ?? {};
+  const values = [audit.details?.overallSavingsMs, metric.LCP, metric.FCP].filter((v) => Number.isFinite(v));
+  return values.length ? Math.max(...values) : null;
+}
+
+function opportunitySeverity(audit) {
+  const ms = savingsMs(audit);
+  if (ms == null) return "minor";
+  if (ms >= 1000) return "serious";
+  if (ms >= 300) return "moderate";
+  return "minor";
 }
 
 export function normalizeLighthouse(lhr) {
@@ -70,18 +135,27 @@ export function normalizeLighthouse(lhr) {
     total_blocking_time_ms: metric("total-blocking-time"),
     speed_index_ms: metric("speed-index"),
   };
-  for (const [id, audit] of Object.entries(lhr.audits ?? {})) {
+  const audits = lhr.audits ?? {};
+  for (const [id, audit] of Object.entries(audits)) {
     const isOpportunity = audit.details?.type === "opportunity" || audit.scoreDisplayMode === "metricSavings";
+    // Lighthouse 12 ships each check twice, as a classic audit and as a newer
+    // "-insight"; when both flag, keep the classic one so a finding is not
+    // listed twice ("Legacy JavaScript" and "Legacy JavaScript insight").
+    const twin = id.endsWith("-insight") ? audits[id.slice(0, -"-insight".length)] : null;
+    if (twin && twin.score != null && twin.score < 0.9) continue;
     if (audit.score != null && audit.score < 0.9 && isOpportunity) {
       findings.push(finding({
         id: `perf.${id}`,
         engine: "lighthouse",
         category: "performance",
-        severity: audit.score < 0.5 ? "serious" : "moderate",
-        status: "fail",
+        // Severity follows the estimated time saved, not the audit's own score:
+        // metricSavings audits score 0 or 0.5 even for a 40 ms win, which put
+        // "serious" failures on a page with a Performance score of 100.
+        severity: opportunitySeverity(audit),
+        status: "warning",
         title: audit.title,
         description: audit.description?.replace(/\[Learn[^\]]*\]\([^)]*\)\.?/g, "").trim(),
-        evidence: { score: audit.score, display_value: audit.displayValue, savings_ms: audit.details?.overallSavingsMs },
+        evidence: { score: audit.score, display_value: audit.displayValue, savings_ms: savingsMs(audit) },
         recommendation: audit.title,
       }));
     }

@@ -169,6 +169,12 @@ export async function runDeepAudit(request, heartbeat = async () => {}) {
     moduleStatus["ai_summary"] = "not_requested";
   }
 
+  const websiteIntelligence = websiteIntelligenceSummary({
+    scores,
+    agentReadiness,
+    agentReadinessStatus: moduleStatus.agent_readiness,
+  });
+
   const report = {
     schema_version: REPORT_SCHEMA_VERSION,
     profile: "deep-page",
@@ -182,8 +188,8 @@ export async function runDeepAudit(request, heartbeat = async () => {}) {
     engines,
     module_status: moduleStatus,
     scores,
-    website_intelligence_score: websiteIntelligenceSummary({ scores, agentReadiness }).score,
-    website_intelligence: websiteIntelligenceSummary({ scores, agentReadiness }),
+    website_intelligence_score: websiteIntelligence.score,
+    website_intelligence: websiteIntelligence,
     scoring_method: SCORING_METHOD,
     metrics,
     agent_readiness: agentReadiness,

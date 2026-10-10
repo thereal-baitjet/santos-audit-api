@@ -41,7 +41,12 @@ const websiteIntelligenceSchema = {
         trustworthy: { type: ["integer", "null"], minimum: 0, maximum: 100 },
       },
     },
-    applicability: { type: "object", properties: { callable: { type: "string", enum: ["tested", "not_applicable"] } } },
+    applicability: { type: "object", properties: { callable: { type: "string", enum: ["tested", "not_applicable", "unknown"], description: "unknown when the Agent Readiness module failed." } } },
+    incomplete: {
+      type: "object",
+      description: "Present when a required module failed; score and dimensions are then null rather than computed from partial evidence.",
+      properties: { missing_modules: { type: "array", items: { type: "string" } }, reason: { type: "string" } },
+    },
     coverage: {
       type: "object",
       properties: {

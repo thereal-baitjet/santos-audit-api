@@ -910,7 +910,9 @@ html {
 }
 .dimension-card-top > span:last-child {
   font: 10px var(--mono);
-  color: #777c7b;
+  /* --muted, not #777c7b: the old grey measured 4.12:1 on the card gradient's
+     lightest stop, under the 4.5:1 WCAG AA minimum for small text. */
+  color: var(--muted);
 }
 .s-dimension-card h3 {
   font-size: 18px;
@@ -1056,7 +1058,8 @@ html {
 }
 .index-rank-number {
   font: 8px var(--mono);
-  color: #7f847a;
+  /* --muted, not #7f847a, which measured 4.29:1 on the row gradient (AA: 4.5). */
+  color: var(--muted);
 }
 .s-index-rankings strong {
   margin-left: auto;
