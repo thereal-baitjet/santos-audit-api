@@ -133,6 +133,15 @@ const errorSchema = {
   },
 };
 
+const publicParam = {
+  name: "public",
+  in: "query",
+  required: false,
+  schema: { type: "string", enum: ["1", "true", "yes", "on", "0", "false"] },
+  description:
+    "Opt in to the public leaderboard: the signed report replaces this domain's listing at https://www.santosautomation.com/reports/{domain}. Off by default. The outcome is reported in the X-Santos-Public-Listing response header (not-requested | listed; url=… | failed); the signed body is unchanged. A published Agent Readiness report no longer unlocks free remediation.",
+};
+
 const urlParam = {
   name: "url",
   in: "query",
@@ -178,7 +187,7 @@ const document = {
         tags: ["Agent Readiness"],
         summary: `Assess public agent-facing interfaces ($${AGENT_READINESS_PRICE} USDC via x402)`,
         description: `Requires $${AGENT_READINESS_PRICE} USDC through x402 v2 and settles only after a successful audit response. Classifies the target before scoring and evaluates only applicable surfaces: discovery/docs, structured identity, APIs, MCP, operational trust, and machine commerce. For paid surfaces it normalizes public pricing claims and compares only claims scoped to the same paid resource against an unsigned x402 challenge. The quick pass performs at most eight additional bounded public requests. It never authenticates, creates accounts, submits forms, signs target payments, transfers funds to the target, or invokes advertised MCP/business tools. llms.txt is treated as a proposal and the MCP Registry as preview infrastructure.`,
-        parameters: [urlParam, { name: "depth", in: "query", required: false, schema: { type: "string", enum: ["quick"], default: "quick" } }],
+        parameters: [urlParam, { name: "depth", in: "query", required: false, schema: { type: "string", enum: ["quick"], default: "quick" } }, publicParam],
         responses: {
           200: { description: "Versioned Agent Readiness result with additive Website Intelligence presentation fields.", content: { "application/json": { schema: { $ref: "#/components/schemas/AgentReadinessResult" } } } },
           400: { description: "Invalid or blocked target URL.", content: { "application/json": { schema: errorSchema } } },
@@ -195,7 +204,7 @@ const document = {
         summary: `Run a Quick Intelligence Audit ($${QUICK_PRICE} USDC via x402)`,
         description:
           `Requires x402 v2 payment. An unpaid request returns HTTP 402 with machine-readable terms in the base64 \`PAYMENT-REQUIRED\` response header (\`accepts[0]\`: $${QUICK_PRICE} USDC as amount "${QUICK_ATOMIC}", network eip155:8453, scheme \`exact\`), including an x402 Bazaar discovery extension with input/output JSON Schemas. Sign an EIP-3009 transferWithAuthorization for the quoted amount and retry with the \`PAYMENT-SIGNATURE\` request header. Any x402 v2 client (e.g. @x402/fetch) automates this. Payment settles only after a successful (2xx) response — failed audits cost nothing. Rejected payments and audit failures return structured errors.`,
-        parameters: [urlParam],
+        parameters: [urlParam, publicParam],
         responses: {
           200: {
             description: "Audit complete; payment settled. The PAYMENT-RESPONSE header carries a base64 on-chain receipt (transaction hash, network, payer).",
