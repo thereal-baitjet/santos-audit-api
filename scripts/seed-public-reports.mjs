@@ -3,6 +3,8 @@
 //
 //   node scripts/seed-public-reports.mjs audit          # fetch + score, write seed-results.jsonl
 //   node scripts/seed-public-reports.mjs insert <pat>   # upsert results into Supabase via Mgmt API
+//   SUPABASE_ACCESS_TOKEN=… node scripts/seed-public-reports.mjs insert
+//       (same, token from env so it never lands in argv or shell history)
 //
 // The audit phase uses the same auditSite engine as GET /api/audit (operator
 // action — no x402 payment, our own infrastructure). Failures are skipped,
@@ -111,10 +113,11 @@ async function runInsert(pat) {
   console.log("Done. Check https://www.santosautomation.com/reports");
 }
 
-const [phase, pat] = process.argv.slice(2);
+const [phase, argPat] = process.argv.slice(2);
+const pat = argPat ?? process.env.SUPABASE_ACCESS_TOKEN;
 if (phase === "audit") await runAudit();
 else if (phase === "insert" && pat) await runInsert(pat);
 else {
-  console.error("usage: node scripts/seed-public-reports.mjs audit | insert <supabase-pat>");
+  console.error("usage: node scripts/seed-public-reports.mjs audit | insert <supabase-pat>  (or SUPABASE_ACCESS_TOKEN in env)");
   process.exit(1);
 }
