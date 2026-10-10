@@ -18,6 +18,43 @@ function finding({ id, engine, category, severity, confidence = "high", status, 
   return { id, engine, category, severity, confidence, status, title, description, evidence, standards, recommendation };
 }
 
+// Why axe could not decide, per node. Without this a "needs review" finding is
+// just a count; with it, "91 on gradients, 47 behind pseudo-elements" tells the
+// reader where to look. Keys are axe-core check messageKeys (color-contrast).
+const INCOMPLETE_REASONS = {
+  bgImage: "text sits on a background image",
+  bgGradient: "text sits on a gradient background",
+  imgNode: "text sits inside or over an image element",
+  bgOverlap: "another element overlaps the text",
+  fgAlpha: "the text color is semi-transparent",
+  elmPartiallyObscured: "the text is partially covered by another element",
+  elmPartiallyObscuring: "the element partially covers other content",
+  outsideViewport: "the element was outside the viewport when tested",
+  equalRatio: "text and background resolve to the same color",
+  shortTextContent: "too little text to judge (e.g. a single glyph)",
+  nonBmp: "the text is icon or emoji characters",
+  pseudoContent: "a ::before/::after pseudo-element sits behind the text",
+  colorParse: "a color value could not be parsed",
+};
+
+function incompleteReasons(nodes) {
+  const tally = new Map();
+  for (const node of nodes ?? []) {
+    const check = [...(node.any ?? []), ...(node.all ?? []), ...(node.none ?? [])].find((c) => c.data?.messageKey || c.message);
+    const key = check?.data?.messageKey ?? check?.id ?? "unknown";
+    const entry = tally.get(key) ?? {
+      reason: key,
+      explanation: INCOMPLETE_REASONS[key] ?? check?.message?.slice(0, 160) ?? "axe gave no reason",
+      count: 0,
+      examples: [],
+    };
+    entry.count++;
+    if (entry.examples.length < 3 && node.target) entry.examples.push(node.target.join(" "));
+    tally.set(key, entry);
+  }
+  return [...tally.values()].sort((a, b) => b.count - a.count);
+}
+
 export function normalizeAxe(axeResults) {
   const findings = [];
   if (!axeResults || axeResults.error) return { findings, error: axeResults?.error };
@@ -39,18 +76,31 @@ export function normalizeAxe(axeResults) {
     }));
   }
   for (const inc of axeResults.incomplete ?? []) {
+    const count = inc.nodes?.length ?? 0;
+    const reasons = incompleteReasons(inc.nodes);
+    const top = reasons[0];
     findings.push(finding({
       id: `a11y.${inc.id}`,
       engine: "axe-core",
       category: "accessibility",
-      severity: AXE_SEVERITY[inc.impact] ?? "moderate",
+      // Undecided is not failed: "info" keeps these from reading as serious
+      // problems next to confirmed violations. axe's own impact is kept below.
+      severity: "info",
       confidence: "low",
       status: "needs_manual_review",
       title: inc.help,
-      description: `Automated analysis could not determine pass/fail: ${inc.description}`,
-      evidence: { affected_count: inc.nodes?.length ?? 0 },
+      description: `${count} element${count === 1 ? "" : "s"} need${count === 1 ? "s" : ""} manual review: automated analysis could not determine pass/fail, so these are not confirmed failures. ${inc.description}`,
+      evidence: {
+        needs_review_count: count,
+        affected_count: count, // kept for existing consumers; same as needs_review_count
+        axe_impact: inc.impact ?? null,
+        reasons,
+        nodes: (inc.nodes ?? []).slice(0, 5).map((n) => ({ selector: n.target?.join(" ") })),
+      },
       standards: (inc.tags ?? []).filter((t) => t.startsWith("wcag")),
-      recommendation: "Review manually; automated tooling could not decide this check.",
+      recommendation: top
+        ? `Review manually, starting with the most common reason: ${top.explanation} (${top.count} of ${count}; e.g. ${top.examples[0]}).`
+        : "Review manually; automated tooling could not decide this check.",
     }));
   }
   return { findings, passes: axeResults.passes?.length ?? 0 };
