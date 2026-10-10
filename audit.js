@@ -13,7 +13,7 @@ export async function auditSite(rawUrl) {
 
   // ---- signal collection ----
   const imgs = $("img");
-  const imgsMissingAlt = imgs.filter((_, el) => !$(el).attr("alt")?.trim()).length;
+  const { missing: imgsMissingAlt, decorative: imgsDecorative } = imageAltStats($);
   const title = $("title").text().trim();
   const metaDesc = $('meta[name="description"]').attr("content")?.trim() ?? "";
   const h1Count = $("h1").length;
@@ -41,7 +41,11 @@ export async function auditSite(rawUrl) {
       rule(ogTags >= 3, `${ogTags} OpenGraph tags`, "Sparse OpenGraph tags — link previews will look bare"),
     ],
     accessibility: [
-      rule(imgsMissingAlt === 0, `All ${imgs.length} images have alt text`, `${imgsMissingAlt}/${imgs.length} images missing alt text`),
+      rule(
+        imgsMissingAlt === 0,
+        imgsDecorative ? `All ${imgs.length} images have alt text (${imgsDecorative} marked decorative)` : `All ${imgs.length} images have alt text`,
+        `${imgsMissingAlt}/${imgs.length} images missing alt text`
+      ),
       rule(lang, "html[lang] set", "Missing lang attribute on <html>"),
       rule(viewport, "Mobile viewport meta", "Missing viewport meta — mobile rendering will break"),
     ],
@@ -88,6 +92,25 @@ export async function auditSite(rawUrl) {
 }
 
 const rule = (pass, ok, fix) => ({ pass, detail: pass ? ok : fix, ...(pass ? {} : { fix }) });
+
+// Missing means no alt attribute at all. alt="" is how WCAG marks a decorative
+// image (technique H67) and is correct, as is hiding the image from assistive
+// tech (role="presentation"/"none", aria-hidden="true"). Counting either as
+// "missing" failed sites for doing it right: santosautomation.com's three
+// decorative logos read as "3/4 images missing alt text" (2026-10-10).
+export function imageAltStats($) {
+  let missing = 0;
+  let decorative = 0;
+  $("img").each((_, el) => {
+    const $el = $(el);
+    const alt = $el.attr("alt");
+    const role = ($el.attr("role") ?? "").trim().toLowerCase();
+    const hidden = role === "presentation" || role === "none" || $el.attr("aria-hidden") === "true";
+    if (alt === undefined && !hidden) missing++;
+    else if (hidden || alt.trim() === "") decorative++;
+  });
+  return { missing, decorative };
+}
 
 export function quickOverallScore(scores) {
   const historical = ["performance", "seo", "accessibility", "security"];
