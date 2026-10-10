@@ -129,10 +129,10 @@ test("refactored source surfaces carry no hardcoded price literals", () => {
 });
 
 test("index statistics claims match the canonical index stats", () => {
-  // Derived from scripts/seed-results.jsonl (307 domains, avg 59.2, median 58).
+  // Derived from scripts/seed-results.jsonl (October 2026: 309 domains, avg 62.5, median 62).
   assert.equal(INDEX_STATS.auditedSiteCountLabel, "300+");
-  assert.equal(INDEX_STATS.averageScore, 59);
-  assert.equal(INDEX_STATS.medianScore, 58);
+  assert.equal(INDEX_STATS.averageScore, 63);
+  assert.equal(INDEX_STATS.medianScore, 62);
   const marketing = read("lib/marketing-content.js");
   assert.ok(!/median\s+(?:of\s+)?57\b/.test(marketing), "marketing content still claims the stale median of 57");
   assert.ok(!/google\.com[^.]*\b37\b/.test(marketing), "marketing content still claims the stale google.com score of 37");

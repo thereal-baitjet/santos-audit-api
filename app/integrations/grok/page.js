@@ -2,6 +2,7 @@ import { PageShell } from "../../components/SiteChrome.js";
 import StructuredData from "../../components/StructuredData.js";
 import CopyButton from "../../ci/CopyButton.js";
 import { apiProduct } from "../../../lib/products.js";
+import { INDEX_STATS } from "../../../lib/index-stats.js";
 
 const API = "https://api.santosautomation.com";
 const SITE = "https://www.santosautomation.com";
@@ -327,9 +328,9 @@ export default function GrokIntegrationPage() {
             <article className="feature-card">
               <h3>We hold ourselves to it</h3>
               <p>
-                Santos scores <strong>100/100</strong> on its own Agent Readiness audit — first of{" "}
-                <a href="/reports">311 public reports</a>, against an index average of 59.6. The
-                report is public, signed, and re-runnable.
+                Santos scores <strong>100/100</strong> on its own Agent Readiness audit — first on the{" "}
+                <a href="/reports">public leaderboard</a>, against a Santos Index average of{" "}
+                {INDEX_STATS.averageScore}. The report is public, signed, and re-runnable.
               </p>
             </article>
           </div>
