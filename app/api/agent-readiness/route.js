@@ -12,6 +12,7 @@ import { getAgentReadinessPriceUsdc } from "../../../lib/agent-readiness/product
 import { websiteIntelligenceSummary } from "../../../lib/website-intelligence.js";
 import { signReport } from "../../../lib/report-signing.js";
 import { markReportPublished, upsertPublicReport } from "../../../lib/public-reports.js";
+import { applyPublicListingHeader, publicListingHeader, wantsPublicListing } from "../../../lib/public-listing.js";
 import { timedStage, TimingTracker } from "../../../lib/timing.js";
 
 const PRICE = getAgentReadinessPriceUsdc();
@@ -25,7 +26,8 @@ async function handler(req) {
   try {
     const url = req.nextUrl.searchParams.get("url") ?? "";
     const depth = req.nextUrl.searchParams.get("depth") ?? "quick";
-    const isPublic = req.nextUrl.searchParams.get("public") === "1";
+    const isPublic = wantsPublicListing(req.nextUrl.searchParams);
+    let listing = "not-requested";
 
     // Target validation runs AFTER the paywall so unpaid discovery probes get
     // the 402 challenge; a paid-but-invalid request 400s here, which does not
@@ -61,12 +63,15 @@ async function handler(req) {
             source: "agent-readiness-paid",
           })
         );
+        listing = "listed";
       } catch (e) {
         console.warn("public report upsert failed:", e.message);
+        listing = "failed";
       }
     }
 
     const response = NextResponse.json(signed, { headers: CORS });
+    applyPublicListingHeader(response, publicListingHeader(listing, result.target?.final_url ?? url));
     timing.addHeaders(response);
     return response;
   } catch (error) {
@@ -142,7 +147,7 @@ async function handleGET(req) {
   timing.end('x402');
 
   response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Response-Time, X-Stage-Timings");
+  response.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Response-Time, X-Stage-Timings, X-Santos-Public-Listing");
 
   // Cache control: successful audits can be cached for 1 hour at edge
   // Payment challenges must never be cached

@@ -11,11 +11,13 @@ import { bazaarResourceMeta } from "../../../lib/bazaar-catalog.js";
 import { recordEvent } from "../../../lib/analytics-store.js";
 import { signReport } from "../../../lib/report-signing.js";
 import { upsertPublicReport } from "../../../lib/public-reports.js";
+import { applyPublicListingHeader, publicListingHeader, wantsPublicListing } from "../../../lib/public-listing.js";
 import { timedStage, TimingTracker } from "../../../lib/timing.js";
 
 async function handler(req) {
   const url = req.nextUrl.searchParams.get("url") ?? "";
-  const isPublic = req.nextUrl.searchParams.get("public") === "1";
+  const isPublic = wantsPublicListing(req.nextUrl.searchParams);
+  let listing = "not-requested";
   const timing = req.timing;
 
   try {
@@ -37,12 +39,15 @@ async function handler(req) {
             source: "quick-paid",
           })
         );
+        listing = "listed";
       } catch (e) {
         console.warn("public report upsert failed:", e.message);
+        listing = "failed";
       }
     }
 
     const response = NextResponse.json(signed, { headers: CORS });
+    applyPublicListingHeader(response, publicListingHeader(listing, report.url));
     timing.addHeaders(response);
     return response;
   } catch (e) {
@@ -116,7 +121,7 @@ export async function OPTIONS() {
       ...CORS,
       "Access-Control-Allow-Methods": "GET, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, PAYMENT-SIGNATURE",
-      "Access-Control-Expose-Headers": "PAYMENT-REQUIRED, PAYMENT-RESPONSE",
+      "Access-Control-Expose-Headers": "PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Santos-Public-Listing",
       "Access-Control-Max-Age": "86400",
     },
   });
@@ -134,7 +139,7 @@ async function handleGET(req) {
   // Browser agents must be able to read the challenge and receipt headers,
   // and payment exchanges must never be cached.
   res.headers.set("Access-Control-Allow-Origin", "*");
-  res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Response-Time, X-Stage-Timings");
+  res.headers.set("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Response-Time, X-Stage-Timings, X-Santos-Public-Listing");
 
   // Cache control: successful audits can be cached for 1 hour at edge
   // Payment challenges must never be cached

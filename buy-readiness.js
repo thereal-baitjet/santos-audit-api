@@ -1,5 +1,7 @@
 // Buy one Agent Readiness audit ($0.075 USDC via x402 v2) against production.
 //   BUYER_PRIVATE_KEY=0x... node buy-readiness.js https://example.com
+//   PUBLIC=1 … also lists the signed report on the public leaderboard
+//   (/reports/<domain>), replacing that domain's current listing.
 import { privateKeyToAccount } from "viem/accounts";
 import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm";
@@ -15,7 +17,8 @@ const fetchWithPay = wrapFetchWithPaymentFromConfig(fetch, {
 });
 
 console.log("Agent wallet:", account.address);
-const res = await fetchWithPay(`${BASE}/api/agent-readiness?url=${encodeURIComponent(target)}&depth=quick`);
+const listPublicly = process.env.PUBLIC === "1";
+const res = await fetchWithPay(`${BASE}/api/agent-readiness?url=${encodeURIComponent(target)}&depth=quick${listPublicly ? "&public=1" : ""}`);
 const data = await res.json();
 console.log("Status:", res.status);
 console.log(JSON.stringify(data, null, 2).slice(0, 2000));
