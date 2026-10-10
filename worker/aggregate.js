@@ -106,6 +106,21 @@ export function normalizeAxe(axeResults) {
   return { findings, passes: axeResults.passes?.length ?? 0 };
 }
 
+// Estimated savings in ms: the larger of overall and the LCP/FCP metric savings.
+function savingsMs(audit) {
+  const metric = audit.metricSavings ?? {};
+  const values = [audit.details?.overallSavingsMs, metric.LCP, metric.FCP].filter((v) => Number.isFinite(v));
+  return values.length ? Math.max(...values) : null;
+}
+
+function opportunitySeverity(audit) {
+  const ms = savingsMs(audit);
+  if (ms == null) return "minor";
+  if (ms >= 1000) return "serious";
+  if (ms >= 300) return "moderate";
+  return "minor";
+}
+
 export function normalizeLighthouse(lhr) {
   const findings = [];
   if (!lhr) return { findings, scores: {}, metrics: {} };
@@ -120,18 +135,27 @@ export function normalizeLighthouse(lhr) {
     total_blocking_time_ms: metric("total-blocking-time"),
     speed_index_ms: metric("speed-index"),
   };
-  for (const [id, audit] of Object.entries(lhr.audits ?? {})) {
+  const audits = lhr.audits ?? {};
+  for (const [id, audit] of Object.entries(audits)) {
     const isOpportunity = audit.details?.type === "opportunity" || audit.scoreDisplayMode === "metricSavings";
+    // Lighthouse 12 ships each check twice, as a classic audit and as a newer
+    // "-insight"; when both flag, keep the classic one so a finding is not
+    // listed twice ("Legacy JavaScript" and "Legacy JavaScript insight").
+    const twin = id.endsWith("-insight") ? audits[id.slice(0, -"-insight".length)] : null;
+    if (twin && twin.score != null && twin.score < 0.9) continue;
     if (audit.score != null && audit.score < 0.9 && isOpportunity) {
       findings.push(finding({
         id: `perf.${id}`,
         engine: "lighthouse",
         category: "performance",
-        severity: audit.score < 0.5 ? "serious" : "moderate",
-        status: "fail",
+        // Severity follows the estimated time saved, not the audit's own score:
+        // metricSavings audits score 0 or 0.5 even for a 40 ms win, which put
+        // "serious" failures on a page with a Performance score of 100.
+        severity: opportunitySeverity(audit),
+        status: "warning",
         title: audit.title,
         description: audit.description?.replace(/\[Learn[^\]]*\]\([^)]*\)\.?/g, "").trim(),
-        evidence: { score: audit.score, display_value: audit.displayValue, savings_ms: audit.details?.overallSavingsMs },
+        evidence: { score: audit.score, display_value: audit.displayValue, savings_ms: savingsMs(audit) },
         recommendation: audit.title,
       }));
     }
