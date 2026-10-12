@@ -28,6 +28,7 @@ export default async function sitemap() {
     "/changelog",
     ...Object.keys(LEARN_ARTICLES).map((slug) => `/learn/${slug}`),
     "/terms",
+    "/santos-recorder/privacy",
   ];
   const entries = paths.map((path) => ({
     url: `${SITE_URL}${path}`,
